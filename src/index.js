@@ -17,7 +17,7 @@ const {
   parseServerFileKey: process.env.PARSE_SERVER_FILE_KEY,
   parseServerDatabaseUri: process.env.PARSE_SERVER_DATABASE_URI,
   startParseDashboard: process.env.START_PARSE_DASHBOARD,
-  parseDashboardAuthentication: process.env.START_PARSE_DASHBOARD_AUTHENTICATION,
+  parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
 });
 
 server.listen(serverPort, () => {
