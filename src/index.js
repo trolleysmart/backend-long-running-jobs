@@ -7,6 +7,7 @@ const {
   parseServerUrl,
   parseServerApplicationId,
   parseServerMasterKey,
+  parseServerClientKey,
   parseServerFileKey,
   parseServerDatabaseUri,
   parseServerDashboardApplicationName,
@@ -15,6 +16,7 @@ const {
   serverPort: process.env.PORT,
   parseServerApplicationId: process.env.PARSE_SERVER_APPLICATION_ID,
   parseServerMasterKey: process.env.PARSE_SERVER_MASTER_KEY,
+  parseServerClientKey: process.env.PARSE_SERVER_CLIENT_KEY,
   parseServerFileKey: process.env.PARSE_SERVER_FILE_KEY,
   parseServerDatabaseUri: process.env.PARSE_SERVER_DATABASE_URI,
   startParseDashboard: process.env.START_PARSE_DASHBOARD,
@@ -29,6 +31,7 @@ server.listen(serverPort, () => {
   console.log('Parse Server url: ', parseServerUrl);
   console.log('Parse Server Application Id: ', parseServerApplicationId);
   console.log('Parse Server Master Key: ', parseServerMasterKey);
+  console.log('Parse Server Client Key: ', parseServerClientKey);
   console.log('Parse Server File Key: ', parseServerFileKey);
   console.log('Parse Server Database Uri: ', parseServerDatabaseUri);
   console.log('Parse Server Dashboard Application Name: ', parseServerDashboardApplicationName);
