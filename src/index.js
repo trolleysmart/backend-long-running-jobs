@@ -1,5 +1,6 @@
+import path from 'path';
 import backend from 'micro-business-parse-server-backend';
-
+ 
 const {
   server,
   serverHost,
@@ -24,6 +25,7 @@ const {
   startParseDashboard: process.env.START_PARSE_DASHBOARD,
   parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
+  parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
 server.listen(serverPort, () => {
