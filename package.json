@@ -18,7 +18,7 @@
     "babel-cli": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
     "micro-business-parse-server-backend": "^0.1.17",
-    "store-crawler": "^0.1.17",
+    "store-crawler": "^0.1.18",
     "undefined": "^0.1.0"
   },
   "devDependencies": {
