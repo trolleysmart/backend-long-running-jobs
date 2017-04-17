@@ -1,6 +1,6 @@
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
- 
+
 const {
   server,
   serverHost,

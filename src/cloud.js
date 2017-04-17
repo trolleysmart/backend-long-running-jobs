@@ -1,1 +1,1 @@
-import StoreCrawler from 'store-crawler';
+import 'store-crawler';
