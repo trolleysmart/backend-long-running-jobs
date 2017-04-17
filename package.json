@@ -6,7 +6,9 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "lint": "eslint --ext .jsx --ext .js src",
-    "fixlint": "eslint --fix --ext .jsx --ext .js src"
+    "fixlint": "eslint --fix --ext .jsx --ext .js src",
+    "test": "jest",
+    "test:watch": "npm test -- --watch"
   },
   "repository": {
     "type": "git",
@@ -16,18 +18,18 @@
   "homepage": "https://bitbucket.org/microbusiness/smart-grocery-backend#readme",
   "dependencies": {
     "micro-business-parse-server-backend": "^0.1.17",
-    "smart-grocery-parse-server-common": "^0.1.11",
-    "store-crawler": "^0.1.39"
+    "smart-grocery-parse-server-common": "^0.1.14",
+    "store-crawler": "^0.1.41"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.1.1",
+    "babel-eslint": "^7.2.2",
     "babel-preset-es2015": "^6.24.1",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
-    "eslint-plugin-react": "^6.9.0",
+    "eslint-plugin-react": "^6.10.3",
     "jest": "^19.0.2",
     "uuid": "^3.0.1"
   }
