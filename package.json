@@ -18,8 +18,8 @@
   "homepage": "https://bitbucket.org/microbusiness/smart-grocery-backend#readme",
   "dependencies": {
     "micro-business-parse-server-backend": "^0.1.17",
-    "smart-grocery-parse-server-common": "^0.1.14",
-    "store-crawler": "^0.1.41"
+    "smart-grocery-parse-server-common": "^0.1.18",
+    "store-crawler": "^0.1.45"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
