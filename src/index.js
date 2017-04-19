@@ -28,6 +28,8 @@ const {
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
+server.use('/exit', (req, res) => process.exit());
+
 server.listen(serverPort, () => {
   console.log('Smart Grocery backend started.');
   console.log('Server host: ', serverHost);
