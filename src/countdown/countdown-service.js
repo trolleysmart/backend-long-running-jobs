@@ -1,11 +1,13 @@
 import Immutable, {
   List,
+  Map,
 } from 'immutable';
 import {
   ParseWrapperService,
 } from 'micro-business-parse-server-common';
 import {
   CrawlService,
+  MasterProductService,
 } from 'smart-grocery-parse-server-common';
 
 class CountdownService {
@@ -61,14 +63,22 @@ class CountdownService {
 
           self.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
 
-          return CrawlService.getResultSets(results[1].get('id'));
+          return new Promise((resolve, reject) => {
+            let highLevelProductCategories;
+            const result = CrawlService.getResultSets(results[1].get('id'));
+
+            result.eventEmitter.on('newResultSets', (resultSets) => {
+              highLevelProductCategories = resultSets.get('highLevelProductCategories');
+            });
+
+            result.promise.then(() => resolve(highLevelProductCategories))
+              .catch(error => reject(error));
+          });
         })
-        .then((resultSets) => {
+        .then((highLevelProductCategories) => {
           self.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
 
-          const newConfig = currentConfig.set('productCategories', resultSets.first()
-              .get('highLevelProductCategories'))
-            .toJS();
+          const newConfig = currentConfig.set('productCategories', highLevelProductCategories.toJS());
 
           self.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
@@ -86,9 +96,9 @@ class CountdownService {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
       CrawlService.getMostRecentCrawlSessionInfo('Countdown Products')
-        .then(sessionInfo => new Promise((resolve, reject) => {
+        .then((sessionInfo) => {
           const sessionId = sessionInfo.get('id');
-          const promises = new List();
+          let promises = new List();
 
           self.logInfo(finalConfig, () =>
             `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
@@ -96,14 +106,52 @@ class CountdownService {
           const result = CrawlService.getResultSets(sessionId);
 
           result.eventEmitter.on('newResultSets', (resultSets) => {
-            self.logInfo(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+            self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+
+            const products = resultSets.get('products')
+              .filterNot(_ => _.get('description')
+                .trim()
+                .length === 0);
+
+            if (products.isEmpty()) {
+              self.logVerbose(finalConfig, () => 'No new product to save.');
+
+              return;
+            }
+
+            self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
+
+            const promise =
+              Promise.all(products.map(product => MasterProductService.exists(product))
+                .toArray())
+              .then((results) => {
+                self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
+
+                const indexes = Immutable.fromJS([...Array(products.size)
+                  .keys(),
+                ]);
+
+                const productsWithIndexes = products.zipWith((product, index) => Map({
+                  product,
+                  index,
+                }), indexes);
+
+                const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
+                  .map(_ => _.get('product'));
+
+                if (!newProducts.isEmpty()) {
+                  self.logInfo(finalConfig, () => 'Saving new products...');
+                }
+
+                return Promise.all(newProducts.map(newProduct => MasterProductService.create(newProduct))
+                  .toArray());
+              });
+
+            promises = promises.push(promise);
           });
 
-          return result.promise.then(() => Promise.all(promises.toArray())
-              .then(() => resolve())
-              .catch(error => reject(error)))
-            .catch(error => reject(error));
-        }));
+          return result.promise.then(() => Promise.all(promises.toArray()));
+        });
     };
 
     return config ? syncToMasterProductListInternal(config) : CountdownService.getConfig()
