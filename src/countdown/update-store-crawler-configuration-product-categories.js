@@ -1,4 +1,6 @@
-import CountdownService from './countdown-service';
+import {
+  CountdownService,
+} from './countdown-service';
 
 const jobName = 'Update Store Crawler Countdown Configuration - Product Categories';
 
@@ -8,7 +10,13 @@ Parse.Cloud.job(jobName, (request, status) => { // eslint-disable-line no-undef
   log.info(`The job ${jobName} has started.`);
   status.message('The job has started.');
 
-  CountdownService.updateStoreCralwerProductCategoriesConfiguration()
+  const service = new CountdownService({
+    logVerboseFunc: message => log.info(message),
+    logInfoFunc: message => log.info(message),
+    logErrorFunc: message => log.error(message),
+  });
+
+  service.updateStoreCralwerProductCategoriesConfiguration()
     .then(() => {
       log.info(`The job ${jobName} completed successfully.`);
       status.success('Job completed successfully.');
