@@ -28,8 +28,9 @@ const {
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-// TODO: 20/04/2017 - Morteza: Following line should be removed in production code
-server.use('/exit', () => process.exit());
+if (process.env.NODE_ENV !== 'production') {
+  server.use('/exit', () => process.exit());
+}
 
 server.listen(serverPort, () => {
   console.log('Smart Grocery backend started.');
