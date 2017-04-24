@@ -6,7 +6,9 @@ import {
   ParseWrapperService,
 } from 'micro-business-parse-server-common';
 import {
-  CrawlService,
+  CrawlResultService,
+  CrawlSessionService,
+  StoreCrawlerConfigurationService,
   MasterProductService,
 } from 'smart-grocery-parse-server-common';
 
@@ -51,38 +53,40 @@ class CountdownService {
       self.logInfo(finalConfig, () =>
         'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
 
-      return Promise.all([CrawlService.getStoreCrawlerConfig('Countdown'),
-        CrawlService.getMostRecentCrawlSessionInfo('Countdown High Level Product Categories'),
+      return Promise.all([StoreCrawlerConfigurationService.search(Map({
+        key: 'Countdown',
+        latest: true,
+      })),
+        CrawlSessionService.search(Map({
+          sessionKey: 'Countdown High Level Product Categories',
+          latest: true,
+        })),
       ])
         .then((results) => {
           self.logInfo(finalConfig, () =>
             'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.',
           ); // eslint-disable-line max-len
 
-          currentConfig = results[0];
+          currentConfig = results[0].first();
 
           self.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
 
-          return new Promise((resolve, reject) => {
-            let highLevelProductCategories;
-            const result = CrawlService.getResultSets(results[1].get('id'));
-
-            result.eventEmitter.on('newResultSets', (resultSets) => {
-              highLevelProductCategories = resultSets.get('highLevelProductCategories');
-            });
-
-            result.promise.then(() => resolve(highLevelProductCategories))
-              .catch(error => reject(error));
-          });
+          return CrawlResultService.search(Map({
+            crawlSessionId: results[1].first()
+              .get('id'),
+          }));
         })
-        .then((highLevelProductCategories) => {
+        .then((results) => {
+          const highLevelProductCategories = results.first()
+            .getIn(['resultSet', 'highLevelProductCategories']);
+
           self.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
 
-          const newConfig = currentConfig.set('productCategories', highLevelProductCategories.toJS());
+          const newConfig = currentConfig.set(['config', 'productCategories'], highLevelProductCategories);
 
           self.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
-          return CrawlService.setStoreCrawlerConfig('Countdown', newConfig);
+          return StoreCrawlerConfigurationService.create(newConfig);
         });
     };
 
@@ -95,20 +99,27 @@ class CountdownService {
     const syncToMasterProductListInternal = (finalConfig) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
-      CrawlService.getMostRecentCrawlSessionInfo('Countdown Products')
-        .then((sessionInfo) => {
+      CrawlSessionService.search(Map({
+        sessionKey: 'Countdown Products',
+        latest: true,
+      }))
+        .then((crawlSessionInfos) => {
+          const sessionInfo = crawlSessionInfos.first();
           const sessionId = sessionInfo.get('id');
           let promises = new List();
 
           self.logInfo(finalConfig, () =>
             `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
 
-          const result = CrawlService.getResultSets(sessionId);
+          const result = CrawlResultService.searchAll(Map({
+            crawlSessionId: sessionId,
+          }));
 
-          result.eventEmitter.on('newResultSets', (resultSets) => {
+          result.event.subscribe((info) => {
+            const resultSet = info.get('resultSet');
             self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
 
-            const products = resultSets.get('products')
+            const products = resultSet.get('products')
               .filterNot(_ => _.get('description')
                 .trim()
                 .length === 0);
