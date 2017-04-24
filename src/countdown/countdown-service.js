@@ -6,6 +6,9 @@ import {
   ParseWrapperService,
 } from 'micro-business-parse-server-common';
 import {
+  Maybe,
+} from 'monet';
+import {
   CrawlResultService,
   CrawlSessionService,
   StoreCrawlerConfigurationService,
@@ -99,7 +102,7 @@ class CountdownService {
     const syncToMasterProductListInternal = (finalConfig) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
-      CrawlSessionService.search(Map({
+      return CrawlSessionService.search(Map({
         sessionKey: 'Countdown Products',
         latest: true,
       }))
@@ -117,6 +120,7 @@ class CountdownService {
 
           result.event.subscribe((info) => {
             const resultSet = info.get('resultSet');
+
             self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
 
             const products = resultSet.get('products')
@@ -154,7 +158,13 @@ class CountdownService {
                   self.logInfo(finalConfig, () => 'Saving new products...');
                 }
 
-                return Promise.all(newProducts.map(newProduct => MasterProductService.create(newProduct))
+                return Promise.all(newProducts.map(_ =>
+                    Map({
+                      description: _.get('description'),
+                      barcode: Maybe.Some(_.get('barcode')),
+                      imageUrl: Maybe.Some(_.get('imageUrl')),
+                    }))
+                  .map(MasterProductService.create)
                   .toArray());
               });
 
