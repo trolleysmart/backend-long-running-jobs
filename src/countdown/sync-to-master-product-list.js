@@ -8,7 +8,7 @@ Parse.Cloud.job(jobName, (request, status) => { // eslint-disable-line no-undef
   const log = request.log;
 
   log.info(`The job ${jobName} has started.`);
-  status.message('The job has started.');
+  status.message(`The job ${jobName} has started.`);
 
   const service = new CountdownService({
     logVerboseFunc: message => log.info(message),
@@ -19,10 +19,10 @@ Parse.Cloud.job(jobName, (request, status) => { // eslint-disable-line no-undef
   service.syncToMasterProductList()
     .then(() => {
       log.info(`The job ${jobName} completed successfully.`);
-      status.success('Job completed successfully.');
+      status.success(`The job ${jobName} completed successfully.`);
     })
     .catch((error) => {
-      log.error(`The job ${jobName} ended in error. Error: ${error}`);
-      status.error('Job completed in error.');
+      log.error(`The job ${jobName} ended in error. Error: ${JSON.stringify(error)}`);
+      status.error(`The job ${jobName} ended in error. Error: ${JSON.stringify(error)}`);
     });
 });

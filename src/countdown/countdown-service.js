@@ -1,6 +1,7 @@
 import Immutable, {
   List,
   Map,
+  Range,
 } from 'immutable';
 import {
   ParseWrapperService,
@@ -13,6 +14,8 @@ import {
   CrawlSessionService,
   StoreCrawlerConfigurationService,
   MasterProductService,
+  MasterProductPriceService,
+  StoreService,
 } from 'smart-grocery-parse-server-common';
 
 class CountdownService {
@@ -32,6 +35,26 @@ class CountdownService {
     });
   }
 
+  static getCountdownStore() {
+    return new Promise((resolve, reject) => {
+      const criteria = Map({
+        name: 'Countdown',
+      });
+
+      StoreService.search(criteria)
+        .then((results) => {
+          if (results.isEmpty()) {
+            reject('No store found called Countdown.');
+          } else if (results.size === 1) {
+            resolve(results.first());
+          } else {
+            reject('Multiple store found called Countdown.');
+          }
+        })
+        .catch(error => reject(error));
+    });
+  }
+
   constructor({
     logVerboseFunc,
     logInfoFunc,
@@ -43,6 +66,7 @@ class CountdownService {
 
     this.updateStoreCralwerProductCategoriesConfiguration = this.updateStoreCralwerProductCategoriesConfiguration.bind(this);
     this.syncToMasterProductList = this.syncToMasterProductList.bind(this);
+    this.syncToMasterProductPriceList = this.syncToMasterProductPriceList.bind(this);
     this.logVerbose = this.logVerbose.bind(this);
     this.logInfo = this.logInfo.bind(this);
     this.logError = this.logError.bind(this);
@@ -142,10 +166,7 @@ class CountdownService {
                 .then((results) => {
                   self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-                  const indexes = Immutable.fromJS([...Array(products.size)
-                    .keys(),
-                  ]);
-
+                  const indexes = Range(0, products.size);
                   const productsWithIndexes = products.zipWith((product, index) => Map({
                     product,
                     index,
@@ -184,6 +205,89 @@ class CountdownService {
 
     return config ? syncToMasterProductListInternal(config) : CountdownService.getConfig()
       .then(syncToMasterProductListInternal);
+  }
+
+  syncToMasterProductPriceList(config) {
+    const self = this;
+    const syncToMasterProductPriceListInternal = (finalConfig, stores) => {
+      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+      return CrawlSessionService.search(Map({
+        sessionKey: 'Countdown Products',
+        latest: true,
+      }))
+        .then((crawlSessionInfos) => {
+          const sessionInfo = crawlSessionInfos.first();
+          const sessionId = sessionInfo.get('id');
+          let promises = new List();
+
+          self.logInfo(finalConfig, () =>
+            `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+
+          const result = CrawlResultService.searchAll(Map({
+            crawlSessionId: sessionId,
+          }));
+
+          result.event.subscribe((info) => {
+            const resultSet = info.get('resultSet');
+
+            self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+
+            const products = resultSet.get('products')
+              .filterNot(_ => _.get('description')
+                .trim()
+                .length === 0);
+
+            if (products.isEmpty()) {
+              self.logVerbose(finalConfig, () => 'No new product to save the price.');
+
+              return;
+            }
+
+            self.logVerbose(finalConfig, () => 'Finding the product in master product...');
+
+            const newPromises = products.map(product => new Promise((resolve, reject) => {
+              MasterProductService.search(product)
+                .then((results) => {
+                  if (results.isEmpty()) {
+                    reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
+                    resolve();
+
+                    return;
+                  } else if (results.size > 1) {
+                    reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+
+                    return;
+                  }
+
+                  const masterProduct = results.first();
+                  const masterProductPriceInfo = Map({
+                    masterProductId: masterProduct.get('id'),
+                    storeId: stores.find(_ => _.get('name')
+                        .localeCompare('Countdown') === 0)
+                      .get('id'),
+                    capturedDate: new Date(),
+                    priceDetails: Map({
+                      price: product.get('price'),
+                    }),
+                  });
+
+                  MasterProductPriceService.create(masterProductPriceInfo)
+                    .then(() => resolve())
+                    .catch(error => reject(error));
+                })
+                .catch(error => reject(error));
+            }));
+
+            promises = promises.concat(newPromises);
+          });
+
+          return result.promise.then(() => Promise.all(promises.toArray()));
+        });
+    };
+
+    return config ? syncToMasterProductPriceListInternal(config) : Promise.all([CountdownService.getConfig(), CountdownService.getCountdownStore()])
+      .then(results => syncToMasterProductPriceListInternal(results[0], List.of(results[1])));
   }
 
   logVerbose(config, messageFunc) {
