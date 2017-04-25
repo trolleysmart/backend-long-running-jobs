@@ -55,6 +55,52 @@ class CountdownService {
     });
   }
 
+  static getSpecialType(product) {
+    if (product.has('special') && product.get('special')) {
+      return 'special';
+    }
+
+    if (product.has('onecard') && product.get('onecard')) {
+      return 'onecard';
+    }
+
+    return 'none';
+  }
+
+  static getPrice(product) {
+    const specialType = CountdownService.getSpecialType(product);
+    const price = product.get('price');
+
+    if (specialType.localeCompare('special') === 0) {
+      return price.substring(0, price.indexOf(' '));
+    } else if (specialType.localeCompare('onecard') === 0) {
+      const firstDollarSignIndex = price.indexOf('$');
+      const secondDollarSignIndex = price.indexOf('$', firstDollarSignIndex + 1);
+
+      return price.substring(secondDollarSignIndex, price.indexOf('\r', secondDollarSignIndex + 1));
+    }
+
+    return price.substring(0, price.indexOf(' '));
+  }
+
+  static getWasPrice(product) {
+    const specialType = CountdownService.getSpecialType(product);
+    const price = product.get('price');
+
+    if (specialType.localeCompare('special') === 0) {
+      return product.has('wasPrice') ? product.get('wasPrice')
+        .substring(product.get('wasPrice')
+          .indexOf('$')) : undefined;
+    } else if (specialType.localeCompare('onecard') === 0) {
+      const firstDollarSignIndex = price
+        .indexOf('$');
+
+      return price.substring(firstDollarSignIndex, price.indexOf(' '));
+    }
+
+    return undefined;
+  }
+
   constructor({
     logVerboseFunc,
     logInfoFunc,
@@ -262,7 +308,9 @@ class CountdownService {
                         .get('id'),
                       capturedDate,
                       priceDetails: Map({
-                        price: product.get('price'),
+                        specialType: CountdownService.getSpecialType(product),
+                        price: CountdownService.getPrice(product),
+                        wasPrice: CountdownService.getWasPrice(product),
                       }),
                     });
 
