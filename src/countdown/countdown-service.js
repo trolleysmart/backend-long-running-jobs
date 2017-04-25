@@ -238,6 +238,7 @@ class CountdownService {
               .valueSeq();
 
             self.logVerbose(finalConfig, () => 'Finding the product in master product...');
+            const capturedDate = new Date();
 
             return Promise.all(productsWithoutDuplication.map(product => new Promise((resolve, reject) => {
               MasterProductService.search(product)
@@ -259,7 +260,7 @@ class CountdownService {
                       storeId: stores.find(_ => _.get('name')
                           .localeCompare('Countdown') === 0)
                         .get('id'),
-                      capturedDate: new Date(),
+                      capturedDate,
                       priceDetails: Map({
                         price: product.get('price'),
                       }),
