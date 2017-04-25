@@ -136,37 +136,44 @@ class CountdownService {
 
             self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
-            const promise =
+            const promise = new Promise((resolve, reject) => {
               Promise.all(products.map(product => MasterProductService.exists(product))
-                .toArray())
-              .then((results) => {
-                self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
+                  .toArray())
+                .then((results) => {
+                  self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-                const indexes = Immutable.fromJS([...Array(products.size)
-                  .keys(),
-                ]);
+                  const indexes = Immutable.fromJS([...Array(products.size)
+                    .keys(),
+                  ]);
 
-                const productsWithIndexes = products.zipWith((product, index) => Map({
-                  product,
-                  index,
-                }), indexes);
+                  const productsWithIndexes = products.zipWith((product, index) => Map({
+                    product,
+                    index,
+                  }), indexes);
 
-                const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
-                  .map(_ => _.get('product'));
+                  const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
+                    .map(_ => _.get('product'));
 
-                if (!newProducts.isEmpty()) {
-                  self.logInfo(finalConfig, () => 'Saving new products...');
-                }
+                  if (newProducts.isEmpty()) {
+                    resolve();
+                  } else {
+                    self.logInfo(finalConfig, () => 'Saving new products...');
 
-                return Promise.all(newProducts.map(_ =>
-                    Map({
-                      description: _.get('description'),
-                      barcode: Maybe.Some(_.get('barcode')),
-                      imageUrl: Maybe.Some(_.get('imageUrl')),
-                    }))
-                  .map(MasterProductService.create)
-                  .toArray());
-              });
+                    const newProductInfo = newProducts.map(_ =>
+                      Map({
+                        description: _.get('description'),
+                        barcode: Maybe.fromNull(_.get('barcode')),
+                        imageUrl: Maybe.fromNull(_.get('imageUrl')),
+                      }));
+
+                    Promise.all(newProductInfo.map(MasterProductService.create)
+                        .toArray())
+                      .then(() => resolve())
+                      .catch(error => reject(error));
+                  }
+                })
+                .catch(error => reject(error));
+            });
 
             promises = promises.push(promise);
           });

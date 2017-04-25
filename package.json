@@ -23,8 +23,8 @@
     "micro-business-parse-server-backend": "^0.1.17",
     "micro-business-parse-server-common": "^0.1.19",
     "monet": "^0.8.10",
-    "smart-grocery-parse-server-common": "^0.1.52",
-    "store-crawler": "^0.1.59"
+    "smart-grocery-parse-server-common": "^0.1.54",
+    "store-crawler": "^0.1.60"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
