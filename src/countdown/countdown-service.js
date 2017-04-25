@@ -133,7 +133,7 @@ class CountdownService {
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
           const sessionId = sessionInfo.get('id');
-          let promises = new List();
+          let products = List();
 
           self.logInfo(finalConfig, () =>
             `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
@@ -147,59 +147,51 @@ class CountdownService {
 
             self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
 
-            const products = resultSet.get('products')
+            products = products.concat(resultSet.get('products')
               .filterNot(_ => _.get('description')
                 .trim()
-                .length === 0);
+                .length === 0));
+          });
 
-            if (products.isEmpty()) {
-              self.logVerbose(finalConfig, () => 'No new product to save.');
-
-              return;
-            }
+          return result.promise.then(() => new Promise((resolve, reject) => {
+            const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
+              .map(_ => _.first()).valueSeq();
 
             self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
-            const promise = new Promise((resolve, reject) => {
-              Promise.all(products.map(product => MasterProductService.exists(product))
-                  .toArray())
-                .then((results) => {
-                  self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
+            Promise.all(productsWithoutDuplication.map(product => MasterProductService.exists(product))
+                .toArray())
+              .then((results) => {
+                self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-                  const indexes = Range(0, products.size);
-                  const productsWithIndexes = products.zipWith((product, index) => Map({
-                    product,
-                    index,
-                  }), indexes);
+                const indexes = Range(0, productsWithoutDuplication.size);
+                const productsWithIndexes = productsWithoutDuplication.zipWith((product, index) => Map({
+                  product,
+                  index,
+                }), indexes);
 
-                  const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
-                    .map(_ => _.get('product'));
+                const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
+                  .map(_ => _.get('product'));
 
-                  if (newProducts.isEmpty()) {
-                    resolve();
-                  } else {
-                    self.logInfo(finalConfig, () => 'Saving new products...');
+                if (newProducts.isEmpty()) {
+                  resolve();
+                } else {
+                  self.logInfo(finalConfig, () => 'Saving new products...');
 
-                    const newProductInfo = newProducts.map(_ =>
-                      Map({
-                        description: _.get('description'),
-                        barcode: Maybe.fromNull(_.get('barcode')),
-                        imageUrl: Maybe.fromNull(_.get('imageUrl')),
-                      }));
+                  const newProductInfo = newProducts.map(_ =>
+                    Map({
+                      description: _.get('description'),
+                      barcode: Maybe.fromNull(_.get('barcode')),
+                      imageUrl: Maybe.fromNull(_.get('imageUrl')),
+                    }));
 
-                    Promise.all(newProductInfo.map(MasterProductService.create)
-                        .toArray())
-                      .then(() => resolve())
-                      .catch(error => reject(error));
-                  }
-                })
-                .catch(error => reject(error));
-            });
-
-            promises = promises.push(promise);
-          });
-
-          return result.promise.then(() => Promise.all(promises.toArray()));
+                  Promise.all(newProductInfo.map(MasterProductService.create)
+                      .toArray())
+                    .then(() => resolve())
+                    .catch(error => reject(error));
+                }
+              });
+          }));
         });
     };
 
@@ -219,7 +211,7 @@ class CountdownService {
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
           const sessionId = sessionInfo.get('id');
-          let promises = new List();
+          let promises = List();
 
           self.logInfo(finalConfig, () =>
             `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
