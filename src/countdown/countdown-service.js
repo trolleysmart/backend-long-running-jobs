@@ -155,7 +155,8 @@ class CountdownService {
 
           return result.promise.then(() => new Promise((resolve, reject) => {
             const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
-              .map(_ => _.first()).valueSeq();
+              .map(_ => _.first())
+              .valueSeq();
 
             self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
@@ -211,7 +212,7 @@ class CountdownService {
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
           const sessionId = sessionInfo.get('id');
-          let promises = List();
+          let products = List();
 
           self.logInfo(finalConfig, () =>
             `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
@@ -225,56 +226,53 @@ class CountdownService {
 
             self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
 
-            const products = resultSet.get('products')
+            products = products.concat(resultSet.get('products')
               .filterNot(_ => _.get('description')
                 .trim()
-                .length === 0);
+                .length === 0));
+          });
 
-            if (products.isEmpty()) {
-              self.logVerbose(finalConfig, () => 'No new product to save the price.');
-
-              return;
-            }
+          return result.promise.then(() => {
+            const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
+              .map(_ => _.first())
+              .valueSeq();
 
             self.logVerbose(finalConfig, () => 'Finding the product in master product...');
 
-            const newPromises = products.map(product => new Promise((resolve, reject) => {
+            return Promise.all(productsWithoutDuplication.map(product => new Promise((resolve, reject) => {
               MasterProductService.search(product)
-                .then((results) => {
-                  if (results.isEmpty()) {
-                    reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
-                    resolve();
+                  .then((results) => {
+                    if (results.isEmpty()) {
+                      reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
+                      resolve();
 
-                    return;
-                  } else if (results.size > 1) {
-                    reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+                      return;
+                    } else if (results.size > 1) {
+                      reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
 
-                    return;
-                  }
+                      return;
+                    }
 
-                  const masterProduct = results.first();
-                  const masterProductPriceInfo = Map({
-                    masterProductId: masterProduct.get('id'),
-                    storeId: stores.find(_ => _.get('name')
-                        .localeCompare('Countdown') === 0)
-                      .get('id'),
-                    capturedDate: new Date(),
-                    priceDetails: Map({
-                      price: product.get('price'),
-                    }),
-                  });
+                    const masterProduct = results.first();
+                    const masterProductPriceInfo = Map({
+                      masterProductId: masterProduct.get('id'),
+                      storeId: stores.find(_ => _.get('name')
+                          .localeCompare('Countdown') === 0)
+                        .get('id'),
+                      capturedDate: new Date(),
+                      priceDetails: Map({
+                        price: product.get('price'),
+                      }),
+                    });
 
-                  MasterProductPriceService.create(masterProductPriceInfo)
-                    .then(() => resolve())
-                    .catch(error => reject(error));
-                })
-                .catch(error => reject(error));
-            }));
-
-            promises = promises.concat(newPromises);
+                    MasterProductPriceService.create(masterProductPriceInfo)
+                      .then(() => resolve())
+                      .catch(error => reject(error));
+                  })
+                  .catch(error => reject(error));
+            }))
+              .toArray());
           });
-
-          return result.promise.then(() => Promise.all(promises.toArray()));
         });
     };
 
