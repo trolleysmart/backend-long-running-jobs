@@ -72,33 +72,34 @@ class CountdownService {
     const price = product.get('price');
 
     if (specialType.localeCompare('special') === 0) {
-      return price.substring(0, price.indexOf(' '));
+      return price.substring(1, price.indexOf(' '));
     } else if (specialType.localeCompare('onecard') === 0) {
-      const firstDollarSignIndex = price.indexOf('$');
-      const secondDollarSignIndex = price.indexOf('$', firstDollarSignIndex + 1);
+      const nonClubPrice = product.get('nonClubPrice');
 
-      return price.substring(secondDollarSignIndex, price.indexOf('\r', secondDollarSignIndex + 1));
+      return nonClubPrice.substring(nonClubPrice.indexOf('$') + 1);
     }
 
-    return price.substring(0, price.indexOf(' '));
+    return price.substring(1, price.indexOf(' '));
   }
 
   static getWasPrice(product) {
     const specialType = CountdownService.getSpecialType(product);
-    const price = product.get('price');
 
     if (specialType.localeCompare('special') === 0) {
       return product.has('wasPrice') ? product.get('wasPrice')
         .substring(product.get('wasPrice')
-          .indexOf('$')) : undefined;
+          .indexOf('$') + 1) : undefined;
     } else if (specialType.localeCompare('onecard') === 0) {
-      const firstDollarSignIndex = price
-        .indexOf('$');
+      const clubPrice = product.get('clubPrice');
 
-      return price.substring(firstDollarSignIndex, price.indexOf(' '));
+      return clubPrice.substring(1, clubPrice.indexOf(' '));
     }
 
     return undefined;
+  }
+
+  static convertPriceStringToDecimal(price) {
+    return price ? parseFloat(price) : undefined;
   }
 
   constructor({
@@ -309,8 +310,8 @@ class CountdownService {
                       capturedDate,
                       priceDetails: Map({
                         specialType: CountdownService.getSpecialType(product),
-                        price: CountdownService.getPrice(product),
-                        wasPrice: CountdownService.getWasPrice(product),
+                        price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
+                        wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
                       }),
                     });
 
