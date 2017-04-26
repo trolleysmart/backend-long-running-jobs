@@ -64,6 +64,10 @@ class CountdownService {
       return 'onecard';
     }
 
+    if ((product.has('specialMultiBuyText') && product.get('specialMultiBuyText')) || (product.has('multiBuyText') && product.get('multiBuyText'))) {
+      return 'multibuy';
+    }
+
     return 'none';
   }
 
@@ -79,6 +83,9 @@ class CountdownService {
 
         return nonClubPrice.substring(nonClubPrice.indexOf('$') + 1);
       }
+
+      return price.substring(1, price.indexOf(' '));
+    } else if (specialType.localeCompare('multibuy') === 0) {
       return price.substring(1, price.indexOf(' '));
     }
 
@@ -98,6 +105,35 @@ class CountdownService {
 
         return clubPrice.substring(1, clubPrice.indexOf(' '));
       }
+
+      return undefined;
+    } else if (specialType.localeCompare('multibuy') === 0) {
+      return undefined;
+    }
+
+    return undefined;
+  }
+
+  static getMultiBuyInfo(product) {
+    const specialType = CountdownService.getSpecialType(product);
+
+    if (specialType.localeCompare('multibuy') === 0) {
+      if (product.has('specialMultiBuyText')) {
+        const specialMultiBuyText = product.get('specialMultiBuyText');
+
+        return Map({
+          count: parseInt(specialMultiBuyText.substring(0, specialMultiBuyText.indexOf('for')), 10),
+          price: CountdownService.convertPriceStringToDecimal(specialMultiBuyText.substring(specialMultiBuyText.indexOf('for') + 'for'.length)),
+        });
+      } else if (product.has('multiBuyText')) {
+        const multiBuyText = product.get('multiBuyText');
+
+        return Map({
+          count: parseInt(multiBuyText.substring(0, multiBuyText.indexOf(' ')), 10),
+          price: CountdownService.convertPriceStringToDecimal(multiBuyText.substring(multiBuyText.indexOf('for ') + 'for '.length)),
+        });
+      }
+
       return undefined;
     }
 
@@ -131,7 +167,8 @@ class CountdownService {
       let currentConfig;
 
       self.logInfo(finalConfig, () =>
-        'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
+        'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...',
+      ); // eslint-disable-line max-len
 
       return Promise.all([StoreCrawlerConfigurationService.search(Map({
         key: 'Countdown',
@@ -318,6 +355,7 @@ class CountdownService {
                         specialType: CountdownService.getSpecialType(product),
                         price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
                         wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
+                        multiBuyInfo: CountdownService.getMultiBuyInfo(product),
                       }),
                     });
 
