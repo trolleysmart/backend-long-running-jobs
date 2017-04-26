@@ -74,9 +74,12 @@ class CountdownService {
     if (specialType.localeCompare('special') === 0) {
       return price.substring(1, price.indexOf(' '));
     } else if (specialType.localeCompare('onecard') === 0) {
-      const nonClubPrice = product.get('nonClubPrice');
+      if (product.has('nonClubPrice')) {
+        const nonClubPrice = product.get('nonClubPrice');
 
-      return nonClubPrice.substring(nonClubPrice.indexOf('$') + 1);
+        return nonClubPrice.substring(nonClubPrice.indexOf('$') + 1);
+      }
+      return price.substring(1, price.indexOf(' '));
     }
 
     return price.substring(1, price.indexOf(' '));
@@ -90,9 +93,12 @@ class CountdownService {
         .substring(product.get('wasPrice')
           .indexOf('$') + 1) : undefined;
     } else if (specialType.localeCompare('onecard') === 0) {
-      const clubPrice = product.get('clubPrice');
+      if (product.has('clubPrice')) {
+        const clubPrice = product.get('clubPrice');
 
-      return clubPrice.substring(1, clubPrice.indexOf(' '));
+        return clubPrice.substring(1, clubPrice.indexOf(' '));
+      }
+      return undefined;
     }
 
     return undefined;
