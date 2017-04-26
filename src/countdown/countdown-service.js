@@ -162,7 +162,7 @@ class CountdownService {
 
           self.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
 
-          const newConfig = currentConfig.set(['config', 'productCategories'], highLevelProductCategories);
+          const newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
 
           self.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
