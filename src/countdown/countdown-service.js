@@ -67,10 +67,10 @@ class CountdownService {
       });
 
       result.promise.then(() => resolve(tags))
-            .catch((error) => {
-              console.log(error);
-              reject(error);
-            });
+        .catch((error) => {
+          console.log(error);
+          reject(error);
+        });
     });
   }
 
@@ -431,7 +431,10 @@ class CountdownService {
 
           return result.promise.then(() => {
             const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('name')
-              .localeCompare(tag) === 0));
+              .toLowerCase()
+              .trim()
+              .localeCompare(tag.toLowerCase()
+                .trim()) === 0));
 
             return Promise.all(newTags.map(tag => TagService.create(Map({
               name: tag,
