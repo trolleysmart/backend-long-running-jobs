@@ -21,10 +21,10 @@
   "dependencies": {
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.17",
-    "micro-business-parse-server-common": "^0.1.19",
+    "micro-business-parse-server-common": "^0.1.20",
     "monet": "^0.8.10",
-    "smart-grocery-parse-server-common": "^0.1.56",
-    "store-crawler": "^0.1.66"
+    "smart-grocery-parse-server-common": "^0.1.58",
+    "store-crawler": "^0.1.67"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

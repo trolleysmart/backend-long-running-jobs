@@ -2,6 +2,7 @@ import Immutable, {
   List,
   Map,
   Range,
+  Set,
 } from 'immutable';
 import {
   ParseWrapperService,
@@ -16,6 +17,7 @@ import {
   MasterProductService,
   MasterProductPriceService,
   StoreService,
+  TagService,
 } from 'smart-grocery-parse-server-common';
 
 class CountdownService {
@@ -52,6 +54,23 @@ class CountdownService {
           }
         })
         .catch(error => reject(error));
+    });
+  }
+
+  static getExistingTags() {
+    return new Promise((resolve, reject) => {
+      let tags = List();
+      const result = TagService.searchAll(Map());
+
+      result.event.subscribe((info) => {
+        tags = tags.push(info);
+      });
+
+      result.promise.then(() => resolve(tags))
+            .catch((error) => {
+              console.log(error);
+              reject(error);
+            });
     });
   }
 
@@ -156,6 +175,7 @@ class CountdownService {
     this.updateStoreCralwerProductCategoriesConfiguration = this.updateStoreCralwerProductCategoriesConfiguration.bind(this);
     this.syncToMasterProductList = this.syncToMasterProductList.bind(this);
     this.syncToMasterProductPriceList = this.syncToMasterProductPriceList.bind(this);
+    this.syncToTagList = this.syncToTagList.bind(this);
     this.logVerbose = this.logVerbose.bind(this);
     this.logInfo = this.logInfo.bind(this);
     this.logError = this.logError.bind(this);
@@ -274,6 +294,7 @@ class CountdownService {
                       description: _.get('description'),
                       barcode: Maybe.fromNull(_.get('barcode')),
                       imageUrl: Maybe.fromNull(_.get('imageUrl')),
+                      tags: Maybe.None(),
                     }));
 
                   Promise.all(newProductInfo.map(MasterProductService.create)
@@ -370,8 +391,64 @@ class CountdownService {
         });
     };
 
-    return config ? syncToMasterProductPriceListInternal(config) : Promise.all([CountdownService.getConfig(), CountdownService.getCountdownStore()])
+    if (config) {
+      return CountdownService.getCountdownStore()
+        .then(store => syncToMasterProductPriceListInternal(config, List.of(store)));
+    }
+
+    return Promise.all([CountdownService.getConfig(), CountdownService.getCountdownStore()])
       .then(results => syncToMasterProductPriceListInternal(results[0], List.of(results[1])));
+  }
+
+  syncToTagList(config) {
+    const self = this;
+    const syncToTagListInternal = (finalConfig, existingTags) => {
+      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+      return CrawlSessionService.search(Map({
+        sessionKey: 'Countdown Products',
+        latest: true,
+      }))
+        .then((crawlSessionInfos) => {
+          const sessionInfo = crawlSessionInfos.first();
+          const sessionId = sessionInfo.get('id');
+          let tags = Set();
+
+          self.logInfo(finalConfig, () =>
+            `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+
+          const result = CrawlResultService.searchAll(Map({
+            crawlSessionId: sessionId,
+          }));
+
+          result.event.subscribe((info) => {
+            const resultSet = info.get('resultSet');
+
+            self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+
+            tags = tags.add(resultSet.get('productCategory'));
+          });
+
+          return result.promise.then(() => {
+            const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('name')
+              .localeCompare(tag) === 0));
+
+            return Promise.all(newTags.map(tag => TagService.create(Map({
+              name: tag,
+              weight: 1,
+            })))
+              .toArray());
+          });
+        });
+    };
+
+    if (config) {
+      return CountdownService.getExistingTags()
+        .then(existingTags => syncToTagListInternal(config, existingTags));
+    }
+
+    return Promise.all([CountdownService.getConfig(), CountdownService.getExistingTags()])
+      .then(results => syncToTagListInternal(results[0], results[1]));
   }
 
   logVerbose(config, messageFunc) {
