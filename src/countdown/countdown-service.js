@@ -176,6 +176,7 @@ class CountdownService {
     this.syncToMasterProductList = this.syncToMasterProductList.bind(this);
     this.syncToMasterProductPriceList = this.syncToMasterProductPriceList.bind(this);
     this.syncToTagList = this.syncToTagList.bind(this);
+    this.syncMasterProductTags = this.syncMasterProductTags.bind(this);
     this.logVerbose = this.logVerbose.bind(this);
     this.logInfo = this.logInfo.bind(this);
     this.logError = this.logError.bind(this);
@@ -349,6 +350,7 @@ class CountdownService {
               .valueSeq();
 
             self.logVerbose(finalConfig, () => 'Finding the product in master product...');
+
             const capturedDate = new Date();
 
             return Promise.all(productsWithoutDuplication.map(product => new Promise((resolve, reject) => {
@@ -452,6 +454,113 @@ class CountdownService {
 
     return Promise.all([CountdownService.getConfig(), CountdownService.getExistingTags()])
       .then(results => syncToTagListInternal(results[0], results[1]));
+  }
+
+  syncMasterProductTags(config) {
+    const self = this;
+    const syncMasterProductTagsInternal = (finalConfig, existingTags) => {
+      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+      return CrawlSessionService.search(Map({
+        sessionKey: 'Countdown Products',
+        latest: true,
+      }))
+        .then((crawlSessionInfos) => {
+          const sessionInfo = crawlSessionInfos.first();
+          const sessionId = sessionInfo.get('id');
+          let products = List();
+
+          self.logInfo(finalConfig, () =>
+            `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+
+          const result = CrawlResultService.searchAll(Map({
+            crawlSessionId: sessionId,
+          }));
+
+          result.event.subscribe((info) => {
+            const resultSet = info.get('resultSet');
+
+            self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+
+            products = products.concat(resultSet.get('products')
+              .filterNot(_ => _.get('description')
+                .trim()
+                .length === 0)
+              .map(_ => _.set('productCategory', resultSet.get('productCategory'))));
+          });
+
+          return result.promise.then(() => {
+            const productsGroupedByDescription = products.groupBy(_ => _.get('description'));
+
+            self.logVerbose(finalConfig, () => 'Finding the product in master product...');
+
+            return Promise.all(productsGroupedByDescription.keySeq()
+              .map(key => new Promise((resolve, reject) => {
+                const product = productsGroupedByDescription.get(key)
+                  .first();
+
+                MasterProductService.search(product)
+                  .then((results) => {
+                    if (results.isEmpty()) {
+                      reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
+                      resolve();
+
+                      return;
+                    } else if (results.size > 1) {
+                      reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+
+                      return;
+                    }
+
+                    const tags = productsGroupedByDescription.get(key)
+                      .map(_ => _.get('productCategory'))
+                      .toSet();
+                    const notFoundTags = tags.filterNot(tag => existingTags.find(existingTag => existingTag.get('name')
+                      .toLowerCase()
+                      .trim()
+                      .localeCompare(tag.toLowerCase()
+                        .trim()) === 0));
+
+                    if (!notFoundTags.isEmpty()) {
+                      reject(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
+
+                      return;
+                    }
+
+                    const tagIds = tags.map(tag => existingTags.find(existingTag => existingTag.get('name')
+                        .toLowerCase()
+                        .trim()
+                        .localeCompare(tag.toLowerCase()
+                          .trim()) === 0)
+                        .getId());
+                    const newTags = tagIds.filterNot(tagId => product.get('tags').find(id => id === tagId));
+
+                    if (newTags) {
+                      resolve();
+
+                      return;
+                    }
+
+                    product.update('tags', currentTags => currentTags.concat(newTags));
+
+                    MasterProductService.update(product)
+                      .then(() => resolve())
+                      .catch(error => reject(error));
+                  })
+                  .catch(error => reject(error));
+              }))
+              .toArray());
+          });
+        });
+    };
+
+    if (config) {
+      return CountdownService.getExistingTags()
+        .then(existingTags => syncMasterProductTagsInternal(config, existingTags));
+    }
+
+    return Promise.all([CountdownService.getConfig(), CountdownService.getExistingTags()])
+      .then(results => syncMasterProductTagsInternal(results[0], results[1]));
   }
 
   logVerbose(config, messageFunc) {
