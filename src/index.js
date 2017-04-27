@@ -28,9 +28,7 @@ const {
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  server.use('/exit', () => process.exit());
-}
+process.on('SIGINT', () => process.exit());
 
 server.listen(serverPort, () => {
   console.log('Smart Grocery backend started.');
