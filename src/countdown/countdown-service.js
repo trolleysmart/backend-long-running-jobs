@@ -512,6 +512,8 @@ class CountdownService {
                       return;
                     }
 
+                    const existingProduct = results.first();
+
                     const tags = productsGroupedByDescription.get(key)
                       .map(_ => _.get('productCategory'))
                       .toSet();
@@ -532,18 +534,20 @@ class CountdownService {
                         .trim()
                         .localeCompare(tag.toLowerCase()
                           .trim()) === 0)
-                        .getId());
-                    const newTags = tagIds.filterNot(tagId => product.get('tags').find(id => id === tagId));
+                      .get('id'));
 
-                    if (newTags) {
+                    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tags')
+                      .orSome(List())
+                      .find(id => id === tagId));
+
+                    if (newTagIds.isEmpty()) {
                       resolve();
 
                       return;
                     }
 
-                    product.update('tags', currentTags => currentTags.concat(newTags));
-
-                    MasterProductService.update(product)
+                    MasterProductService.update(existingProduct.update('tags', currentTags => Maybe.Some(currentTags.orSome(List())
+                        .concat(newTagIds))))
                       .then(() => resolve())
                       .catch(error => reject(error));
                   })
