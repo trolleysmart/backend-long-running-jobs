@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "npm test -- --watch",
     "test-verbose": "jest --verbose",
-    "test-verbose:watch": "npm run test-verbose -- --watch"
+    "test-verbose:watch": "npm run test-verbose -- --watch",
+    "flow": "flow"
   },
   "repository": {
     "type": "git",
@@ -20,22 +21,27 @@
   "homepage": "https://bitbucket.org/microbusiness/smart-grocery-backend#readme",
   "dependencies": {
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.17",
-    "micro-business-parse-server-common": "^0.1.25",
+    "micro-business-parse-server-backend": "^0.1.18",
+    "micro-business-parse-server-common": "^0.1.26",
     "monet": "^0.8.10",
-    "smart-grocery-parse-server-common": "^0.1.61",
-    "store-crawler": "^0.1.68"
+    "smart-grocery-parse-server-common": "^0.1.62",
+    "store-crawler": "^0.1.70"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.3",
+    "flow-bin": "^0.45.0",
     "jest": "^19.0.2",
     "uuid": "^3.0.1"
+  },
+  "jest": {
+    "rootDir": "./src"
   }
 }
