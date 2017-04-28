@@ -1,1 +1,1 @@
-web: babel-node --presets es2015,flow src/index.js
+web: node dist/index.js

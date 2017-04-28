@@ -5,12 +5,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "babel-node src/index.js",
+    "build": "babel src --out-dir dist",
     "lint": "eslint --ext .jsx --ext .js src",
     "fixlint": "eslint --fix --ext .jsx --ext .js src",
     "test": "jest",
     "test:watch": "npm test -- --watch",
     "test-verbose": "jest --verbose",
     "test-verbose:watch": "npm run test-verbose -- --watch",
+    "publish-package": "npm run build && npm publish",
     "flow": "flow"
   },
   "repository": {
