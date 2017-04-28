@@ -1,5 +1,8 @@
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
+import {
+  setupEndPoint,
+} from './endpoint';
 
 const {
   server,
@@ -27,6 +30,8 @@ const {
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
+
+setupEndPoint(server);
 
 process.on('SIGINT', () => process.exit());
 

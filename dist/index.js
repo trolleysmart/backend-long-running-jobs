@@ -8,6 +8,8 @@ var _microBusinessParseServerBackend = require('micro-business-parse-server-back
 
 var _microBusinessParseServerBackend2 = _interopRequireDefault(_microBusinessParseServerBackend);
 
+var _endpoint = require('./endpoint');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _backend = (0, _microBusinessParseServerBackend2.default)({
@@ -35,6 +37,8 @@ var _backend = (0, _microBusinessParseServerBackend2.default)({
     parseServerFileKey = _backend.parseServerFileKey,
     parseServerDatabaseUri = _backend.parseServerDatabaseUri,
     parseServerDashboardApplicationName = _backend.parseServerDashboardApplicationName;
+
+(0, _endpoint.setupEndPoint)(server);
 
 process.on('SIGINT', function () {
   return process.exit();
