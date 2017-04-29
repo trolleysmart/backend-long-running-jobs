@@ -37,7 +37,9 @@ class CountdownService {
   static getCountdownStore() {
     return new Promise((resolve, reject) => {
       const criteria = Map({
-        name: 'Countdown',
+        conditions: Map({
+          name: 'Countdown',
+        }),
       });
 
       StoreService.search(criteria)
@@ -189,12 +191,16 @@ class CountdownService {
       ); // eslint-disable-line max-len
 
       return Promise.all([StoreCrawlerConfigurationService.search(Map({
-        key: 'Countdown',
-        latest: true,
+        conditions: Map({
+          name: 'Countdown',
+        }),
+        topMost: true,
       })),
         CrawlSessionService.search(Map({
-          sessionKey: 'Countdown High Level Product Categories',
-          latest: true,
+          conditions: Map({
+            sessionKey: 'Countdown High Level Product Categories',
+          }),
+          topMost: true,
         })),
       ])
         .then((results) => {
@@ -207,8 +213,10 @@ class CountdownService {
           self.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
 
           return CrawlResultService.search(Map({
-            crawlSessionId: results[1].first()
-              .get('id'),
+            conditions: Map({
+              crawlSessionId: results[1].first()
+                .get('id'),
+            }),
           }));
         })
         .then((results) => {
@@ -235,8 +243,10 @@ class CountdownService {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
       return CrawlSessionService.search(Map({
-        sessionKey: 'Countdown Products',
-        latest: true,
+        conditions: Map({
+          sessionKey: 'Countdown Products',
+        }),
+        topMost: true,
       }))
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
@@ -247,7 +257,9 @@ class CountdownService {
             `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
 
           const result = CrawlResultService.searchAll(Map({
-            crawlSessionId: sessionId,
+            conditions: Map({
+              crawlSessionId: sessionId,
+            }),
           }));
 
           result.event.subscribe((info) => {
@@ -314,8 +326,10 @@ class CountdownService {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
       return CrawlSessionService.search(Map({
-        sessionKey: 'Countdown Products',
-        latest: true,
+        conditions: Map({
+          sessionKey: 'Countdown Products',
+        }),
+        topMost: true,
       }))
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
@@ -326,7 +340,9 @@ class CountdownService {
             `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
 
           const result = CrawlResultService.searchAll(Map({
-            crawlSessionId: sessionId,
+            conditions: Map({
+              crawlSessionId: sessionId,
+            }),
           }));
 
           result.event.subscribe((info) => {
@@ -350,7 +366,9 @@ class CountdownService {
             const capturedDate = new Date();
 
             return Promise.all(productsWithoutDuplication.map(product => new Promise((resolve, reject) => {
-              MasterProductService.search(product)
+              MasterProductService.search(Map({
+                conditions: product,
+              }))
                   .then((results) => {
                     if (results.isEmpty()) {
                       reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
@@ -404,8 +422,10 @@ class CountdownService {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
       return CrawlSessionService.search(Map({
-        sessionKey: 'Countdown Products',
-        latest: true,
+        conditions: Map({
+          sessionKey: 'Countdown Products',
+        }),
+        topMost: true,
       }))
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
@@ -416,7 +436,9 @@ class CountdownService {
             `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
 
           const result = CrawlResultService.searchAll(Map({
-            crawlSessionId: sessionId,
+            conditions: Map({
+              crawlSessionId: sessionId,
+            }),
           }));
 
           result.event.subscribe((info) => {
@@ -458,8 +480,10 @@ class CountdownService {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
       return CrawlSessionService.search(Map({
-        sessionKey: 'Countdown Products',
-        latest: true,
+        conditions: Map({
+          sessionKey: 'Countdown Products',
+        }),
+        topMost: true,
       }))
         .then((crawlSessionInfos) => {
           const sessionInfo = crawlSessionInfos.first();
@@ -470,7 +494,9 @@ class CountdownService {
             `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
 
           const result = CrawlResultService.searchAll(Map({
-            crawlSessionId: sessionId,
+            conditions: Map({
+              crawlSessionId: sessionId,
+            }),
           }));
 
           result.event.subscribe((info) => {
@@ -495,7 +521,9 @@ class CountdownService {
                 const product = productsGroupedByDescription.get(key)
                   .first();
 
-                MasterProductService.search(product)
+                MasterProductService.search(Map({
+                  conditions: product,
+                }))
                   .then((results) => {
                     if (results.isEmpty()) {
                       reject(`No master product found for: ${JSON.stringify(product.toJS())}`);

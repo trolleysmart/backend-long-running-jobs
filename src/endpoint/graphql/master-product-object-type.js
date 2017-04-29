@@ -1,12 +1,13 @@
 import {
-  Map,
-} from 'immutable';
-import {
   GraphQLInt,
   GraphQLList,
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
+import graphqlFields from 'graphql-fields';
+import {
+  Map,
+} from 'immutable';
 import {
   MasterProductService,
   TagService,
@@ -63,14 +64,14 @@ function getMasterProductsObjectType() {
 function getMasterProductsObjectField() {
   return {
     type: getMasterProductsObjectType(),
-    resolve: () => new Promise((resolve, reject) => {
+    resolve: (parent, args, context, info) => new Promise((resolve, reject) => {
       let masterProducts;
 
-      MasterProductService.search(Map({}))
+      MasterProductService.search(Map())
         .then((results) => {
           masterProducts = results;
 
-          return TagService.search(Map({}));
+          return TagService.search(Map());
         })
         .then((tags) => {
           resolve(masterProducts.map(masterProduct => masterProduct.update('tags', tagIds => tagIds.map(tagId => tags.find(tag => tag.get('id')

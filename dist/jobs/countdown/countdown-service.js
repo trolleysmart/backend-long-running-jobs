@@ -42,7 +42,9 @@ var CountdownService = function () {
     value: function getCountdownStore() {
       return new Promise(function (resolve, reject) {
         var criteria = (0, _immutable.Map)({
-          name: 'Countdown'
+          conditions: (0, _immutable.Map)({
+            name: 'Countdown'
+          })
         });
 
         _smartGroceryParseServerCommon.StoreService.search(criteria).then(function (results) {
@@ -204,11 +206,15 @@ var CountdownService = function () {
         }); // eslint-disable-line max-len
 
         return Promise.all([_smartGroceryParseServerCommon.StoreCrawlerConfigurationService.search((0, _immutable.Map)({
-          key: 'Countdown',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            name: 'Countdown'
+          }),
+          topMost: true
         })), _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-          sessionKey: 'Countdown High Level Product Categories',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            sessionKey: 'Countdown High Level Product Categories'
+          }),
+          topMost: true
         }))]).then(function (results) {
           self.logInfo(finalConfig, function () {
             return 'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.';
@@ -221,7 +227,9 @@ var CountdownService = function () {
           });
 
           return _smartGroceryParseServerCommon.CrawlResultService.search((0, _immutable.Map)({
-            crawlSessionId: results[1].first().get('id')
+            conditions: (0, _immutable.Map)({
+              crawlSessionId: results[1].first().get('id')
+            })
           }));
         }).then(function (results) {
           var highLevelProductCategories = results.first().getIn(['resultSet', 'highLevelProductCategories']);
@@ -252,8 +260,10 @@ var CountdownService = function () {
         });
 
         return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-          sessionKey: 'Countdown Products',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            sessionKey: 'Countdown Products'
+          }),
+          topMost: true
         })).then(function (crawlSessionInfos) {
           var sessionInfo = crawlSessionInfos.first();
           var sessionId = sessionInfo.get('id');
@@ -264,7 +274,9 @@ var CountdownService = function () {
           });
 
           var result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
-            crawlSessionId: sessionId
+            conditions: (0, _immutable.Map)({
+              crawlSessionId: sessionId
+            })
           }));
 
           result.event.subscribe(function (info) {
@@ -351,8 +363,10 @@ var CountdownService = function () {
         });
 
         return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-          sessionKey: 'Countdown Products',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            sessionKey: 'Countdown Products'
+          }),
+          topMost: true
         })).then(function (crawlSessionInfos) {
           var sessionInfo = crawlSessionInfos.first();
           var sessionId = sessionInfo.get('id');
@@ -363,7 +377,9 @@ var CountdownService = function () {
           });
 
           var result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
-            crawlSessionId: sessionId
+            conditions: (0, _immutable.Map)({
+              crawlSessionId: sessionId
+            })
           }));
 
           result.event.subscribe(function (info) {
@@ -393,7 +409,9 @@ var CountdownService = function () {
 
             return Promise.all(productsWithoutDuplication.map(function (product) {
               return new Promise(function (resolve, reject) {
-                _smartGroceryParseServerCommon.MasterProductService.search(product).then(function (results) {
+                _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
+                  conditions: product
+                })).then(function (results) {
                   if (results.isEmpty()) {
                     reject('No master product found for: ' + JSON.stringify(product.toJS()));
                     resolve();
@@ -454,8 +472,10 @@ var CountdownService = function () {
         });
 
         return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-          sessionKey: 'Countdown Products',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            sessionKey: 'Countdown Products'
+          }),
+          topMost: true
         })).then(function (crawlSessionInfos) {
           var sessionInfo = crawlSessionInfos.first();
           var sessionId = sessionInfo.get('id');
@@ -466,7 +486,9 @@ var CountdownService = function () {
           });
 
           var result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
-            crawlSessionId: sessionId
+            conditions: (0, _immutable.Map)({
+              crawlSessionId: sessionId
+            })
           }));
 
           result.event.subscribe(function (info) {
@@ -516,8 +538,10 @@ var CountdownService = function () {
         });
 
         return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-          sessionKey: 'Countdown Products',
-          latest: true
+          conditions: (0, _immutable.Map)({
+            sessionKey: 'Countdown Products'
+          }),
+          topMost: true
         })).then(function (crawlSessionInfos) {
           var sessionInfo = crawlSessionInfos.first();
           var sessionId = sessionInfo.get('id');
@@ -528,7 +552,9 @@ var CountdownService = function () {
           });
 
           var result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
-            crawlSessionId: sessionId
+            conditions: (0, _immutable.Map)({
+              crawlSessionId: sessionId
+            })
           }));
 
           result.event.subscribe(function (info) {
@@ -558,7 +584,9 @@ var CountdownService = function () {
               return new Promise(function (resolve, reject) {
                 var product = productsGroupedByDescription.get(key).first();
 
-                _smartGroceryParseServerCommon.MasterProductService.search(product).then(function (results) {
+                _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
+                  conditions: product
+                })).then(function (results) {
                   if (results.isEmpty()) {
                     reject('No master product found for: ' + JSON.stringify(product.toJS()));
                     resolve();
