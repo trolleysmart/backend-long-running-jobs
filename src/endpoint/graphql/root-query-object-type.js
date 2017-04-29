@@ -5,6 +5,9 @@ import {
   getMasterProductsObjectField,
 } from './master-product-object-type';
 import {
+  getStoresObjectField,
+} from './store-object-type';
+import {
   getTagsObjectField,
 } from './tag-object-type';
 import {
@@ -17,6 +20,7 @@ function getRootQueryObjectType() {
     fields: () => ({
       masterProducts: getMasterProductsObjectField(),
       tags: getTagsObjectField(),
+      stores: getStoresObjectField(),
       user: getUserObjectField(),
     }),
   });
