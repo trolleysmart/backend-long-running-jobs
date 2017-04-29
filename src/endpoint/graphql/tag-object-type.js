@@ -2,6 +2,7 @@ import {
   Map,
 } from 'immutable';
 import {
+  GraphQLInt,
   GraphQLList,
   GraphQLObjectType,
   GraphQLString,
@@ -19,6 +20,9 @@ function getTagObjectType() {
       },
       name: {
         type: GraphQLString,
+      },
+      weight: {
+        type: GraphQLInt,
       },
     }),
   });

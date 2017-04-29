@@ -11,6 +11,29 @@ var _graphql = require('graphql');
 
 var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common');
 
+function getTagObjectType() {
+  return new _graphql.GraphQLObjectType({
+    name: 'ProductTag',
+    fields: function fields() {
+      return {
+        id: {
+          type: _graphql.GraphQLString
+        },
+        name: {
+          type: _graphql.GraphQLString
+        },
+        weight: {
+          type: _graphql.GraphQLInt
+        }
+      };
+    }
+  });
+}
+
+function getTagsObjectType() {
+  return new _graphql.GraphQLList(getTagObjectType());
+}
+
 function getMasterProductObjectType() {
   return new _graphql.GraphQLObjectType({
     name: 'MasterProduct',
@@ -29,7 +52,7 @@ function getMasterProductObjectType() {
           type: _graphql.GraphQLString
         },
         tags: {
-          type: new _graphql.GraphQLList(_graphql.GraphQLString)
+          type: getTagsObjectType()
         }
       };
     }
@@ -45,8 +68,22 @@ function getMasterProductsObjectField() {
     type: getMasterProductsObjectType(),
     resolve: function resolve() {
       return new Promise(function (resolve, reject) {
-        _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({})).then(function (info) {
-          return resolve(info.toJS());
+        var masterProducts = void 0;
+
+        _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({})).then(function (results) {
+          masterProducts = results;
+
+          return _smartGroceryParseServerCommon.TagService.search((0, _immutable.Map)({}));
+        }).then(function (tags) {
+          resolve(masterProducts.map(function (masterProduct) {
+            return masterProduct.update('tags', function (tagIds) {
+              return tagIds.map(function (tagId) {
+                return tags.find(function (tag) {
+                  return tag.get('id').localeCompare(tagId) === 0;
+                });
+              });
+            }).toJS();
+          }));
         }).catch(function (error) {
           return reject(error);
         });

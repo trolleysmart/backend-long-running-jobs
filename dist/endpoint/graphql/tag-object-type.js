@@ -21,6 +21,9 @@ function getTagObjectType() {
         },
         name: {
           type: _graphql.GraphQLString
+        },
+        weight: {
+          type: _graphql.GraphQLInt
         }
       };
     }
