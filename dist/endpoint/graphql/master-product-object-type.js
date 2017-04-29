@@ -27,6 +27,9 @@ function getMasterProductObjectType() {
         },
         imageUrl: {
           type: _graphql.GraphQLString
+        },
+        tags: {
+          type: new _graphql.GraphQLList(_graphql.GraphQLString)
         }
       };
     }
@@ -43,12 +46,7 @@ function getMasterProductsObjectField() {
     resolve: function resolve() {
       return new Promise(function (resolve, reject) {
         _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({})).then(function (info) {
-          return resolve(info.map(function (_) {
-            return _.merge((0, _immutable.Map)({
-              barcode: _.get('barcode').orSome(undefined),
-              imageUrl: _.get('imageUrl').orSome(undefined)
-            }));
-          }).toJS());
+          return resolve(info.toJS());
         }).catch(function (error) {
           return reject(error);
         });

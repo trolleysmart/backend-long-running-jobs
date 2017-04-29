@@ -13,8 +13,6 @@ var _immutable2 = _interopRequireDefault(_immutable);
 
 var _microBusinessParseServerCommon = require('micro-business-parse-server-common');
 
-var _monet = require('monet');
-
 var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -324,9 +322,8 @@ var CountdownService = function () {
                   var newProductInfo = newProducts.map(function (_) {
                     return (0, _immutable.Map)({
                       description: _.get('description'),
-                      barcode: _monet.Maybe.fromNull(_.get('barcode')),
-                      imageUrl: _monet.Maybe.fromNull(_.get('imageUrl')),
-                      tags: _monet.Maybe.None()
+                      barcode: _.get('barcode'),
+                      imageUrl: _.get('imageUrl')
                     });
                   });
 
@@ -609,7 +606,11 @@ var CountdownService = function () {
                   }
 
                   _smartGroceryParseServerCommon.MasterProductService.update(existingProduct.update('tags', function (currentTags) {
-                    return _monet.Maybe.Some(currentTags.orSome((0, _immutable.List)()).concat(newTagIds));
+                    if (currentTags) {
+                      return currentTags.concat(newTagIds);
+                    }
+
+                    return newTagIds;
                   })).then(function () {
                     return resolve();
                   }).catch(function (error) {
