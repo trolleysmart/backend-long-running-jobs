@@ -8,9 +8,6 @@ import {
   ParseWrapperService,
 } from 'micro-business-parse-server-common';
 import {
-  Maybe,
-} from 'monet';
-import {
   CrawlResultService,
   CrawlSessionService,
   StoreCrawlerConfigurationService,
@@ -293,9 +290,8 @@ class CountdownService {
                   const newProductInfo = newProducts.map(_ =>
                     Map({
                       description: _.get('description'),
-                      barcode: Maybe.fromNull(_.get('barcode')),
-                      imageUrl: Maybe.fromNull(_.get('imageUrl')),
-                      tags: Maybe.None(),
+                      barcode: _.get('barcode'),
+                      imageUrl: _.get('imageUrl'),
                     }));
 
                   Promise.all(newProductInfo.map(MasterProductService.create)
@@ -546,8 +542,13 @@ class CountdownService {
                       return;
                     }
 
-                    MasterProductService.update(existingProduct.update('tags', currentTags => Maybe.Some(currentTags.orSome(List())
-                        .concat(newTagIds))))
+                    MasterProductService.update(existingProduct.update('tags', (currentTags) => {
+                      if (currentTags) {
+                        return currentTags.concat(newTagIds);
+                      }
+
+                      return newTagIds;
+                    }))
                       .then(() => resolve())
                       .catch(error => reject(error));
                   })

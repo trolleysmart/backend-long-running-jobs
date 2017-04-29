@@ -39,13 +39,7 @@ function getMasterProductsObjectField() {
     type: getMasterProductsObjectType(),
     resolve: () => new Promise((resolve, reject) => {
       MasterProductService.search(Map({}))
-        .then(info => resolve(info.map(_ => _.merge(Map({
-          barcode: _.get('barcode')
-              .orSome(undefined),
-          imageUrl: _.get('imageUrl')
-              .orSome(undefined),
-        })))
-          .toJS()))
+        .then(info => resolve(info.toJS()))
         .catch(error => reject(error));
     }),
   };
