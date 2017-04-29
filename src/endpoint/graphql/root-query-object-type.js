@@ -4,6 +4,9 @@ import {
   GraphQLString,
 } from 'graphql';
 import {
+  UserService,
+} from 'micro-business-parse-server-common';
+import {
   getUserObjectType,
 } from './user-object-type';
 
@@ -18,8 +21,10 @@ function getRootQueryObjectType() {
             type: new GraphQLNonNull(GraphQLString),
           },
         },
-        resolve: (_, args) => ({
-          username: args.username,
+        resolve: (_, args) => new Promise((resolve, reject) => {
+          UserService.getUserInfo(args.username)
+            .then(info => resolve(info.toJS()))
+            .catch(error => reject(error));
         }),
       },
     }),
