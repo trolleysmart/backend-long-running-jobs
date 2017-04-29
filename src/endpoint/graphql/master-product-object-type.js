@@ -26,6 +26,9 @@ function getMasterProductObjectType() {
       imageUrl: {
         type: GraphQLString,
       },
+      tags: {
+        type: new GraphQLList(GraphQLString),
+      },
     }),
   });
 }
