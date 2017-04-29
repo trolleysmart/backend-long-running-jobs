@@ -9,6 +9,8 @@ var _graphql = require('graphql');
 
 var _masterProductObjectType = require('./master-product-object-type');
 
+var _masterProductPriceObjectType = require('./master-product-price-object-type');
+
 var _storeObjectType = require('./store-object-type');
 
 var _tagObjectType = require('./tag-object-type');
@@ -21,6 +23,7 @@ function getRootQueryObjectType() {
     fields: function fields() {
       return {
         masterProducts: (0, _masterProductObjectType.getMasterProductsObjectField)(),
+        masterProductPrices: (0, _masterProductPriceObjectType.getMasterProductPricesObjectField)(),
         tags: (0, _tagObjectType.getTagsObjectField)(),
         stores: (0, _storeObjectType.getStoresObjectField)(),
         user: (0, _userObjectType.getUserObjectField)()
