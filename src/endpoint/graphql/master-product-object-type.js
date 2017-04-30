@@ -74,7 +74,7 @@ function getMasterProductsObjectField() {
 
       MasterProductService.search(Map({
         conditions: Map({
-          contains_description: args.description && args.description.trim().length > 0 ? args.description : undefined,
+          contains_description: args.description && args.description.trim().length > 0 ? args.description.trim() : undefined,
         }),
       }))
         .then((results) => {
