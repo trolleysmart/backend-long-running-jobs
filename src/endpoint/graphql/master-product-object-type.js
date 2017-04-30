@@ -64,10 +64,19 @@ function getMasterProductsObjectType() {
 function getMasterProductsObjectField() {
   return {
     type: getMasterProductsObjectType(),
+    args: {
+      description: {
+        type: GraphQLString,
+      },
+    },
     resolve: (parent, args, context, info) => new Promise((resolve, reject) => {
       let masterProducts;
 
-      MasterProductService.search(Map())
+      MasterProductService.search(Map({
+        conditions: Map({
+          contains_description: args.description ? args.description : undefined,
+        }),
+      }))
         .then((results) => {
           masterProducts = results;
 
