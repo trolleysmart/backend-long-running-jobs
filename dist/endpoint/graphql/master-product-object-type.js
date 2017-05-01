@@ -72,24 +72,56 @@ function getMasterProductsObjectType() {
 function getMasterProductsObjectField() {
   return {
     type: getMasterProductsObjectType(),
+    args: {
+      description: {
+        type: _graphql.GraphQLString
+      }
+    },
     resolve: function resolve(parent, args, context, info) {
       return new Promise(function (resolve, reject) {
+        var fields = (0, _graphqlFields2.default)(info);
         var masterProducts = void 0;
 
-        _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)()).then(function (results) {
+        _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
+          fields: (0, _immutable.List)().concat(fields.description ? _immutable.List.of('description') : (0, _immutable.List)()).concat(fields.barcode ? _immutable.List.of('barcode') : (0, _immutable.List)()).concat(fields.imageUrl ? _immutable.List.of('imageUrl') : (0, _immutable.List)()).concat(fields.tags ? _immutable.List.of('tags') : (0, _immutable.List)()),
+          conditions: (0, _immutable.Map)({
+            contains_description: args.description && args.description.trim().length > 0 ? args.description.trim() : undefined
+          })
+        })).then(function (results) {
           masterProducts = results;
 
-          return _smartGroceryParseServerCommon.TagService.search((0, _immutable.Map)());
+          if (fields.tags && masterProducts.find(function (_) {
+            return !_.get('tags').isEmpty();
+          })) {
+            var tagIds = masterProducts.filterNot(function (_) {
+              return _.get('tags').isEmpty();
+            }).flatMap(function (_) {
+              return _.get('tags');
+            }).toSet().toList();
+
+            return _smartGroceryParseServerCommon.TagService.search((0, _immutable.Map)({
+              fields: (0, _immutable.List)().concat(fields.tags.name ? _immutable.List.of('name') : (0, _immutable.List)()).concat(fields.tags.weight ? _immutable.List.of('weight') : (0, _immutable.List)()),
+              conditions: (0, _immutable.Map)({
+                ids: tagIds
+              })
+            }));
+          }
+
+          return (0, _immutable.List)();
         }).then(function (tags) {
-          resolve(masterProducts.map(function (masterProduct) {
-            return masterProduct.update('tags', function (tagIds) {
-              return tagIds.map(function (tagId) {
-                return tags.find(function (tag) {
-                  return tag.get('id').localeCompare(tagId) === 0;
+          if (fields.tags) {
+            resolve(masterProducts.map(function (masterProduct) {
+              return masterProduct.update('tags', function (tagIds) {
+                return tagIds.map(function (tagId) {
+                  return tags.find(function (tag) {
+                    return tag.get('id').localeCompare(tagId) === 0;
+                  });
                 });
-              });
-            }).toJS();
-          }));
+              }).toJS();
+            }));
+          } else {
+            resolve(masterProducts.toJS());
+          }
         }).catch(function (error) {
           return reject(error);
         });
