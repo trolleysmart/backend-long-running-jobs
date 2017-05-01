@@ -10,13 +10,15 @@ import {
 } from './graphql/root-schema';
 
 function setupEndPoint(expressInstance) {
+  const schema = getRootSchema();
+
   expressInstance.use('/graphql', GraphQLHTTP({
-    schema: getRootSchema(),
+    schema,
     graphiql: true,
   }));
 
   expressInstance.get('/graphql-schema', (request, response) => {
-    graphql(getRootSchema(), introspectionQuery)
+    graphql(schema, introspectionQuery)
       .then(json => response.send(JSON.stringify(json, null, 2)))
       .catch(error => response.status(500).send(error));
   });
