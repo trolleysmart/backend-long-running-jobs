@@ -3,9 +3,31 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.specialsField = exports.specialType = undefined;
+exports.specialEdge = exports.specialsConnection = exports.specialType = undefined;
 
 var _graphql = require('graphql');
+
+var _graphqlRelay = require('graphql-relay');
+
+var multiBuyType = new _graphql.GraphQLObjectType({
+  name: 'MultiBuy',
+  fields: function fields() {
+    return {
+      count: {
+        type: _graphql.GraphQLInt,
+        resolve: function resolve(_) {
+          return _.get('count');
+        }
+      },
+      price: {
+        type: _graphql.GraphQLFloat,
+        resolve: function resolve(_) {
+          return _.get('price');
+        }
+      }
+    };
+  }
+});
 
 var specialType = new _graphql.GraphQLObjectType({
   name: 'Special',
@@ -13,27 +35,39 @@ var specialType = new _graphql.GraphQLObjectType({
     return {
       id: {
         type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),
-        resolve: function resolve() {
-          return 'Test';
+        resolve: function resolve(_) {
+          return _.get('id');
         }
       },
       price: {
-        type: _graphql.GraphQLFloat
+        type: _graphql.GraphQLFloat,
+        resolve: function resolve(_) {
+          return _.getIn(['priceDetails', 'price']);
+        }
+      },
+      wasPrice: {
+        type: _graphql.GraphQLFloat,
+        resolve: function resolve(_) {
+          return _.getIn(['priceDetails', 'wasPrice']);
+        }
+      },
+      multiBuy: {
+        type: multiBuyType,
+        resolve: function resolve(_) {
+          return _.getIn(['priceDetails', 'multiBuyInfo']);
+        }
       }
     };
   }
 });
 
-var specialsField = {
-  type: new _graphql.GraphQLList(specialType),
-  resolve: function resolve() {
-    return [{
-      price: 4.32
-    }, {
-      price: 5.42
-    }];
-  }
-};
+var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
+  name: 'Special',
+  nodeType: specialType
+}),
+    specialsConnection = _connectionDefinition.connectionType,
+    specialEdge = _connectionDefinition.edgeType;
 
 exports.specialType = specialType;
-exports.specialsField = specialsField;
+exports.specialsConnection = specialsConnection;
+exports.specialEdge = specialEdge;

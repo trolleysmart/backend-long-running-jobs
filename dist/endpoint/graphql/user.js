@@ -5,9 +5,19 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.userField = exports.userType = undefined;
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _immutable = require('immutable');
+
 var _graphql = require('graphql');
 
+var _graphqlRelay = require('graphql-relay');
+
 var _microBusinessParseServerCommon = require('micro-business-parse-server-common');
+
+var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common');
+
+var _specials = require('./specials');
 
 var userType = new _graphql.GraphQLObjectType({
   name: 'User',
@@ -18,6 +28,27 @@ var userType = new _graphql.GraphQLObjectType({
       },
       username: {
         type: _graphql.GraphQLString
+      },
+      specials: {
+        type: _specials.specialsConnection,
+        args: _extends({}, _graphqlRelay.connectionArgs, {
+          query: {
+            type: _graphql.GraphQLString
+          }
+        }),
+        resolve: function resolve(_, args) {
+          var promise = new Promise(function (resolve, reject) {
+            _smartGroceryParseServerCommon.MasterProductPriceService.search((0, _immutable.Map)({
+              limit: args.first
+            })).then(function (specials) {
+              return resolve(specials.toArray());
+            }).catch(function (error) {
+              return reject(error);
+            });
+          });
+
+          return (0, _graphqlRelay.connectionFromPromisedArray)(promise, args);
+        }
       }
     };
   }

@@ -13,8 +13,6 @@ var _masterProductPrice = require('./master-product-price');
 
 var _store = require('./store');
 
-var _specials = require('./specials');
-
 var _tag = require('./tag');
 
 var _user = require('./user');
@@ -27,7 +25,6 @@ var rootQueryType = new _graphql.GraphQLObjectType({
       masterProductPrices: _masterProductPrice.masterProductPricesField,
       tags: _tag.tagsField,
       stores: _store.storesField,
-      specials: _specials.specialsField,
       user: _user.userField
     };
   }

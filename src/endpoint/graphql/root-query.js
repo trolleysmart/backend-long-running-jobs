@@ -11,9 +11,6 @@ import {
   storesField,
 } from './store';
 import {
-  specialsField,
-} from './specials';
-import {
   tagsField,
 } from './tag';
 import {
@@ -27,7 +24,6 @@ const rootQueryType = new GraphQLObjectType({
     masterProductPrices: masterProductPricesField,
     tags: tagsField,
     stores: storesField,
-    specials: specialsField,
     user: userField,
   }),
 });
