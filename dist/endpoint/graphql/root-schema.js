@@ -7,11 +7,11 @@ exports.getRootSchema = undefined;
 
 var _graphql = require('graphql');
 
-var _rootQueryObjectType = require('./root-query-object-type');
+var _rootQuery = require('./root-query');
 
 function getRootSchema() {
   return new _graphql.GraphQLSchema({
-    query: (0, _rootQueryObjectType.getRootQueryObjectType)()
+    query: _rootQuery.rootQueryType
   });
 }
 

@@ -2,12 +2,12 @@ import {
   GraphQLSchema,
 } from 'graphql';
 import {
-  getRootQueryObjectType,
-} from './root-query-object-type';
+  rootQueryType,
+} from './root-query';
 
 function getRootSchema() {
   return new GraphQLSchema({
-    query: getRootQueryObjectType(),
+    query: rootQueryType,
   });
 }
 
