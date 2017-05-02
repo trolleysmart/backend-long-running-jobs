@@ -10,37 +10,28 @@ import {
   StoreService,
 } from 'smart-grocery-parse-server-common';
 
-function getStoreObjectType() {
-  return new GraphQLObjectType({
-    name: 'Store',
-    fields: () => ({
-      id: {
-        type: GraphQLString,
-      },
-      name: {
-        type: GraphQLString,
-      },
-    }),
-  });
-}
+const storeType = new GraphQLObjectType({
+  name: 'Store',
+  fields: () => ({
+    id: {
+      type: GraphQLString,
+    },
+    name: {
+      type: GraphQLString,
+    },
+  }),
+});
 
-function getStoresObjectType() {
-  return new GraphQLList(getStoreObjectType());
-}
-
-function getStoresObjectField() {
-  return {
-    type: getStoresObjectType(),
-    resolve: () => new Promise((resolve, reject) => {
-      StoreService.search(Map({}))
-        .then(info => resolve(info.toJS()))
-        .catch(error => reject(error));
-    }),
-  };
-}
-
-export {
-  getStoresObjectField,
+const storesField = {
+  type: new GraphQLList(storeType),
+  resolve: () => new Promise((resolve, reject) => {
+    StoreService.search(Map({}))
+      .then(info => resolve(info.toJS()))
+      .catch(error => reject(error));
+  }),
 };
 
-export default getStoresObjectField;
+export {
+  storeType,
+  storesField,
+};

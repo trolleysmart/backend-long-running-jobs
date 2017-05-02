@@ -11,40 +11,31 @@ import {
   TagService,
 } from 'smart-grocery-parse-server-common';
 
-function getTagObjectType() {
-  return new GraphQLObjectType({
-    name: 'Tag',
-    fields: () => ({
-      id: {
-        type: GraphQLString,
-      },
-      name: {
-        type: GraphQLString,
-      },
-      weight: {
-        type: GraphQLInt,
-      },
-    }),
-  });
-}
+const tagType = new GraphQLObjectType({
+  name: 'Tag',
+  fields: () => ({
+    id: {
+      type: GraphQLString,
+    },
+    name: {
+      type: GraphQLString,
+    },
+    weight: {
+      type: GraphQLInt,
+    },
+  }),
+});
 
-function getTagsObjectType() {
-  return new GraphQLList(getTagObjectType());
-}
-
-function getTagsObjectField() {
-  return {
-    type: getTagsObjectType(),
-    resolve: () => new Promise((resolve, reject) => {
-      TagService.search(Map({}))
-        .then(info => resolve(info.toJS()))
-        .catch(error => reject(error));
-    }),
-  };
-}
-
-export {
-  getTagsObjectField,
+const tagsField = {
+  type: new GraphQLList(tagType),
+  resolve: () => new Promise((resolve, reject) => {
+    TagService.search(Map({}))
+      .then(info => resolve(info.toJS()))
+      .catch(error => reject(error));
+  }),
 };
 
-export default getTagsObjectField;
+export {
+  tagType,
+  tagsField,
+};

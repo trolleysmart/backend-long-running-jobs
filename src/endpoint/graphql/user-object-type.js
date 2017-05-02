@@ -7,38 +7,33 @@ import {
   UserService,
 } from 'micro-business-parse-server-common';
 
-function getUserObjectType() {
-  return new GraphQLObjectType({
-    name: 'User',
-    fields: () => ({
-      id: {
-        type: GraphQLString,
-      },
-      username: {
-        type: GraphQLString,
-      },
-    }),
-  });
-}
-
-function getUserObjectField() {
-  return {
-    type: getUserObjectType(),
-    args: {
-      username: {
-        type: new GraphQLNonNull(GraphQLString),
-      },
+const userType = new GraphQLObjectType({
+  name: 'User',
+  fields: () => ({
+    id: {
+      type: GraphQLString,
     },
-    resolve: (_, args) => new Promise((resolve, reject) => {
-      UserService.getUserInfo(args.username)
-        .then(info => resolve(info.toJS()))
-        .catch(error => reject(error));
-    }),
-  };
-}
+    username: {
+      type: GraphQLString,
+    },
+  }),
+});
 
-export {
-  getUserObjectField,
+const userField = {
+  type: userType,
+  args: {
+    username: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+  },
+  resolve: (_, args) => new Promise((resolve, reject) => {
+    UserService.getUserInfo(args.username)
+      .then(info => resolve(info.toJS()))
+      .catch(error => reject(error));
+  }),
 };
 
-export default getUserObjectField;
+export {
+  userType,
+  userField,
+};

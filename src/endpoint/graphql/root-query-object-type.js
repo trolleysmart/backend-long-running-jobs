@@ -2,30 +2,34 @@ import {
   GraphQLObjectType,
 } from 'graphql';
 import {
-  getMasterProductsObjectField,
+  masterProductsField,
 } from './master-product-object-type';
 import {
-  getMasterProductPricesObjectField,
+  masterProductPricesField,
 } from './master-product-price-object-type';
 import {
-  getStoresObjectField,
+  storesField,
 } from './store-object-type';
 import {
-  getTagsObjectField,
+  specialsField,
+} from './specials';
+import {
+  tagsField,
 } from './tag-object-type';
 import {
-  getUserObjectField,
+  userField,
 } from './user-object-type';
 
 function getRootQueryObjectType() {
   return new GraphQLObjectType({
     name: 'RootQueryType',
     fields: () => ({
-      masterProducts: getMasterProductsObjectField(),
-      masterProductPrices: getMasterProductPricesObjectField(),
-      tags: getTagsObjectField(),
-      stores: getStoresObjectField(),
-      user: getUserObjectField(),
+      masterProducts: masterProductsField,
+      masterProductPrices: masterProductPricesField,
+      tags: tagsField,
+      stores: storesField,
+      specials: specialsField,
+      user: userField,
     }),
   });
 }
