@@ -1,4 +1,5 @@
 import {
+  List,
   Map,
 } from 'immutable';
 import {
@@ -44,7 +45,7 @@ const userType = new GraphQLObjectType({
             includeStore: true,
             includeMasterProduct: true,
             conditions: Map({
-              masterProductDescription: args.description,
+              contains_masterProductDescription: args.description ? args.description.trim() : undefined,
             }),
           }))
             .then(specials => resolve(specials.toArray()))

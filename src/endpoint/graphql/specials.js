@@ -39,6 +39,10 @@ const specialType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: _ => _.getIn(['store', 'name']),
     },
+    specialType: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['priceDetails', 'specialType']),
+    },
     price: {
       type: GraphQLFloat,
       resolve: _ => _.getIn(['priceDetails', 'price']),
