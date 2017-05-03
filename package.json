@@ -25,14 +25,14 @@
   "dependencies": {
     "babel-preset-stage-0": "^6.24.1",
     "express-graphql": "^0.6.4",
-    "graphql": "^0.9.5",
+    "graphql": "^0.9.6",
     "graphql-fields": "^1.0.2",
     "graphql-relay": "^0.5.1",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.20",
-    "micro-business-parse-server-common": "^0.1.40",
-    "smart-grocery-parse-server-common": "^0.1.80",
-    "store-crawler": "^0.1.77"
+    "micro-business-parse-server-common": "^0.1.41",
+    "smart-grocery-parse-server-common": "^0.1.83",
+    "store-crawler": "^0.1.78"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

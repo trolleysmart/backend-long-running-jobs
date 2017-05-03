@@ -304,7 +304,9 @@ var CountdownService = function () {
               });
 
               Promise.all(productsWithoutDuplication.map(function (product) {
-                return _smartGroceryParseServerCommon.MasterProductService.exists(product);
+                return _smartGroceryParseServerCommon.MasterProductService.exists((0, _immutable.Map)({
+                  conditions: product
+                }));
               }).toArray()).then(function (results) {
                 self.logVerbose(finalConfig, function () {
                   return 'Finished checking whether products already exist.';
@@ -622,7 +624,7 @@ var CountdownService = function () {
                   });
 
                   var newTagIds = tagIds.filterNot(function (tagId) {
-                    return existingProduct.get('tags').orSome((0, _immutable.List)()).find(function (id) {
+                    return existingProduct.get('tagIds').find(function (id) {
                       return id === tagId;
                     });
                   });
@@ -633,7 +635,7 @@ var CountdownService = function () {
                     return;
                   }
 
-                  _smartGroceryParseServerCommon.MasterProductService.update(existingProduct.update('tags', function (currentTags) {
+                  _smartGroceryParseServerCommon.MasterProductService.update(existingProduct.update('tagIds', function (currentTags) {
                     if (currentTags) {
                       return currentTags.concat(newTagIds);
                     }

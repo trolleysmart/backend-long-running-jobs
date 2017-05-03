@@ -280,7 +280,9 @@ class CountdownService {
 
             self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
-            Promise.all(productsWithoutDuplication.map(product => MasterProductService.exists(product))
+            Promise.all(productsWithoutDuplication.map(product => MasterProductService.exists(Map({
+              conditions: product,
+            })))
                 .toArray())
               .then((results) => {
                 self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
@@ -560,8 +562,7 @@ class CountdownService {
                           .trim()) === 0)
                       .get('id'));
 
-                    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tags')
-                      .orSome(List())
+                    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds')
                       .find(id => id === tagId));
 
                     if (newTagIds.isEmpty()) {
@@ -570,7 +571,7 @@ class CountdownService {
                       return;
                     }
 
-                    MasterProductService.update(existingProduct.update('tags', (currentTags) => {
+                    MasterProductService.update(existingProduct.update('tagIds', (currentTags) => {
                       if (currentTags) {
                         return currentTags.concat(newTagIds);
                       }
