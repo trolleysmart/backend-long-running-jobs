@@ -46,6 +46,7 @@ const userType = new GraphQLObjectType({
             includeMasterProduct: true,
             conditions: Map({
               contains_masterProductDescription: args.description ? args.description.trim() : undefined,
+              specialTypes: List.of('special'),
             }),
           }))
             .then(specials => resolve(specials.toArray()))

@@ -43,7 +43,8 @@ var userType = new _graphql.GraphQLObjectType({
               includeStore: true,
               includeMasterProduct: true,
               conditions: (0, _immutable.Map)({
-                contains_masterProductDescription: args.description ? args.description.trim() : undefined
+                contains_masterProductDescription: args.description ? args.description.trim() : undefined,
+                specialTypes: _immutable.List.of('special')
               })
             })).then(function (specials) {
               return resolve(specials.toArray());
