@@ -39,6 +39,18 @@ var specialType = new _graphql.GraphQLObjectType({
           return _.get('id');
         }
       },
+      description: {
+        type: _graphql.GraphQLString,
+        resolve: function resolve(_) {
+          return _.getIn(['masterProduct', 'description']);
+        }
+      },
+      storeName: {
+        type: _graphql.GraphQLString,
+        resolve: function resolve(_) {
+          return _.getIn(['store', 'name']);
+        }
+      },
       price: {
         type: _graphql.GraphQLFloat,
         resolve: function resolve(_) {

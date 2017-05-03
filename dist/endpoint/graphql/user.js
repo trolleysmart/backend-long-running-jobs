@@ -32,14 +32,19 @@ var userType = new _graphql.GraphQLObjectType({
       specials: {
         type: _specials.specialsConnection,
         args: _extends({}, _graphqlRelay.connectionArgs, {
-          query: {
+          description: {
             type: _graphql.GraphQLString
           }
         }),
         resolve: function resolve(_, args) {
           var promise = new Promise(function (resolve, reject) {
             _smartGroceryParseServerCommon.MasterProductPriceService.search((0, _immutable.Map)({
-              limit: args.first
+              limit: args.first,
+              includeStore: true,
+              includeMasterProduct: true,
+              conditions: (0, _immutable.Map)({
+                masterProductDescription: args.description
+              })
             })).then(function (specials) {
               return resolve(specials.toArray());
             }).catch(function (error) {

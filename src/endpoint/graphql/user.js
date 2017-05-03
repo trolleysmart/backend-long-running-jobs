@@ -33,7 +33,7 @@ const userType = new GraphQLObjectType({
       type: specialsConnection,
       args: {
         ...connectionArgs,
-        query: {
+        description: {
           type: GraphQLString,
         },
       },
@@ -41,6 +41,11 @@ const userType = new GraphQLObjectType({
         const promise = new Promise((resolve, reject) => {
           MasterProductPriceService.search(Map({
             limit: args.first,
+            includeStore: true,
+            includeMasterProduct: true,
+            conditions: Map({
+              masterProductDescription: args.description,
+            }),
           }))
             .then(specials => resolve(specials.toArray()))
             .catch(error => reject(error));

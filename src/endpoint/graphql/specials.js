@@ -1,9 +1,10 @@
 import {
   GraphQLObjectType,
+  GraphQLID,
   GraphQLInt,
   GraphQLFloat,
   GraphQLNonNull,
-  GraphQLID,
+  GraphQLString,
 } from 'graphql';
 import {
   connectionDefinitions,
@@ -29,6 +30,14 @@ const specialType = new GraphQLObjectType({
     id: {
       type: new GraphQLNonNull(GraphQLID),
       resolve: _ => _.get('id'),
+    },
+    description: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['masterProduct', 'description']),
+    },
+    storeName: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['store', 'name']),
     },
     price: {
       type: GraphQLFloat,
