@@ -19,8 +19,12 @@ function setupEndPoint(expressInstance) {
 
   expressInstance.get('/graphql-schema', (request, response) => {
     graphql(schema, introspectionQuery)
-      .then(json => response.send(JSON.stringify(json, null, 2)))
-      .catch(error => response.status(500).send(error));
+      .then((json) => {
+        response.setHeader('Content-Type', 'application/json');
+        response.send(JSON.stringify(json, null, 2));
+      })
+      .catch(error => response.status(500)
+        .send(error));
   });
 }
 

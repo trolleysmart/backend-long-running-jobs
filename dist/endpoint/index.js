@@ -27,7 +27,8 @@ function setupEndPoint(expressInstance) {
 
   expressInstance.get('/graphql-schema', function (request, response) {
     (0, _graphql.graphql)(schema, _utilities.introspectionQuery).then(function (json) {
-      return response.send(JSON.stringify(json, null, 2));
+      response.setHeader('Content-Type', 'application/json');
+      response.send(JSON.stringify(json, null, 2));
     }).catch(function (error) {
       return response.status(500).send(error);
     });
