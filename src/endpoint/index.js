@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import GraphQLHTTP from 'express-graphql';
 import {
   graphql,
@@ -29,6 +31,13 @@ function setupEndPoint(expressInstance) {
   });
 
   expressInstance.get('/graphql-schema-modern', (request, response) => response.send(printSchema(schema)));
+  expressInstance.get('/graphql-schema-modern1', (request, response) => {
+    const schemaPath = path.resolve(__dirname, './schema.graphql');
+
+    fs.writeFileSync(schemaPath, printSchema(schema));
+
+    response.send('Done');
+  });
 }
 
 export {
