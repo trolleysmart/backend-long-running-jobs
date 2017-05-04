@@ -46,7 +46,7 @@ function setupEndPoint(expressInstance) {
     return response.send((0, _graphql.printSchema)(schema));
   });
   expressInstance.get('/graphql-schema-modern1', function (request, response) {
-    var schemaPath = _path2.default.resolve(__dirname, './schema.graphql');
+    var schemaPath = _path2.default.resolve(__dirname, '../../schema.graphql');
 
     _fs2.default.writeFileSync(schemaPath, (0, _graphql.printSchema)(schema));
 

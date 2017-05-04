@@ -122,16 +122,17 @@ const userType = new GraphQLObjectType({
         },
       },
       resolve: (_, args) => {
+        console.log('Received query------------------->>>>>>>>>>>');
         const promise = new Promise((resolve, reject) => {
           MasterProductPriceService.search(Map({
-              limit: args.first,
-              includeStore: true,
-              includeMasterProduct: true,
-              conditions: Map({
-                contains_masterProductDescription: args.description ? args.description.trim() : undefined,
-                not_specialType: 'none',
-              }),
-            }))
+            limit: args.first,
+            includeStore: true,
+            includeMasterProduct: true,
+            conditions: Map({
+              contains_masterProductDescription: args.description ? args.description.trim() : undefined,
+              not_specialType: 'none',
+            }),
+          }))
             .then(specials => resolve(specials.toArray()))
             .catch(error => reject(error));
         });
