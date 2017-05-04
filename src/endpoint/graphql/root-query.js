@@ -122,7 +122,6 @@ const userType = new GraphQLObjectType({
         },
       },
       resolve: (_, args) => {
-        console.log('Received query------------------->>>>>>>>>>>');
         const promise = new Promise((resolve, reject) => {
           MasterProductPriceService.search(Map({
             limit: args.first,
