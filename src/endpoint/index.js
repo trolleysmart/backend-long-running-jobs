@@ -1,6 +1,7 @@
 import GraphQLHTTP from 'express-graphql';
 import {
   graphql,
+  printSchema,
 } from 'graphql';
 import {
   introspectionQuery,
@@ -26,6 +27,8 @@ function setupEndPoint(expressInstance) {
       .catch(error => response.status(500)
         .send(error));
   });
+
+  expressInstance.get('/graphql-schema-modern', (request, response) => response.send(printSchema(schema)));
 }
 
 export {

@@ -33,6 +33,10 @@ function setupEndPoint(expressInstance) {
       return response.status(500).send(error);
     });
   });
+
+  expressInstance.get('/graphql-schema-modern', function (request, response) {
+    return response.send((0, _graphql.printSchema)(schema));
+  });
 }
 
 exports.setupEndPoint = setupEndPoint;
