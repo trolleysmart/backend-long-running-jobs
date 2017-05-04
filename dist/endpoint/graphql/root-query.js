@@ -128,7 +128,6 @@ var userType = new _graphql.GraphQLObjectType({
         }
       }),
       resolve: function resolve(_, args) {
-        console.log('Received query------------------->>>>>>>>>>>');
         var promise = new Promise(function (resolve, reject) {
           _smartGroceryParseServerCommon.MasterProductPriceService.search((0, _immutable.Map)({
             limit: args.first,
