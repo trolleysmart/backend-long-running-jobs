@@ -34,7 +34,7 @@ const {
 } = nodeDefinitions(
   (globalId) => {
     const {
-      type,
+     type,
     } = fromGlobalId(globalId);
     if (type === 'Special') {
       return special;
