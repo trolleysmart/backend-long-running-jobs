@@ -15,35 +15,11 @@ var _graphqlRelay = require('graphql-relay');
 
 var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common');
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _microBusinessParseServerCommon = require('micro-business-parse-server-common');
 
-var Special = function Special() {
-  _classCallCheck(this, Special);
-};
-
-var User = function User() {
-  _classCallCheck(this, User);
-};
-
-var special = new Special();
-var user = new User();
-
-var _nodeDefinitions = (0, _graphqlRelay.nodeDefinitions)(function (globalId) {
-  var _fromGlobalId = (0, _graphqlRelay.fromGlobalId)(globalId),
-      type = _fromGlobalId.type;
-
-  if (type === 'Special') {
-    return special;
-  } else if (type === 'User') {
-    return user;
-  }
+var _nodeDefinitions = (0, _graphqlRelay.nodeDefinitions)(function () {
   return null;
-}, function (obj) {
-  if (obj instanceof Special) {
-    return specialType;
-  } else if (obj instanceof User) {
-    return userType;
-  }
+}, function () {
   return null;
 }),
     nodeInterface = _nodeDefinitions.nodeInterface,
@@ -72,7 +48,12 @@ var multiBuyType = new _graphql.GraphQLObjectType({
 var specialType = new _graphql.GraphQLObjectType({
   name: 'Special',
   fields: {
-    id: (0, _graphqlRelay.globalIdField)('Special'),
+    id: {
+      type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),
+      resolve: function resolve(_) {
+        return _.get('id');
+      }
+    },
     description: {
       type: _graphql.GraphQLString,
       resolve: function resolve(_) {
@@ -102,6 +83,12 @@ var specialType = new _graphql.GraphQLObjectType({
       resolve: function resolve(_) {
         return _.getIn(['priceDetails', 'wasPrice']);
       }
+    },
+    multiBuy: {
+      type: multiBuyType,
+      resolve: function resolve(_) {
+        return _.getIn(['priceDetails', 'multiBuyInfo']);
+      }
     }
   },
   interfaces: [nodeInterface]
@@ -116,9 +103,17 @@ var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
 var userType = new _graphql.GraphQLObjectType({
   name: 'User',
   fields: {
-    id: (0, _graphqlRelay.globalIdField)('User'),
+    id: {
+      type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),
+      resolve: function resolve(_) {
+        return _.get('id');
+      }
+    },
     username: {
-      type: _graphql.GraphQLString
+      type: _graphql.GraphQLString,
+      resolve: function resolve(_) {
+        return _.get('username');
+      }
     },
     specials: {
       type: specialsConnection,
@@ -154,10 +149,21 @@ var userType = new _graphql.GraphQLObjectType({
 var rootQueryType = new _graphql.GraphQLObjectType({
   name: 'Query',
   fields: {
-    viewer: {
+    user: {
       type: userType,
-      resolve: function resolve() {
-        return {};
+      args: {
+        username: {
+          type: new _graphql.GraphQLNonNull(_graphql.GraphQLString)
+        }
+      },
+      resolve: function resolve(_, args) {
+        return new Promise(function (resolve, reject) {
+          _microBusinessParseServerCommon.UserService.getUserInfo(args.username).then(function (info) {
+            return resolve(info);
+          }).catch(function (error) {
+            return reject(error);
+          });
+        });
       }
     },
     node: nodeField

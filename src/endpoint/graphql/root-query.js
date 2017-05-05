@@ -5,52 +5,29 @@ import {
   GraphQLID,
   GraphQLFloat,
   GraphQLInt,
-  GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLSchema,
   GraphQLString,
+  GraphQLNonNull,
 } from 'graphql';
 import {
   connectionArgs,
   connectionDefinitions,
   connectionFromPromisedArray,
-  fromGlobalId,
-  globalIdField,
   nodeDefinitions,
 } from 'graphql-relay';
 import {
   MasterProductPriceService,
 } from 'smart-grocery-parse-server-common';
-
-class Special {}
-class User {}
-
-const special = new Special();
-const user = new User();
+import {
+  UserService,
+} from 'micro-business-parse-server-common';
 
 const {
   nodeInterface,
   nodeField,
 } = nodeDefinitions(
-  (globalId) => {
-    const {
-     type,
-    } = fromGlobalId(globalId);
-    if (type === 'Special') {
-      return special;
-    } else if (type === 'User') {
-      return user;
-    }
-    return null;
-  },
-  (obj) => {
-    if (obj instanceof Special) {
-      return specialType;
-    } else if (obj instanceof User) {
-      return userType;
-    }
-    return null;
-  },
+  () => null,
+  () => null,
 );
 
 const multiBuyType = new GraphQLObjectType({
@@ -70,7 +47,10 @@ const multiBuyType = new GraphQLObjectType({
 const specialType = new GraphQLObjectType({
   name: 'Special',
   fields: {
-    id: globalIdField('Special'),
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      resolve: _ => _.get('id'),
+    },
     description: {
       type: GraphQLString,
       resolve: _ => _.getIn(['masterProduct', 'description']),
@@ -91,10 +71,10 @@ const specialType = new GraphQLObjectType({
       type: GraphQLFloat,
       resolve: _ => _.getIn(['priceDetails', 'wasPrice']),
     },
-    /* multiBuy: {
-     *   type: multiBuyType,
-     *   resolve: _ => _.getIn(['priceDetails', 'multiBuyInfo']),
-     * },*/
+    multiBuy: {
+      type: multiBuyType,
+      resolve: _ => _.getIn(['priceDetails', 'multiBuyInfo']),
+    },
   },
   interfaces: [nodeInterface],
 });
@@ -109,9 +89,13 @@ const {
 const userType = new GraphQLObjectType({
   name: 'User',
   fields: {
-    id: globalIdField('User'),
+    id: {
+      type: new GraphQLNonNull(GraphQLID),
+      resolve: _ => _.get('id'),
+    },
     username: {
       type: GraphQLString,
+      resolve: _ => _.get('username'),
     },
     specials: {
       type: specialsConnection,
@@ -146,9 +130,18 @@ const userType = new GraphQLObjectType({
 const rootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
-    viewer: {
+    user: {
       type: userType,
-      resolve: () => ({}),
+      args: {
+        username: {
+          type: new GraphQLNonNull(GraphQLString),
+        },
+      },
+      resolve: (_, args) => new Promise((resolve, reject) => {
+        UserService.getUserInfo(args.username)
+          .then(info => resolve(info))
+          .catch(error => reject(error));
+      }),
     },
     node: nodeField,
   },
