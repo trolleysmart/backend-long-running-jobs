@@ -120,6 +120,9 @@ var CountdownService = function CountdownService(_ref) {
         });
 
         return result.promise.then(function () {
+          // TODO: 20170506 - Morteza - Need to unsubscribe following event when promise is rejected...
+          result.event.unsubscribeAll();
+
           return new Promise(function (resolve, reject) {
             var productsWithoutDuplication = products.groupBy(function (_) {
               return _.get('description');
@@ -224,6 +227,8 @@ var CountdownService = function CountdownService(_ref) {
         });
 
         return result.promise.then(function () {
+          result.event.unsubscribeAll();
+
           var productsWithoutDuplication = products.groupBy(function (_) {
             return _.get('description');
           }).map(function (_) {
@@ -330,6 +335,8 @@ var CountdownService = function CountdownService(_ref) {
         });
 
         return result.promise.then(function () {
+          result.event.unsubscribeAll();
+
           var newTags = tags.filterNot(function (tag) {
             return existingTags.find(function (_) {
               return _.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0;
@@ -399,6 +406,8 @@ var CountdownService = function CountdownService(_ref) {
         });
 
         return result.promise.then(function () {
+          result.event.unsubscribeAll();
+
           var productsGroupedByDescription = products.groupBy(function (_) {
             return _.get('description');
           });
@@ -562,9 +571,10 @@ CountdownService.getExistingTags = function () {
     });
 
     result.promise.then(function () {
-      return resolve(tags);
+      result.event.unsubscribeAll();
+      resolve(tags);
     }).catch(function (error) {
-      console.log(error);
+      result.event.unsubscribeAll();
       reject(error);
     });
   });

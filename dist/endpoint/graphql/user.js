@@ -51,19 +51,37 @@ exports.default = function (nodeInterface) {
         }),
         resolve: function resolve(_, args) {
           var promise = new Promise(function (resolve, reject) {
-            _smartGroceryParseServerCommon.MasterProductPriceService.search((0, _immutable.Map)({
-              limit: args.first,
+            var criteria = (0, _immutable.Map)({
               includeStore: true,
               includeMasterProduct: true,
               conditions: (0, _immutable.Map)({
                 contains_masterProductDescription: args.description ? args.description.trim() : undefined,
                 not_specialType: 'none'
               })
-            })).then(function (specials) {
-              return resolve(specials.toArray());
-            }).catch(function (error) {
-              return reject(error);
             });
+
+            if (args.first) {
+              _smartGroceryParseServerCommon.MasterProductPriceService.search(criteria.set('limit', args.first)).then(function (specials) {
+                return resolve(specials.toArray());
+              }).catch(function (error) {
+                return reject(error);
+              });
+            } else {
+              var result = _smartGroceryParseServerCommon.MasterProductPriceService.searchAll(criteria);
+              var specials = (0, _immutable.List)();
+
+              result.event.subscribe(function (info) {
+                specials = specials.push(info);
+              });
+
+              result.promise.then(function () {
+                result.event.unsubscribeAll();
+                resolve(specials.toArray());
+              }).catch(function (error) {
+                result.event.unsubscribeAll();
+                reject(error);
+              });
+            }
           });
 
           return (0, _graphqlRelay.connectionFromPromisedArray)(promise, args);
