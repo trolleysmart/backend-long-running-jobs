@@ -60,9 +60,12 @@ export default class CountdownService {
       tags = tags.push(info);
     });
 
-    result.promise.then(() => resolve(tags))
+    result.promise.then(() => {
+      result.event.unsubscribeAll();
+      resolve(tags);
+    })
       .catch((error) => {
-        console.log(error);
+        result.event.unsubscribeAll();
         reject(error);
       });
   })
@@ -262,48 +265,53 @@ export default class CountdownService {
                 .length === 0));
           });
 
-          return result.promise.then(() => new Promise((resolve, reject) => {
-            const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
-              .map(_ => _.first())
-              .valueSeq();
+          return result.promise.then(() => {
+            // TODO: 20170506 - Morteza - Need to unsubscribe following event when promise is rejected...
+            result.event.unsubscribeAll();
 
-            self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
+            return new Promise((resolve, reject) => {
+              const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
+                .map(_ => _.first())
+                .valueSeq();
 
-            Promise.all(productsWithoutDuplication.map(product => MasterProductService.exists(Map({
-              conditions: product,
-            })))
-                .toArray())
-              .then((results) => {
-                self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
+              self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
-                const indexes = Range(0, productsWithoutDuplication.size);
-                const productsWithIndexes = productsWithoutDuplication.zipWith((product, index) => Map({
-                  product,
-                  index,
-                }), indexes);
+              Promise.all(productsWithoutDuplication.map(product => MasterProductService.exists(Map({
+                conditions: product,
+              })))
+                  .toArray())
+                .then((results) => {
+                  self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-                const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
-                  .map(_ => _.get('product'));
+                  const indexes = Range(0, productsWithoutDuplication.size);
+                  const productsWithIndexes = productsWithoutDuplication.zipWith((product, index) => Map({
+                    product,
+                    index,
+                  }), indexes);
 
-                if (newProducts.isEmpty()) {
-                  resolve();
-                } else {
-                  self.logInfo(finalConfig, () => 'Saving new products...');
+                  const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')])
+                    .map(_ => _.get('product'));
 
-                  const newProductInfo = newProducts.map(_ =>
-                    Map({
-                      description: _.get('description'),
-                      barcode: _.get('barcode'),
-                      imageUrl: _.get('imageUrl'),
-                    }));
+                  if (newProducts.isEmpty()) {
+                    resolve();
+                  } else {
+                    self.logInfo(finalConfig, () => 'Saving new products...');
 
-                  Promise.all(newProductInfo.map(MasterProductService.create)
-                      .toArray())
-                    .then(() => resolve())
-                    .catch(error => reject(error));
-                }
-              });
-          }));
+                    const newProductInfo = newProducts.map(_ =>
+                      Map({
+                        description: _.get('description'),
+                        barcode: _.get('barcode'),
+                        imageUrl: _.get('imageUrl'),
+                      }));
+
+                    Promise.all(newProductInfo.map(MasterProductService.create)
+                        .toArray())
+                      .then(() => resolve())
+                      .catch(error => reject(error));
+                  }
+                });
+            });
+          });
         });
     };
 
@@ -348,6 +356,8 @@ export default class CountdownService {
           });
 
           return result.promise.then(() => {
+            result.event.unsubscribeAll();
+
             const productsWithoutDuplication = products.groupBy(_ => _.get('description'))
               .map(_ => _.first())
               .valueSeq();
@@ -441,6 +451,8 @@ export default class CountdownService {
           });
 
           return result.promise.then(() => {
+            result.event.unsubscribeAll();
+
             const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('name')
               .toLowerCase()
               .trim()
@@ -503,6 +515,8 @@ export default class CountdownService {
           });
 
           return result.promise.then(() => {
+            result.event.unsubscribeAll();
+
             const productsGroupedByDescription = products.groupBy(_ => _.get('description'));
 
             self.logVerbose(finalConfig, () => 'Finding the product in master product...');

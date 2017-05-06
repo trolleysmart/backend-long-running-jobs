@@ -1,4 +1,5 @@
 import {
+  List,
   Map,
 } from 'immutable';
 import {
@@ -46,17 +47,36 @@ export default (nodeInterface) => {
         },
         resolve: (_, args) => {
           const promise = new Promise((resolve, reject) => {
-            MasterProductPriceService.search(Map({
-              limit: args.first,
+            const criteria = Map({
               includeStore: true,
               includeMasterProduct: true,
               conditions: Map({
                 contains_masterProductDescription: args.description ? args.description.trim() : undefined,
                 not_specialType: 'none',
               }),
-            }))
-              .then(specials => resolve(specials.toArray()))
-              .catch(error => reject(error));
+            });
+
+            if (args.first) {
+              MasterProductPriceService.search(criteria.set('limit', args.first))
+                .then(specials => resolve(specials.toArray()))
+                .catch(error => reject(error));
+            } else {
+              const result = MasterProductPriceService.searchAll(criteria);
+              let specials = List();
+
+              result.event.subscribe((info) => {
+                specials = specials.push(info);
+              });
+
+              result.promise.then(() => {
+                result.event.unsubscribeAll();
+                resolve(specials.toArray());
+              })
+                .catch((error) => {
+                  result.event.unsubscribeAll();
+                  reject(error);
+                });
+            }
           });
 
           return connectionFromPromisedArray(promise, args);
