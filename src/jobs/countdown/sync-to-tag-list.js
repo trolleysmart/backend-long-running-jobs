@@ -1,6 +1,4 @@
-import {
-  CountdownService,
-} from './countdown-service';
+import CountdownService from './countdown-service';
 
 const jobName = 'Sync Countdown Product Categories to Tag List';
 

@@ -10,6 +10,8 @@ var _microBusinessParseServerBackend2 = _interopRequireDefault(_microBusinessPar
 
 var _endpoint = require('./endpoint');
 
+var _endpoint2 = _interopRequireDefault(_endpoint);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var backendInfo = (0, _microBusinessParseServerBackend2.default)({
@@ -27,7 +29,7 @@ var backendInfo = (0, _microBusinessParseServerBackend2.default)({
   parseServerCloudFilePath: _path2.default.resolve(__dirname, 'cloud.js')
 });
 
-(0, _endpoint.setupEndPoint)(backendInfo.get('server'));
+(0, _endpoint2.default)(backendInfo.get('server'));
 
 process.on('SIGINT', function () {
   return process.exit();

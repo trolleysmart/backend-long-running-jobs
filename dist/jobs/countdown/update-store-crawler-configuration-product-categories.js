@@ -2,6 +2,10 @@
 
 var _countdownService = require('./countdown-service');
 
+var _countdownService2 = _interopRequireDefault(_countdownService);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var jobName = 'Update Store Crawler Countdown Configuration - Product Categories';
 
 Parse.Cloud.job(jobName, function (request, status) {
@@ -11,7 +15,7 @@ Parse.Cloud.job(jobName, function (request, status) {
   log.info('The job ' + jobName + ' has started.');
   status.message('The job ' + jobName + ' has started.');
 
-  var service = new _countdownService.CountdownService({
+  var service = new _countdownService2.default({
     logVerboseFunc: function logVerboseFunc(message) {
       return log.info(message);
     },

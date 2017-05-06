@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getRootSchema = undefined;
+exports.default = getRootSchema;
 
 var _graphql = require('graphql');
 
@@ -14,6 +14,3 @@ function getRootSchema() {
     query: _rootQuery.rootQueryType
   });
 }
-
-exports.getRootSchema = getRootSchema;
-exports.default = getRootSchema;

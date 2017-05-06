@@ -5,6 +5,6 @@ import {
 } from 'graphql';
 import {
   getRootSchema,
-} from '../src/endpoint/graphql/root-schema';
+} from '../src/endpoint/graphql';
 
 fs.writeFileSync(path.resolve(__dirname, '../data/schema.graphql'), printSchema(getRootSchema()));

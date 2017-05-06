@@ -17,63 +17,57 @@ import {
   TagService,
 } from 'smart-grocery-parse-server-common';
 
-class CountdownService {
-  static getConfig() {
-    return new Promise((resolve, reject) => {
-      ParseWrapperService.getConfig()
-        .then((config) => {
-          const jobConfig = config.get('Job');
+export default class CountdownService {
+  static getConfig = () => new Promise((resolve, reject) => {
+    ParseWrapperService.getConfig()
+      .then((config) => {
+        const jobConfig = config.get('Job');
 
-          if (jobConfig) {
-            resolve(Immutable.fromJS(jobConfig));
-          } else {
-            reject('No config found called Job.');
-          }
-        })
-        .catch(error => reject(error));
+        if (jobConfig) {
+          resolve(Immutable.fromJS(jobConfig));
+        } else {
+          reject('No config found called Job.');
+        }
+      })
+      .catch(error => reject(error));
+  })
+
+  static getCountdownStore = () => new Promise((resolve, reject) => {
+    const criteria = Map({
+      conditions: Map({
+        name: 'Countdown',
+      }),
     });
-  }
 
-  static getCountdownStore() {
-    return new Promise((resolve, reject) => {
-      const criteria = Map({
-        conditions: Map({
-          name: 'Countdown',
-        }),
+    StoreService.search(criteria)
+      .then((results) => {
+        if (results.isEmpty()) {
+          reject('No store found called Countdown.');
+        } else if (results.size === 1) {
+          resolve(results.first());
+        } else {
+          reject('Multiple store found called Countdown.');
+        }
+      })
+      .catch(error => reject(error));
+  })
+
+  static getExistingTags = () => new Promise((resolve, reject) => {
+    let tags = List();
+    const result = TagService.searchAll(Map());
+
+    result.event.subscribe((info) => {
+      tags = tags.push(info);
+    });
+
+    result.promise.then(() => resolve(tags))
+      .catch((error) => {
+        console.log(error);
+        reject(error);
       });
+  })
 
-      StoreService.search(criteria)
-        .then((results) => {
-          if (results.isEmpty()) {
-            reject('No store found called Countdown.');
-          } else if (results.size === 1) {
-            resolve(results.first());
-          } else {
-            reject('Multiple store found called Countdown.');
-          }
-        })
-        .catch(error => reject(error));
-    });
-  }
-
-  static getExistingTags() {
-    return new Promise((resolve, reject) => {
-      let tags = List();
-      const result = TagService.searchAll(Map());
-
-      result.event.subscribe((info) => {
-        tags = tags.push(info);
-      });
-
-      result.promise.then(() => resolve(tags))
-        .catch((error) => {
-          console.log(error);
-          reject(error);
-        });
-    });
-  }
-
-  static getSpecialType(product) {
+  static getSpecialType = (product) => {
     if (product.has('special') && product.get('special')) {
       return 'special';
     }
@@ -89,7 +83,7 @@ class CountdownService {
     return 'none';
   }
 
-  static getPrice(product) {
+  static getPrice = (product) => {
     const specialType = CountdownService.getSpecialType(product);
     const price = product.get('price');
 
@@ -110,7 +104,7 @@ class CountdownService {
     return price.substring(1, price.indexOf(' '));
   }
 
-  static getWasPrice(product) {
+  static getWasPrice = (product) => {
     const specialType = CountdownService.getSpecialType(product);
 
     if (specialType.localeCompare('special') === 0) {
@@ -132,7 +126,7 @@ class CountdownService {
     return undefined;
   }
 
-  static getMultiBuyInfo(product) {
+  static getMultiBuyInfo = (product) => {
     const specialType = CountdownService.getSpecialType(product);
 
     if (specialType.localeCompare('multibuy') === 0) {
@@ -158,8 +152,12 @@ class CountdownService {
     return undefined;
   }
 
-  static convertPriceStringToDecimal(price) {
-    return price ? parseFloat(price) : undefined;
+  static convertPriceStringToDecimal = (price) => {
+    if (price) {
+      return parseFloat(price);
+    }
+
+    return undefined;
   }
 
   constructor({
@@ -170,18 +168,9 @@ class CountdownService {
     this.logVerboseFunc = logVerboseFunc;
     this.logInfoFunc = logInfoFunc;
     this.logErrorFunc = logErrorFunc;
-
-    this.updateStoreCralwerProductCategoriesConfiguration = this.updateStoreCralwerProductCategoriesConfiguration.bind(this);
-    this.syncToMasterProductList = this.syncToMasterProductList.bind(this);
-    this.syncToMasterProductPriceList = this.syncToMasterProductPriceList.bind(this);
-    this.syncToTagList = this.syncToTagList.bind(this);
-    this.syncMasterProductTags = this.syncMasterProductTags.bind(this);
-    this.logVerbose = this.logVerbose.bind(this);
-    this.logInfo = this.logInfo.bind(this);
-    this.logError = this.logError.bind(this);
   }
 
-  updateStoreCralwerProductCategoriesConfiguration(config) {
+  updateStoreCralwerProductCategoriesConfiguration = (config) => {
     const self = this;
     const updateStoreCralwerProductCategoriesConfigurationInternal = (finalConfig) => {
       let currentConfig;
@@ -237,7 +226,7 @@ class CountdownService {
       .then(updateStoreCralwerProductCategoriesConfigurationInternal);
   }
 
-  syncToMasterProductList(config) {
+  syncToMasterProductList = (config) => {
     const self = this;
     const syncToMasterProductListInternal = (finalConfig) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
@@ -322,7 +311,7 @@ class CountdownService {
       .then(syncToMasterProductListInternal);
   }
 
-  syncToMasterProductPriceList(config) {
+  syncToMasterProductPriceList = (config) => {
     const self = this;
     const syncToMasterProductPriceListInternal = (finalConfig, stores) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
@@ -418,7 +407,7 @@ class CountdownService {
       .then(results => syncToMasterProductPriceListInternal(results[0], List.of(results[1])));
   }
 
-  syncToTagList(config) {
+  syncToTagList = (config) => {
     const self = this;
     const syncToTagListInternal = (finalConfig, existingTags) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
@@ -476,7 +465,7 @@ class CountdownService {
       .then(results => syncToTagListInternal(results[0], results[1]));
   }
 
-  syncMasterProductTags(config) {
+  syncMasterProductTags = (config) => {
     const self = this;
     const syncMasterProductTagsInternal = (finalConfig, existingTags) => {
       self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
@@ -597,27 +586,21 @@ class CountdownService {
       .then(results => syncMasterProductTagsInternal(results[0], results[1]));
   }
 
-  logVerbose(config, messageFunc) {
+  logVerbose = (config, messageFunc) => {
     if (this.logVerboseFunc && config && config.get('logLevel') && config.get('logLevel') >= 3 && messageFunc) {
       this.logVerboseFunc(messageFunc());
     }
   }
 
-  logInfo(config, messageFunc) {
+  logInfo = (config, messageFunc) => {
     if (this.logInfoFunc && config && config.get('logLevel') && config.get('logLevel') >= 2 && messageFunc) {
       this.logInfoFunc(messageFunc());
     }
   }
 
-  logError(config, messageFunc) {
+  logError = (config, messageFunc) => {
     if (this.logErrorFunc && config && config.get('logLevel') && config.get('logLevel') >= 1 && messageFunc) {
       this.logErrorFunc(messageFunc());
     }
   }
 }
-
-export {
-  CountdownService,
-};
-
-export default CountdownService;

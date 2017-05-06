@@ -5,14 +5,8 @@ import {
   rootQueryType,
 } from './root-query';
 
-function getRootSchema() {
+export default function getRootSchema() {
   return new GraphQLSchema({
     query: rootQueryType,
   });
 }
-
-export {
-  getRootSchema,
-};
-
-export default getRootSchema;

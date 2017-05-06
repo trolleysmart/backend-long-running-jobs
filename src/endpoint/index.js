@@ -1,9 +1,9 @@
 import GraphQLHTTP from 'express-graphql';
 import {
   getRootSchema,
-} from './graphql/root-schema';
+} from './graphql';
 
-function setupEndPoint(expressInstance) {
+export default function setupEndPoint(expressInstance) {
   const schema = getRootSchema();
 
   expressInstance.use('/graphql', GraphQLHTTP({
@@ -11,11 +11,3 @@ function setupEndPoint(expressInstance) {
     graphiql: true,
   }));
 }
-
-export {
-  setupEndPoint,
-};
-
-export default {
-  setupEndPoint,
-};

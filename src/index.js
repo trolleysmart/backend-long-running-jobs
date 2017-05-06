@@ -1,8 +1,6 @@
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
-import {
-  setupEndPoint,
-} from './endpoint';
+import setupEndPoint from './endpoint';
 
 const backendInfo = backend({
   serverHost: process.env.HOST,

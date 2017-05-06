@@ -1,6 +1,4 @@
-import {
-  CountdownService,
-} from './countdown-service';
+import CountdownService from './countdown-service';
 
 const jobName = 'Sync Countdown Products to Master Product List';
 
