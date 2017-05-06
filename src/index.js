@@ -4,19 +4,7 @@ import {
   setupEndPoint,
 } from './endpoint';
 
-const {
-  server,
-  serverHost,
-  serverPort,
-  parseServerUrl,
-  parseServerApplicationId,
-  parseServerMasterKey,
-  parseServerClientKey,
-  parseServerJavascriptKey,
-  parseServerFileKey,
-  parseServerDatabaseUri,
-  parseServerDashboardApplicationName,
-} = backend({
+const backendInfo = backend({
   serverHost: process.env.HOST,
   serverPort: process.env.PORT,
   parseServerApplicationId: process.env.PARSE_SERVER_APPLICATION_ID,
@@ -31,20 +19,21 @@ const {
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-setupEndPoint(server);
+setupEndPoint(backendInfo.get('server'));
 
 process.on('SIGINT', () => process.exit());
 
-server.listen(serverPort, () => {
-  console.log('Smart Grocery backend started.');
-  console.log('Server host: ', serverHost);
-  console.log('Listening port: ', serverPort);
-  console.log('Parse Server url: ', parseServerUrl);
-  console.log('Parse Server Application Id: ', parseServerApplicationId);
-  console.log('Parse Server Master Key: ', parseServerMasterKey);
-  console.log('Parse Server Client Key: ', parseServerClientKey);
-  console.log('Parse Server Javascript Key: ', parseServerJavascriptKey);
-  console.log('Parse Server File Key: ', parseServerFileKey);
-  console.log('Parse Server Database Uri: ', parseServerDatabaseUri);
-  console.log('Parse Server Dashboard Application Name: ', parseServerDashboardApplicationName);
-});
+backendInfo.get('server')
+  .listen(backendInfo.get('serverPort'), () => {
+    console.log('Smart Grocery backend started.');
+    console.log('Server host: ', backendInfo.get('serverHost'));
+    console.log('Listening port: ', backendInfo.get('serverPort'));
+    console.log('Parse Server url: ', backendInfo.get('parseServerUrl'));
+    console.log('Parse Server Application Id: ', backendInfo.get('parseServerApplicationId'));
+    console.log('Parse Server Master Key: ', backendInfo.get('parseServerMasterKey'));
+    console.log('Parse Server Client Key: ', backendInfo.get('parseServerClientKey'));
+    console.log('Parse Server Javascript Key: ', backendInfo.get('parseServerJavascriptKey'));
+    console.log('Parse Server File Key: ', backendInfo.get('parseServerFileKey'));
+    console.log('Parse Server Database Uri: ', backendInfo.get('parseServerDatabaseUri'));
+    console.log('Parse Server Dashboard Application Name: ', backendInfo.get('parseServerDashboardApplicationName'));
+  });

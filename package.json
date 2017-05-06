@@ -30,10 +30,10 @@
     "graphql-fields": "^1.0.2",
     "graphql-relay": "^0.5.1",
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.20",
-    "micro-business-parse-server-common": "^0.1.41",
-    "smart-grocery-parse-server-common": "^0.1.87",
-    "store-crawler": "^0.1.82"
+    "micro-business-parse-server-backend": "^0.1.21",
+    "micro-business-parse-server-common": "^0.1.47",
+    "smart-grocery-parse-server-common": "^0.1.90",
+    "store-crawler": "^0.1.83"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -44,8 +44,8 @@
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^4.0.0",
-    "eslint-plugin-react": "^6.10.3",
+    "eslint-plugin-jsx-a11y": "4.0.0",
+    "eslint-plugin-react": "^7.0.0",
     "flow-bin": "^0.45.0",
     "jest": "^19.0.2",
     "nodemon": "^1.11.0",

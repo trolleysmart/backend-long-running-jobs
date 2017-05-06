@@ -12,7 +12,7 @@ var _endpoint = require('./endpoint');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _backend = (0, _microBusinessParseServerBackend2.default)({
+var backendInfo = (0, _microBusinessParseServerBackend2.default)({
   serverHost: process.env.HOST,
   serverPort: process.env.PORT,
   parseServerApplicationId: process.env.PARSE_SERVER_APPLICATION_ID,
@@ -25,35 +25,24 @@ var _backend = (0, _microBusinessParseServerBackend2.default)({
   parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
   parseServerCloudFilePath: _path2.default.resolve(__dirname, 'cloud.js')
-}),
-    server = _backend.server,
-    serverHost = _backend.serverHost,
-    serverPort = _backend.serverPort,
-    parseServerUrl = _backend.parseServerUrl,
-    parseServerApplicationId = _backend.parseServerApplicationId,
-    parseServerMasterKey = _backend.parseServerMasterKey,
-    parseServerClientKey = _backend.parseServerClientKey,
-    parseServerJavascriptKey = _backend.parseServerJavascriptKey,
-    parseServerFileKey = _backend.parseServerFileKey,
-    parseServerDatabaseUri = _backend.parseServerDatabaseUri,
-    parseServerDashboardApplicationName = _backend.parseServerDashboardApplicationName;
+});
 
-(0, _endpoint.setupEndPoint)(server);
+(0, _endpoint.setupEndPoint)(backendInfo.get('server'));
 
 process.on('SIGINT', function () {
   return process.exit();
 });
 
-server.listen(serverPort, function () {
+backendInfo.get('server').listen(backendInfo.get('serverPort'), function () {
   console.log('Smart Grocery backend started.');
-  console.log('Server host: ', serverHost);
-  console.log('Listening port: ', serverPort);
-  console.log('Parse Server url: ', parseServerUrl);
-  console.log('Parse Server Application Id: ', parseServerApplicationId);
-  console.log('Parse Server Master Key: ', parseServerMasterKey);
-  console.log('Parse Server Client Key: ', parseServerClientKey);
-  console.log('Parse Server Javascript Key: ', parseServerJavascriptKey);
-  console.log('Parse Server File Key: ', parseServerFileKey);
-  console.log('Parse Server Database Uri: ', parseServerDatabaseUri);
-  console.log('Parse Server Dashboard Application Name: ', parseServerDashboardApplicationName);
+  console.log('Server host: ', backendInfo.get('serverHost'));
+  console.log('Listening port: ', backendInfo.get('serverPort'));
+  console.log('Parse Server url: ', backendInfo.get('parseServerUrl'));
+  console.log('Parse Server Application Id: ', backendInfo.get('parseServerApplicationId'));
+  console.log('Parse Server Master Key: ', backendInfo.get('parseServerMasterKey'));
+  console.log('Parse Server Client Key: ', backendInfo.get('parseServerClientKey'));
+  console.log('Parse Server Javascript Key: ', backendInfo.get('parseServerJavascriptKey'));
+  console.log('Parse Server File Key: ', backendInfo.get('parseServerFileKey'));
+  console.log('Parse Server Database Uri: ', backendInfo.get('parseServerDatabaseUri'));
+  console.log('Parse Server Dashboard Application Name: ', backendInfo.get('parseServerDashboardApplicationName'));
 });
