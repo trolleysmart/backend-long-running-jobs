@@ -3,7 +3,7 @@ import {
 } from 'graphql';
 import {
   rootQueryType,
-} from './root-query';
+} from './type';
 
 export default function getRootSchema() {
   return new GraphQLSchema({

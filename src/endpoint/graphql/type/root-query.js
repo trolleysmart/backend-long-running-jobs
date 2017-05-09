@@ -4,26 +4,18 @@ import {
   GraphQLNonNull,
 } from 'graphql';
 import {
-  nodeDefinitions,
-} from 'graphql-relay';
-import {
   UserService,
 } from 'micro-business-parse-server-common';
-import getUserType from './user';
-
-const {
-  nodeInterface,
-  nodeField,
-} = nodeDefinitions(
-  () => null,
-  () => null,
-);
+import userType from './user';
+import {
+  NodeField,
+} from '../interface';
 
 const rootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
     user: {
-      type: getUserType(nodeInterface),
+      type: userType,
       args: {
         username: {
           type: new GraphQLNonNull(GraphQLString),
@@ -35,14 +27,8 @@ const rootQueryType = new GraphQLObjectType({
           .catch(error => reject(error));
       }),
     },
-    node: nodeField,
+    node: NodeField,
   },
 });
 
-export {
-  rootQueryType,
-};
-
-export default {
-  rootQueryType,
-};
+export default rootQueryType;
