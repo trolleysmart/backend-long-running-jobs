@@ -6,7 +6,7 @@ import {
 import {
   UserService,
 } from 'micro-business-parse-server-common';
-import userType from './user';
+import UserType from './user';
 import {
   NodeField,
 } from '../interface';
@@ -15,7 +15,7 @@ const rootQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
     user: {
-      type: userType,
+      type: UserType,
       args: {
         username: {
           type: new GraphQLNonNull(GraphQLString),

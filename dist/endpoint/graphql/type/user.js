@@ -28,7 +28,7 @@ var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
 }),
     specialsConnection = _connectionDefinition.connectionType;
 
-var userType = new _graphql.GraphQLObjectType({
+exports.default = new _graphql.GraphQLObjectType({
   name: 'User',
   fields: {
     id: {
@@ -91,5 +91,3 @@ var userType = new _graphql.GraphQLObjectType({
   },
   interfaces: [_interface.NodeInterface]
 });
-
-exports.default = userType;

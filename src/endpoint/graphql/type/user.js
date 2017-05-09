@@ -19,16 +19,16 @@ import {
 import {
   NodeInterface,
 } from '../interface';
-import specialType from './specials';
+import SpecialType from './specials';
 
 const {
   connectionType: specialsConnection,
 } = connectionDefinitions({
   name: 'Special',
-  nodeType: specialType,
+  nodeType: SpecialType,
 });
 
-const userType = new GraphQLObjectType({
+export default new GraphQLObjectType({
   name: 'User',
   fields: {
     id: {
@@ -87,5 +87,3 @@ const userType = new GraphQLObjectType({
   },
   interfaces: [NodeInterface],
 });
-
-export default userType;

@@ -24,7 +24,7 @@ const multiBuyType = new GraphQLObjectType({
   }),
 });
 
-const specialType = new GraphQLObjectType({
+export default new GraphQLObjectType({
   name: 'Special',
   fields: {
     id: {
@@ -58,5 +58,3 @@ const specialType = new GraphQLObjectType({
   },
   interfaces: [NodeInterface],
 });
-
-export default specialType;

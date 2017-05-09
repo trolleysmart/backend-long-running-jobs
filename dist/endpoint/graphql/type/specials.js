@@ -28,7 +28,7 @@ var multiBuyType = new _graphql.GraphQLObjectType({
   }
 });
 
-var specialType = new _graphql.GraphQLObjectType({
+exports.default = new _graphql.GraphQLObjectType({
   name: 'Special',
   fields: {
     id: {
@@ -76,5 +76,3 @@ var specialType = new _graphql.GraphQLObjectType({
   },
   interfaces: [_interface.NodeInterface]
 });
-
-exports.default = specialType;
