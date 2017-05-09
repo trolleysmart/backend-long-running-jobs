@@ -43,6 +43,18 @@ exports.default = new _graphql.GraphQLObjectType({
         return _.getIn(['masterProduct', 'description']);
       }
     },
+    imageUrl: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve(_) {
+        return _.getIn(['masterProduct', 'imageUrl']);
+      }
+    },
+    barcode: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve(_) {
+        return _.getIn(['masterProduct', 'barcode']);
+      }
+    },
     storeName: {
       type: _graphql.GraphQLString,
       resolve: function resolve(_) {

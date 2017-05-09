@@ -35,6 +35,14 @@ export default new GraphQLObjectType({
       type: GraphQLString,
       resolve: _ => _.getIn(['masterProduct', 'description']),
     },
+    imageUrl: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['masterProduct', 'imageUrl']),
+    },
+    barcode: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['masterProduct', 'barcode']),
+    },
     storeName: {
       type: GraphQLString,
       resolve: _ => _.getIn(['store', 'name']),

@@ -37,6 +37,8 @@ type Query {
 type Special implements Node {
   id: ID!
   description: String
+  imageUrl: String
+  barcode: String
   storeName: String
   specialType: String
   price: Float
