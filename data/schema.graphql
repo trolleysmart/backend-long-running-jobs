@@ -39,11 +39,12 @@ type Special implements Node {
   description: String
   imageUrl: String
   barcode: String
-  storeName: String
   specialType: String
   price: Float
   wasPrice: Float
   multiBuy: MultiBuy
+  storeName: String
+  storeImageUrl: String
 }
 
 # A connection to a list of items.

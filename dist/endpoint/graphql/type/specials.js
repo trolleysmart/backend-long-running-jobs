@@ -55,12 +55,6 @@ exports.default = new _graphql.GraphQLObjectType({
         return _.getIn(['masterProduct', 'barcode']);
       }
     },
-    storeName: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['store', 'name']);
-      }
-    },
     specialType: {
       type: _graphql.GraphQLString,
       resolve: function resolve(_) {
@@ -83,6 +77,18 @@ exports.default = new _graphql.GraphQLObjectType({
       type: multiBuyType,
       resolve: function resolve(_) {
         return _.getIn(['priceDetails', 'multiBuyInfo']);
+      }
+    },
+    storeName: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve(_) {
+        return _.getIn(['store', 'name']);
+      }
+    },
+    storeImageUrl: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve(_) {
+        return _.getIn(['store', 'imageUrl']);
       }
     }
   },

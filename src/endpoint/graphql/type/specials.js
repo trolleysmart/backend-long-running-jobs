@@ -43,10 +43,6 @@ export default new GraphQLObjectType({
       type: GraphQLString,
       resolve: _ => _.getIn(['masterProduct', 'barcode']),
     },
-    storeName: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['store', 'name']),
-    },
     specialType: {
       type: GraphQLString,
       resolve: _ => _.getIn(['priceDetails', 'specialType']),
@@ -62,6 +58,14 @@ export default new GraphQLObjectType({
     multiBuy: {
       type: multiBuyType,
       resolve: _ => _.getIn(['priceDetails', 'multiBuyInfo']),
+    },
+    storeName: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['store', 'name']),
+    },
+    storeImageUrl: {
+      type: GraphQLString,
+      resolve: _ => _.getIn(['store', 'imageUrl']),
     },
   },
   interfaces: [NodeInterface],
