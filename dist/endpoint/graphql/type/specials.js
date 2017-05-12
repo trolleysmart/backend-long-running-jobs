@@ -94,13 +94,13 @@ exports.default = new _graphql.GraphQLObjectType({
     comments: {
       type: _graphql.GraphQLString,
       resolve: function resolve() {
-        return 'Limited 4 per person';
+        return '';
       }
     },
     unitSize: {
       type: _graphql.GraphQLString,
       resolve: function resolve() {
-        return '$0.80/100gr';
+        return '';
       }
     },
     expiryDate: {

@@ -69,11 +69,11 @@ export default new GraphQLObjectType({
     },
     comments: {
       type: GraphQLString,
-      resolve: () => 'Limited 4 per person',
+      resolve: () => '',
     },
     unitSize: {
       type: GraphQLString,
-      resolve: () => '$0.80/100gr',
+      resolve: () => '',
     },
     expiryDate: {
       type: GraphQLString,
