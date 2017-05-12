@@ -45,6 +45,9 @@ type Special implements Node {
   multiBuy: MultiBuy
   storeName: String
   storeImageUrl: String
+  comments: String
+  unitSize: String
+  expiryDate: String
 }
 
 # A connection to a list of items.

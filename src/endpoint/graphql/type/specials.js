@@ -67,6 +67,18 @@ export default new GraphQLObjectType({
       type: GraphQLString,
       resolve: _ => _.getIn(['store', 'imageUrl']),
     },
+    comments: {
+      type: GraphQLString,
+      resolve: () => 'Limited 4 per person',
+    },
+    unitSize: {
+      type: GraphQLString,
+      resolve: () => '$0.80/100gr',
+    },
+    expiryDate: {
+      type: GraphQLString,
+      resolve: () => new Date().toISOString(),
+    },
   },
   interfaces: [NodeInterface],
 });

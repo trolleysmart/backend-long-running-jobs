@@ -90,6 +90,24 @@ exports.default = new _graphql.GraphQLObjectType({
       resolve: function resolve(_) {
         return _.getIn(['store', 'imageUrl']);
       }
+    },
+    comments: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve() {
+        return 'Limited 4 per person';
+      }
+    },
+    unitSize: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve() {
+        return '$0.80/100gr';
+      }
+    },
+    expiryDate: {
+      type: _graphql.GraphQLString,
+      resolve: function resolve() {
+        return new Date().toISOString();
+      }
     }
   },
   interfaces: [_interface.NodeInterface]
