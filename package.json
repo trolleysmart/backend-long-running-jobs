@@ -31,7 +31,7 @@
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.22",
     "micro-business-parse-server-common": "^0.1.60",
-    "smart-grocery-parse-server-common": "^0.1.98",
+    "smart-grocery-parse-server-common": "^0.1.99",
     "store-crawler": "^0.1.86"
   },
   "devDependencies": {

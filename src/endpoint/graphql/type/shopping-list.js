@@ -9,27 +9,26 @@ import {
 import {
   NodeInterface,
 } from '../interface';
-
-const multiBuyType = new GraphQLObjectType({
-  name: 'MultiBuy',
-  fields: () => ({
-    count: {
-      type: GraphQLInt,
-      resolve: _ => _.get('count'),
-    },
-    price: {
-      type: GraphQLFloat,
-      resolve: _ => _.get('price'),
-    },
-  }),
-});
-
-export {
+import {
   multiBuyType,
-};
+} from './specials';
+
+// const multiBuyType = new GraphQLObjectType({
+//   name: 'MultiBuy',
+//   fields: () => ({
+//     count: {
+//       type: GraphQLInt,
+//       resolve: _ => _.get('count'),
+//     },
+//     price: {
+//       type: GraphQLFloat,
+//       resolve: _ => _.get('price'),
+//     },
+//   }),
+// });
 
 export default new GraphQLObjectType({
-  name: 'Special',
+  name: 'ShoppingList',
   fields: {
     id: {
       type: new GraphQLNonNull(GraphQLID),
@@ -37,7 +36,7 @@ export default new GraphQLObjectType({
     },
     description: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'description']),
+      resolve: _ => _.getIn(['masterProductPrices', 'masterProduct', 'description']),
     },
     imageUrl: {
       type: GraphQLString,

@@ -15,11 +15,13 @@ import {
 } from 'graphql-relay';
 import {
   MasterProductPriceService,
+  ShoppingListService,
 } from 'smart-grocery-parse-server-common';
 import {
   NodeInterface,
 } from '../interface';
 import SpecialType from './specials';
+import ShoppingListType from './shopping-list';
 
 const {
   connectionType: specialsConnection,
@@ -82,6 +84,56 @@ export default new GraphQLObjectType({
         });
 
         return connectionFromPromisedArray(promise, args);
+      },
+    },
+    shoppingList: {
+      type: ShoppingListType,
+      resolve: (_) => {
+        const promise = new Promise((resolve, reject) => {
+          const criteria = Map({
+            includeMasterProductPrices: true,
+            topMost: true,
+            conditions: Map({
+              userId: _.get('id'),
+            }),
+          });
+
+          ShoppingListService.search(criteria)
+            .then((shoppingList) => {
+              if (shoppingList.isEmpty()) {
+
+              } else {
+                const masterProductCriteria = Map({
+                  includeStore: true,
+                  includeMasterProduct: true,
+                  conditions: Map({
+                    ids: shoppingList.first()
+                      .get('masterProductPriceIds'),
+                  }),
+                });
+
+                const result = MasterProductPriceService.searchAll(masterProductCriteria);
+                let specials = List();
+
+                result.event.subscribe((info) => {
+                  specials = specials.push(info);
+                });
+
+                result.promise.then(() => {
+                  result.event.unsubscribeAll();
+                  resolve(specials.toArray());
+                })
+                  .catch((error) => {
+                    result.event.unsubscribeAll();
+                    reject(error);
+                  });
+              }
+            });
+        });
+
+        // return connectionFromPromisedArray(promise, args);
+        console.log(_.get('id'));
+        return {};
       },
     },
   },
