@@ -3,35 +3,29 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.multiBuyType = undefined;
 
 var _graphql = require('graphql');
 
 var _interface = require('../interface');
 
-var multiBuyType = new _graphql.GraphQLObjectType({
-  name: 'MultiBuy',
-  fields: function fields() {
-    return {
-      count: {
-        type: _graphql.GraphQLInt,
-        resolve: function resolve(_) {
-          return _.get('count');
-        }
-      },
-      price: {
-        type: _graphql.GraphQLFloat,
-        resolve: function resolve(_) {
-          return _.get('price');
-        }
-      }
-    };
-  }
-});
+var _specials = require('./specials');
 
-exports.multiBuyType = multiBuyType;
+// const multiBuyType = new GraphQLObjectType({
+//   name: 'MultiBuy',
+//   fields: () => ({
+//     count: {
+//       type: GraphQLInt,
+//       resolve: _ => _.get('count'),
+//     },
+//     price: {
+//       type: GraphQLFloat,
+//       resolve: _ => _.get('price'),
+//     },
+//   }),
+// });
+
 exports.default = new _graphql.GraphQLObjectType({
-  name: 'Special',
+  name: 'ShoppingList',
   fields: {
     id: {
       type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),
@@ -76,7 +70,7 @@ exports.default = new _graphql.GraphQLObjectType({
       }
     },
     multiBuy: {
-      type: multiBuyType,
+      type: _specials.multiBuyType,
       resolve: function resolve(_) {
         return _.getIn(['priceDetails', 'multiBuyInfo']);
       }

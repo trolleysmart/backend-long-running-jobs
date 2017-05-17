@@ -4,6 +4,7 @@ import {
 } from 'immutable';
 import {
   GraphQLID,
+  GraphQLList,
   GraphQLObjectType,
   GraphQLString,
   GraphQLNonNull,
@@ -11,7 +12,7 @@ import {
 import {
   connectionArgs,
   connectionDefinitions,
-  connectionFromPromisedArray,
+  connectionFromArray,
 } from 'graphql-relay';
 import {
   MasterProductPriceService,
@@ -49,91 +50,86 @@ export default new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve: (_, args) => {
-        const promise = new Promise((resolve, reject) => {
-          const criteria = Map({
-            includeStore: true,
-            includeMasterProduct: true,
-            conditions: Map({
-              contains_masterProductDescription: args.description ? args.description.trim() : undefined,
-              not_specialType: 'none',
-            }),
-          });
+      resolve: async (_, args) => {
+        const criteria = Map({
+          includeStore: true,
+          includeMasterProduct: true,
+          conditions: Map({
+            contains_masterProductDescription: args.description ? args.description.trim() : undefined,
+            not_specialType: 'none',
+          }),
+        });
 
-          if (args.first) {
-            MasterProductPriceService.search(criteria.set('limit', args.first))
-              .then(specials => resolve(specials.toArray()))
-              .catch(error => reject(error));
-          } else {
-            const result = MasterProductPriceService.searchAll(criteria);
-            let specials = List();
+        let specials;
+
+        if (args.first) {
+          specials = await MasterProductPriceService.search(criteria.set('limit', args.first));
+        } else {
+          const result = MasterProductPriceService.searchAll(criteria);
+
+          try {
+            specials = List();
 
             result.event.subscribe((info) => {
               specials = specials.push(info);
             });
 
-            result.promise.then(() => {
-              result.event.unsubscribeAll();
-              resolve(specials.toArray());
-            })
-              .catch((error) => {
-                result.event.unsubscribeAll();
-                reject(error);
-              });
+            await result.promise;
+          } finally {
+            result.event.unsubscribeAll();
           }
-        });
+        }
 
-        return connectionFromPromisedArray(promise, args);
+        return connectionFromArray(specials.toArray(), args);
       },
     },
     shoppingList: {
-      type: ShoppingListType,
-      resolve: (_) => {
-        const promise = new Promise((resolve, reject) => {
-          const criteria = Map({
-            includeMasterProductPrices: true,
-            topMost: true,
-            conditions: Map({
-              userId: _.get('id'),
-            }),
-          });
-
-          ShoppingListService.search(criteria)
-            .then((shoppingList) => {
-              if (shoppingList.isEmpty()) {
-
-              } else {
-                const masterProductCriteria = Map({
-                  includeStore: true,
-                  includeMasterProduct: true,
-                  conditions: Map({
-                    ids: shoppingList.first()
-                      .get('masterProductPriceIds'),
-                  }),
-                });
-
-                const result = MasterProductPriceService.searchAll(masterProductCriteria);
-                let specials = List();
-
-                result.event.subscribe((info) => {
-                  specials = specials.push(info);
-                });
-
-                result.promise.then(() => {
-                  result.event.unsubscribeAll();
-                  resolve(specials.toArray());
-                })
-                  .catch((error) => {
-                    result.event.unsubscribeAll();
-                    reject(error);
-                  });
-              }
-            });
+      type: new GraphQLList(ShoppingListType),
+      resolve: async (_) => {
+        const criteria = Map({
+          includeMasterProductPrices: true,
+          topMost: true,
+          conditions: Map({
+            userId: _.get('id'),
+          }),
         });
 
-        // return connectionFromPromisedArray(promise, args);
-        console.log(_.get('id'));
-        return {};
+        const shoppingList = await ShoppingListService.search(criteria);
+
+        if (shoppingList.isEmpty()) {
+          return List();
+        }
+
+        const masterProductPriceIds = shoppingList.first()
+          .get('masterProductPriceIds');
+
+        if (masterProductPriceIds.isEmpty()) {
+          return List();
+        }
+
+        const masterProductCriteria = Map({
+          includeStore: true,
+          includeMasterProduct: true,
+          conditions: Map({
+            id: masterProductPriceIds.first(),
+          }),
+        });
+
+        const result = MasterProductPriceService.searchAll(masterProductCriteria);
+
+        try {
+          let specials = List();
+
+          result.event.subscribe((info) => {
+            specials = specials.push(info);
+            console.log(`//////// ${JSON.stringify(info.toJS())}`);
+          });
+          await result.promise;
+
+          return specials;
+        } finally {
+          result.event.unsubscribeAll();
+        }
       },
     },
   },

@@ -30,8 +30,8 @@
     "graphql-relay": "^0.5.1",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.22",
-    "micro-business-parse-server-common": "^0.1.60",
-    "smart-grocery-parse-server-common": "^0.1.99",
+    "micro-business-parse-server-common": "^0.1.65",
+    "smart-grocery-parse-server-common": "^0.1.102",
     "store-crawler": "^0.1.86"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^15.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "5.0.1",
+    "eslint-plugin-jsx-a11y": "5.0.3",
     "eslint-plugin-react": "^7.0.1",
     "flow-bin": "^0.46.0",
     "jest": "^20.0.1",

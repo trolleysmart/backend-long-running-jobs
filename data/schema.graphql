@@ -34,6 +34,22 @@ type Query {
   ): Node
 }
 
+type ShoppingList implements Node {
+  id: ID!
+  description: String
+  imageUrl: String
+  barcode: String
+  specialType: String
+  price: Float
+  wasPrice: Float
+  multiBuy: MultiBuy
+  storeName: String
+  storeImageUrl: String
+  comments: String
+  unitSize: String
+  expiryDate: String
+}
+
 type Special implements Node {
   id: ID!
   description: String
@@ -72,4 +88,5 @@ type User implements Node {
   id: ID!
   username: String
   specials(after: String, first: Int, before: String, last: Int, description: String): SpecialConnection
+  shoppingList: [ShoppingList]
 }
