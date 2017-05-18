@@ -1,7 +1,7 @@
 // @flow
 
 import Immutable, { List, Map, Range, Set } from 'immutable';
-import { ParseWrapperService } from 'micro-business-parse-server-common';
+import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
 import {
   CrawlResultService,
   CrawlSessionService,
@@ -13,61 +13,52 @@ import {
 } from 'smart-grocery-parse-server-common';
 
 export default class CountdownService {
-  static getConfig = () =>
-    new Promise((resolve, reject) => {
-      ParseWrapperService.getConfig()
-        .then((config) => {
-          const jobConfig = config.get('Job');
+  static getConfig = async () => {
+    const config = await ParseWrapperService.getConfig();
+    const jobConfig = config.get('Job');
 
-          if (jobConfig) {
-            resolve(Immutable.fromJS(jobConfig));
-          } else {
-            reject('No config found called Job.');
-          }
-        })
-        .catch(error => reject(error));
+    if (jobConfig) {
+      return Immutable.fromJS(jobConfig);
+    }
+
+    throw new Exception('No config found called Job.');
+  };
+
+  static getCountdownStore = async () => {
+    const criteria = Map({
+      conditions: Map({
+        name: 'Countdown',
+      }),
     });
 
-  static getCountdownStore = () =>
-    new Promise((resolve, reject) => {
-      const criteria = Map({
-        conditions: Map({
-          name: 'Countdown',
-        }),
-      });
+    const results = await StoreService.search(criteria);
 
-      StoreService.search(criteria)
-        .then((results) => {
-          if (results.isEmpty()) {
-            reject('No store found called Countdown.');
-          } else if (results.size === 1) {
-            resolve(results.first());
-          } else {
-            reject('Multiple store found called Countdown.');
-          }
-        })
-        .catch(error => reject(error));
-    });
+    if (results.isEmpty()) {
+      throw new Exception('No store found called Countdown.');
+    } else if (results.size === 1) {
+      return results.first();
+    } else {
+      throw new Exception('Multiple store found called Countdown.');
+    }
+  };
 
-  static getExistingTags = () =>
-    new Promise((resolve, reject) => {
+  static getExistingTags = async () => {
+    const result = TagService.searchAll(Map());
+
+    try {
       let tags = List();
-      const result = TagService.searchAll(Map());
 
       result.event.subscribe((info) => {
         tags = tags.push(info);
       });
 
-      result.promise
-        .then(() => {
-          result.event.unsubscribeAll();
-          resolve(tags);
-        })
-        .catch((error) => {
-          result.event.unsubscribeAll();
-          reject(error);
-        });
-    });
+      await result.promise;
+
+      return tags;
+    } finally {
+      result.event.unsubscribeAll();
+    }
+  };
 
   static getSpecialType = (product) => {
     if (product.has('special') && product.get('special')) {
@@ -166,69 +157,58 @@ export default class CountdownService {
     this.logErrorFunc = logErrorFunc;
   }
 
-  updateStoreCralwerProductCategoriesConfiguration = (config) => {
-    const self = this;
-    const updateStoreCralwerProductCategoriesConfigurationInternal = (finalConfig) => {
-      let currentConfig;
+  updateStoreCralwerProductCategoriesConfiguration = async (config) => {
+    const finalConfig = config || (await CountdownService.getConfig());
 
-      self.logInfo(
-        finalConfig,
-        () => 'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...',
-      ); // eslint-disable-line max-len
+    this.logInfo(
+      finalConfig,
+      () => 'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...',
+    ); // eslint-disable-line max-len
 
-      return Promise.all([
-        StoreCrawlerConfigurationService.search(
-          Map({
-            conditions: Map({
-              name: 'Countdown',
-            }),
-            topMost: true,
+    const results = await Promise.all([
+      StoreCrawlerConfigurationService.search(
+        Map({
+          conditions: Map({
+            name: 'Countdown',
           }),
-        ),
-        CrawlSessionService.search(
-          Map({
-            conditions: Map({
-              sessionKey: 'Countdown High Level Product Categories',
-            }),
-            topMost: true,
+          topMost: true,
+        }),
+      ),
+      CrawlSessionService.search(
+        Map({
+          conditions: Map({
+            sessionKey: 'Countdown High Level Product Categories',
           }),
-        ),
-      ])
-        .then((results) => {
-          self.logInfo(
-            finalConfig,
-            () =>
-              'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.',
-          ); // eslint-disable-line max-len
+          topMost: true,
+        }),
+      ),
+    ]);
+    this.logInfo(
+      finalConfig,
+      () => 'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.',
+    ); // eslint-disable-line max-len
 
-          currentConfig = results[0].first();
+    const currentConfig = results[0].first();
 
-          self.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
+    this.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
 
-          return CrawlResultService.search(
-            Map({
-              conditions: Map({
-                crawlSessionId: results[1].first().get('id'),
-              }),
-            }),
-          );
-        })
-        .then((results) => {
-          const highLevelProductCategories = results.first().getIn(['resultSet', 'highLevelProductCategories']);
+    const crawlResults = await CrawlResultService.search(
+      Map({
+        conditions: Map({
+          crawlSessionId: results[1].first().get('id'),
+        }),
+      }),
+    );
 
-          self.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
+    const highLevelProductCategories = crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']);
 
-          const newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
+    this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
 
-          self.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
+    const newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
 
-          return StoreCrawlerConfigurationService.create(newConfig);
-        });
-    };
+    this.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
-    return config
-      ? updateStoreCralwerProductCategoriesConfigurationInternal(config)
-      : CountdownService.getConfig().then(updateStoreCralwerProductCategoriesConfigurationInternal);
+    await StoreCrawlerConfigurationService.create(newConfig);
   };
 
   syncToMasterProductList = (config) => {
@@ -260,8 +240,6 @@ export default class CountdownService {
 
         result.event.subscribe((info) => {
           const resultSet = info.get('resultSet');
-
-          self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
 
           products = products.concat(resultSet.get('products').filterNot(_ => _.get('description').trim().length === 0));
         });
@@ -354,8 +332,6 @@ export default class CountdownService {
         result.event.subscribe((info) => {
           const resultSet = info.get('resultSet');
 
-          self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
-
           products = products.concat(resultSet.get('products').filterNot(_ => _.get('description').trim().length === 0));
         });
 
@@ -423,201 +399,160 @@ export default class CountdownService {
     );
   };
 
-  syncToTagList = (config) => {
-    const self = this;
-    const syncToTagListInternal = (finalConfig, existingTags) => {
-      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+  syncToTagList = async (config) => {
+    const finalConfig = config || (await CountdownService.getConfig());
+    const existingTags = await CountdownService.getExistingTags();
 
-      return CrawlSessionService.search(
-        Map({
-          conditions: Map({
-            sessionKey: 'Countdown Products',
-          }),
-          topMost: true,
+    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey: 'Countdown Products',
         }),
-      ).then((crawlSessionInfos) => {
-        const sessionInfo = crawlSessionInfos.first();
-        const sessionId = sessionInfo.get('id');
-        let tags = Set();
+        topMost: true,
+      }),
+    );
 
-        self.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    const sessionInfo = crawlSessionInfos.first();
+    const sessionId = sessionInfo.get('id');
+    let tags = Set();
 
-        const result = CrawlResultService.searchAll(
-          Map({
-            conditions: Map({
-              crawlSessionId: sessionId,
-            }),
-          }),
-        );
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
 
-        result.event.subscribe((info) => {
-          const resultSet = info.get('resultSet');
+    const result = CrawlResultService.searchAll(
+      Map({
+        conditions: Map({
+          crawlSessionId: sessionId,
+        }),
+      }),
+    );
 
-          self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
+    try {
+      result.event.subscribe((info) => {
+        const resultSet = info.get('resultSet');
 
-          tags = tags.add(resultSet.get('productCategory'));
-        });
-
-        return result.promise.then(() => {
-          result.event.unsubscribeAll();
-
-          const newTags = tags.filterNot(tag =>
-            existingTags.find(_ => _.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
-          );
-
-          return Promise.all(
-            newTags
-              .map(tag =>
-                TagService.create(
-                  Map({
-                    name: tag,
-                    weight: 1,
-                  }),
-                ),
-              )
-              .toArray(),
-          );
-        });
+        tags = tags.add(resultSet.get('productCategory'));
       });
-    };
 
-    if (config) {
-      return CountdownService.getExistingTags().then(existingTags => syncToTagListInternal(config, existingTags));
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
     }
 
-    return Promise.all([CountdownService.getConfig(), CountdownService.getExistingTags()]).then(results =>
-      syncToTagListInternal(results[0], results[1]),
+    const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0));
+
+    await Promise.all(
+      newTags
+        .map(tag =>
+          TagService.create(
+            Map({
+              name: tag,
+              weight: 1,
+            }),
+          ),
+        )
+        .toArray(),
     );
   };
 
-  syncMasterProductTags = (config) => {
-    const self = this;
-    const syncMasterProductTagsInternal = (finalConfig, existingTags) => {
-      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+  syncMasterProductTags = async (config) => {
+    const finalConfig = config || (await CountdownService.getConfig());
+    const existingTags = await CountdownService.getExistingTags();
 
-      return CrawlSessionService.search(
-        Map({
-          conditions: Map({
-            sessionKey: 'Countdown Products',
-          }),
-          topMost: true,
+    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey: 'Countdown Products',
         }),
-      ).then((crawlSessionInfos) => {
-        const sessionInfo = crawlSessionInfos.first();
-        const sessionId = sessionInfo.get('id');
-        let products = List();
+        topMost: true,
+      }),
+    );
 
-        self.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    const sessionInfo = crawlSessionInfos.first();
+    const sessionId = sessionInfo.get('id');
+    let products = List();
 
-        const result = CrawlResultService.searchAll(
-          Map({
-            conditions: Map({
-              crawlSessionId: sessionId,
-            }),
-          }),
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+
+    const result = CrawlResultService.searchAll(
+      Map({
+        conditions: Map({
+          crawlSessionId: sessionId,
+        }),
+      }),
+    );
+
+    try {
+      result.event.subscribe((info) => {
+        const resultSet = info.get('resultSet');
+
+        products = products.concat(
+          resultSet
+            .get('products')
+            .filterNot(_ => _.get('description').trim().length === 0)
+            .map(_ => _.set('productCategory', resultSet.get('productCategory'))),
         );
-
-        result.event.subscribe((info) => {
-          const resultSet = info.get('resultSet');
-
-          self.logVerbose(finalConfig, () => `Received result sets for Session Id: ${sessionId}`);
-
-          products = products.concat(
-            resultSet
-              .get('products')
-              .filterNot(_ => _.get('description').trim().length === 0)
-              .map(_ => _.set('productCategory', resultSet.get('productCategory'))),
-          );
-        });
-
-        return result.promise.then(() => {
-          result.event.unsubscribeAll();
-
-          const productsGroupedByDescription = products.groupBy(_ => _.get('description'));
-
-          self.logVerbose(finalConfig, () => 'Finding the product in master product...');
-
-          return Promise.all(
-            productsGroupedByDescription
-              .keySeq()
-              .map(
-                key =>
-                  new Promise((resolve, reject) => {
-                    const product = productsGroupedByDescription.get(key).first();
-
-                    MasterProductService.search(
-                      Map({
-                        conditions: product,
-                      }),
-                    )
-                      .then((results) => {
-                        if (results.isEmpty()) {
-                          reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
-                          resolve();
-
-                          return;
-                        } else if (results.size > 1) {
-                          reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
-
-                          return;
-                        }
-
-                        const existingProduct = results.first();
-
-                        const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
-                        const notFoundTags = tags.filterNot(tag =>
-                          existingTags.find(
-                            existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0,
-                          ),
-                        );
-
-                        if (!notFoundTags.isEmpty()) {
-                          reject(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
-
-                          return;
-                        }
-
-                        const tagIds = tags.map(tag =>
-                          existingTags
-                            .find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0)
-                            .get('id'),
-                        );
-
-                        const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
-
-                        if (newTagIds.isEmpty()) {
-                          resolve();
-
-                          return;
-                        }
-
-                        MasterProductService.update(
-                          existingProduct.update('tagIds', (currentTags) => {
-                            if (currentTags) {
-                              return currentTags.concat(newTagIds);
-                            }
-
-                            return newTagIds;
-                          }),
-                        )
-                          .then(() => resolve())
-                          .catch(error => reject(error));
-                      })
-                      .catch(error => reject(error));
-                  }),
-              )
-              .toArray(),
-          );
-        });
       });
-    };
 
-    if (config) {
-      return CountdownService.getExistingTags().then(existingTags => syncMasterProductTagsInternal(config, existingTags));
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
     }
 
-    return Promise.all([CountdownService.getConfig(), CountdownService.getExistingTags()]).then(results =>
-      syncMasterProductTagsInternal(results[0], results[1]),
+    const productsGroupedByDescription = products.groupBy(_ => _.get('description'));
+
+    this.logVerbose(finalConfig, () => 'Finding the product in master product...');
+
+    await Promise.all(
+      productsGroupedByDescription
+        .keySeq()
+        .map(key => async () => {
+          const product = productsGroupedByDescription.get(key).first();
+          const results = await MasterProductService.search(
+            Map({
+              conditions: product,
+            }),
+          );
+
+          if (results.isEmpty()) {
+            throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
+          } else if (results.size > 1) {
+            throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+          }
+
+          const existingProduct = results.first();
+          const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
+          const notFoundTags = tags.filterNot(tag =>
+            existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+          );
+
+          if (!notFoundTags.isEmpty()) {
+            throw new Exception(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
+          }
+
+          const tagIds = tags.map(tag =>
+            existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
+          );
+          const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
+
+          if (newTagIds.isEmpty()) {
+            return;
+          }
+
+          await MasterProductService.update(
+            existingProduct.update('tagIds', (currentTags) => {
+              if (currentTags) {
+                return currentTags.concat(newTagIds);
+              }
+
+              return newTagIds;
+            }),
+          );
+        })
+        .toArray(),
     );
   };
 
