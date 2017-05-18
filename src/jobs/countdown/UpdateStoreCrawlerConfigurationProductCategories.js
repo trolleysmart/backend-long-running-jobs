@@ -1,8 +1,11 @@
-import CountdownService from './countdown-service';
+// @flow
 
-const jobName = 'Sync Countdown Product Categories to Tag List';
+import CountdownService from './CountdownService';
 
-Parse.Cloud.job(jobName, (request, status) => { // eslint-disable-line no-undef
+const jobName = 'Update Store Crawler Countdown Configuration - Product Categories';
+
+Parse.Cloud.job(jobName, (request, status) => {
+  // eslint-disable-line no-undef
   const log = request.log;
 
   log.info(`The job ${jobName} has started.`);
@@ -14,7 +17,8 @@ Parse.Cloud.job(jobName, (request, status) => { // eslint-disable-line no-undef
     logErrorFunc: message => log.error(message),
   });
 
-  service.syncToTagList()
+  service
+    .updateStoreCralwerProductCategoriesConfiguration()
     .then(() => {
       log.info(`The job ${jobName} completed successfully.`);
       status.success(`The job ${jobName} completed successfully.`);

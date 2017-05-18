@@ -16,13 +16,13 @@ var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common'
 
 var _interface = require('../interface');
 
-var _specials = require('./specials');
+var _Specials = require('./Specials');
 
-var _specials2 = _interopRequireDefault(_specials);
+var _Specials2 = _interopRequireDefault(_Specials);
 
-var _shoppingList = require('./shopping-list');
+var _ShoppingList = require('./ShoppingList');
 
-var _shoppingList2 = _interopRequireDefault(_shoppingList);
+var _ShoppingList2 = _interopRequireDefault(_ShoppingList);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -30,7 +30,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
   name: 'Special',
-  nodeType: _specials2.default
+  nodeType: _Specials2.default
 }),
     specialsConnection = _connectionDefinition.connectionType;
 
@@ -122,7 +122,7 @@ exports.default = new _graphql.GraphQLObjectType({
       }()
     },
     shoppingList: {
-      type: new _graphql.GraphQLList(_shoppingList2.default),
+      type: new _graphql.GraphQLList(_ShoppingList2.default),
       resolve: function () {
         var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(_) {
           var criteria, shoppingList, masterProductPriceIds, masterProductCriteria, result, specials;

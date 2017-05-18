@@ -1,9 +1,3 @@
-import rootQueryType from './root-query';
+// @flow
 
-export {
-  rootQueryType,
-};
-
-export default {
-  rootQueryType,
-};
+export rootQueryType from './RootQuery';

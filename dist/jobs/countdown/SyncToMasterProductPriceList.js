@@ -1,8 +1,8 @@
 'use strict';
 
-var _countdownService = require('./countdown-service');
+var _CountdownService = require('./CountdownService');
 
-var _countdownService2 = _interopRequireDefault(_countdownService);
+var _CountdownService2 = _interopRequireDefault(_CountdownService);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -15,7 +15,7 @@ Parse.Cloud.job(jobName, function (request, status) {
   log.info('The job ' + jobName + ' has started.');
   status.message('The job ' + jobName + ' has started.');
 
-  var service = new _countdownService2.default({
+  var service = new _CountdownService2.default({
     logVerboseFunc: function logVerboseFunc(message) {
       return log.info(message);
     },

@@ -1,14 +1,3 @@
-import {
-  NodeInterface,
-  NodeField,
-} from './node-interface';
+// @flow
 
-export {
-  NodeInterface,
-  NodeField,
-};
-
-export default {
-  NodeInterface,
-  NodeField,
-};
+export { NodeInterface, NodeField } from './NodeInterface';

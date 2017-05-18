@@ -7,7 +7,7 @@
     "start": "babel-node src/index.js",
     "start:watch": "nodemon --exec npm start",
     "build": "babel src --out-dir dist && npm run generate-graphql-schema",
-    "generate-graphql-schema": "babel-node scripts/generate-graphql-schema.js",
+    "generate-graphql-schema": "babel-node scripts/GenerateGraphqlSchema.js",
     "lint": "eslint --ext .jsx --ext .js src",
     "fixlint": "eslint --fix --ext .jsx --ext .js src",
     "test": "jest",
@@ -15,7 +15,8 @@
     "test-verbose": "jest --verbose",
     "test-verbose:watch": "npm run test-verbose -- --watch",
     "publish-package": "npm run build && npm publish",
-    "flow": "flow"
+    "flow": "flow",
+    "lint:staged": "lint-staged"
   },
   "author": "Micro Business ltd<micro.business.ltd@gmail.com>",
   "homepage": "https://bitbucket.org/microbusiness/smart-grocery-backend#readme",

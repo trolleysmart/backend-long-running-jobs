@@ -1,11 +1,11 @@
 'use strict';
 
-require('./sync-master-product-tags');
+require('./SyncMasterProductTags');
 
-require('./sync-to-master-product-list');
+require('./SyncToMasterProductList');
 
-require('./sync-to-master-product-price-list');
+require('./SyncToMasterProductPriceList');
 
-require('./sync-to-tag-list');
+require('./SyncToTagList');
 
-require('./update-store-crawler-configuration-product-categories');
+require('./UpdateStoreCrawlerConfigurationProductCategories');

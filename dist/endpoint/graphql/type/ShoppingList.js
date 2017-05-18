@@ -8,21 +8,7 @@ var _graphql = require('graphql');
 
 var _interface = require('../interface');
 
-var _specials = require('./specials');
-
-// const multiBuyType = new GraphQLObjectType({
-//   name: 'MultiBuy',
-//   fields: () => ({
-//     count: {
-//       type: GraphQLInt,
-//       resolve: _ => _.get('count'),
-//     },
-//     price: {
-//       type: GraphQLFloat,
-//       resolve: _ => _.get('price'),
-//     },
-//   }),
-// });
+var _Specials = require('./Specials');
 
 exports.default = new _graphql.GraphQLObjectType({
   name: 'ShoppingList',
@@ -70,7 +56,7 @@ exports.default = new _graphql.GraphQLObjectType({
       }
     },
     multiBuy: {
-      type: _specials.multiBuyType,
+      type: _Specials.multiBuyType,
       resolve: function resolve(_) {
         return _.getIn(['priceDetails', 'multiBuyInfo']);
       }

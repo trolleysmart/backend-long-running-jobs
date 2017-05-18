@@ -1,9 +1,3 @@
-import getRootSchema from './root-schema';
+// @flow
 
-export {
-  getRootSchema,
-};
-
-export default {
-  getRootSchema,
-};
+export getRootSchema from './RootSchema';

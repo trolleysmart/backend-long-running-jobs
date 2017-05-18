@@ -1,31 +1,8 @@
-import {
-  GraphQLID,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLNonNull,
-} from 'graphql';
-import {
-  NodeInterface,
-} from '../interface';
-import {
-  multiBuyType,
-} from './specials';
+// @flow
 
-// const multiBuyType = new GraphQLObjectType({
-//   name: 'MultiBuy',
-//   fields: () => ({
-//     count: {
-//       type: GraphQLInt,
-//       resolve: _ => _.get('count'),
-//     },
-//     price: {
-//       type: GraphQLFloat,
-//       resolve: _ => _.get('price'),
-//     },
-//   }),
-// });
+import { GraphQLID, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { NodeInterface } from '../interface';
+import { multiBuyType } from './Specials';
 
 export default new GraphQLObjectType({
   name: 'ShoppingList',
@@ -80,8 +57,7 @@ export default new GraphQLObjectType({
     },
     expiryDate: {
       type: GraphQLString,
-      resolve: () => new Date()
-        .toISOString(),
+      resolve: () => new Date().toISOString(),
     },
   },
   interfaces: [NodeInterface],

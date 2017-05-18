@@ -1,14 +1,7 @@
-import {
-  GraphQLID,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLNonNull,
-} from 'graphql';
-import {
-  NodeInterface,
-} from '../interface';
+// @flow
+
+import { GraphQLID, GraphQLFloat, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { NodeInterface } from '../interface';
 
 const multiBuyType = new GraphQLObjectType({
   name: 'MultiBuy',
@@ -24,9 +17,7 @@ const multiBuyType = new GraphQLObjectType({
   }),
 });
 
-export {
-  multiBuyType,
-};
+export { multiBuyType };
 
 export default new GraphQLObjectType({
   name: 'Special',
@@ -81,8 +72,7 @@ export default new GraphQLObjectType({
     },
     expiryDate: {
       type: GraphQLString,
-      resolve: () => new Date()
-        .toISOString(),
+      resolve: () => new Date().toISOString(),
     },
   },
   interfaces: [NodeInterface],

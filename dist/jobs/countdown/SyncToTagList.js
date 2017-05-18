@@ -1,12 +1,12 @@
 'use strict';
 
-var _countdownService = require('./countdown-service');
+var _CountdownService = require('./CountdownService');
 
-var _countdownService2 = _interopRequireDefault(_countdownService);
+var _CountdownService2 = _interopRequireDefault(_CountdownService);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var jobName = 'Update Store Crawler Countdown Configuration - Product Categories';
+var jobName = 'Sync Countdown Product Categories to Tag List';
 
 Parse.Cloud.job(jobName, function (request, status) {
   // eslint-disable-line no-undef
@@ -15,7 +15,7 @@ Parse.Cloud.job(jobName, function (request, status) {
   log.info('The job ' + jobName + ' has started.');
   status.message('The job ' + jobName + ' has started.');
 
-  var service = new _countdownService2.default({
+  var service = new _CountdownService2.default({
     logVerboseFunc: function logVerboseFunc(message) {
       return log.info(message);
     },
@@ -27,7 +27,7 @@ Parse.Cloud.job(jobName, function (request, status) {
     }
   });
 
-  service.updateStoreCralwerProductCategoriesConfiguration().then(function () {
+  service.syncToTagList().then(function () {
     log.info('The job ' + jobName + ' completed successfully.');
     status.success('The job ' + jobName + ' completed successfully.');
   }).catch(function (error) {

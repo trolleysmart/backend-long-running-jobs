@@ -3,13 +3,18 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NodeField = exports.NodeInterface = undefined;
 
-var _nodeInterface = require('./node-interface');
+var _NodeInterface = require('./NodeInterface');
 
-exports.NodeInterface = _nodeInterface.NodeInterface;
-exports.NodeField = _nodeInterface.NodeField;
-exports.default = {
-  NodeInterface: _nodeInterface.NodeInterface,
-  NodeField: _nodeInterface.NodeField
-};
+Object.defineProperty(exports, 'NodeInterface', {
+  enumerable: true,
+  get: function get() {
+    return _NodeInterface.NodeInterface;
+  }
+});
+Object.defineProperty(exports, 'NodeField', {
+  enumerable: true,
+  get: function get() {
+    return _NodeInterface.NodeField;
+  }
+});
