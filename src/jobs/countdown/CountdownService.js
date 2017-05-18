@@ -48,9 +48,7 @@ export default class CountdownService {
     try {
       let tags = List();
 
-      result.event.subscribe((info) => {
-        tags = tags.push(info);
-      });
+      result.event.subscribe(info => (tags = tags.push(info)));
 
       await result.promise;
 
@@ -238,11 +236,9 @@ export default class CountdownService {
           }),
         );
 
-        result.event.subscribe((info) => {
-          const resultSet = info.get('resultSet');
-
-          products = products.concat(resultSet.get('products').filterNot(_ => _.get('description').trim().length === 0));
-        });
+        result.event.subscribe(
+          info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
+        );
 
         return result.promise.then(() => {
           // TODO: 20170506 - Morteza - Need to unsubscribe following event when promise is rejected...
@@ -302,100 +298,81 @@ export default class CountdownService {
     return config ? syncToMasterProductListInternal(config) : CountdownService.getConfig().then(syncToMasterProductListInternal);
   };
 
-  syncToMasterProductPriceList = (config) => {
-    const self = this;
-    const syncToMasterProductPriceListInternal = (finalConfig, stores) => {
-      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+  syncToMasterProductPriceList = async (config) => {
+    const finalConfig = config || (await CountdownService.getConfig());
+    const stores = await CountdownService.getCountdownStore();
 
-      return CrawlSessionService.search(
-        Map({
-          conditions: Map({
-            sessionKey: 'Countdown Products',
-          }),
-          topMost: true,
+    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
+
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey: 'Countdown Products',
         }),
-      ).then((crawlSessionInfos) => {
-        const sessionInfo = crawlSessionInfos.first();
-        const sessionId = sessionInfo.get('id');
-        let products = List();
+        topMost: true,
+      }),
+    );
 
-        self.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    const sessionInfo = crawlSessionInfos.first();
+    const sessionId = sessionInfo.get('id');
+    let products = List();
 
-        const result = CrawlResultService.searchAll(
-          Map({
-            conditions: Map({
-              crawlSessionId: sessionId,
-            }),
-          }),
-        );
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
 
-        result.event.subscribe((info) => {
-          const resultSet = info.get('resultSet');
+    const result = CrawlResultService.searchAll(
+      Map({
+        conditions: Map({
+          crawlSessionId: sessionId,
+        }),
+      }),
+    );
 
-          products = products.concat(resultSet.get('products').filterNot(_ => _.get('description').trim().length === 0));
-        });
+    try {
+      result.event.subscribe(
+        info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
+      );
 
-        return result.promise.then(() => {
-          result.event.unsubscribeAll();
-
-          const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
-
-          self.logVerbose(finalConfig, () => 'Finding the product in master product...');
-
-          const capturedDate = new Date();
-
-          return Promise.all(
-            productsWithoutDuplication
-              .map(
-                product =>
-                  new Promise((resolve, reject) => {
-                    MasterProductService.search(
-                      Map({
-                        conditions: product,
-                      }),
-                    )
-                      .then((results) => {
-                        if (results.isEmpty()) {
-                          reject(`No master product found for: ${JSON.stringify(product.toJS())}`);
-                          resolve();
-
-                          return;
-                        } else if (results.size > 1) {
-                          reject(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
-
-                          return;
-                        }
-
-                        const masterProduct = results.first();
-                        const masterProductPriceInfo = Map({
-                          masterProductId: masterProduct.get('id'),
-                          storeId: stores.find(_ => _.get('name').localeCompare('Countdown') === 0).get('id'),
-                          capturedDate,
-                          priceDetails: Map({
-                            specialType: CountdownService.getSpecialType(product),
-                            price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
-                            wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
-                            multiBuyInfo: CountdownService.getMultiBuyInfo(product),
-                          }),
-                        });
-
-                        MasterProductPriceService.create(masterProductPriceInfo).then(() => resolve()).catch(error => reject(error));
-                      })
-                      .catch(error => reject(error));
-                  }),
-              )
-              .toArray(),
-          );
-        });
-      });
-    };
-
-    if (config) {
-      return CountdownService.getCountdownStore().then(store => syncToMasterProductPriceListInternal(config, List.of(store)));
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
     }
 
-    return Promise.all([CountdownService.getConfig(), CountdownService.getCountdownStore()]).then(results =>
-      syncToMasterProductPriceListInternal(results[0], List.of(results[1])),
+    const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
+
+    this.logVerbose(finalConfig, () => 'Finding the product in master product...');
+
+    const capturedDate = new Date();
+
+    await Promise.all(
+      productsWithoutDuplication
+        .map(product => async () => {
+          const results = await MasterProductService.search(
+            Map({
+              conditions: product,
+            }),
+          );
+          if (results.isEmpty()) {
+            throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
+          } else if (results.size > 1) {
+            throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+          }
+
+          const masterProduct = results.first();
+          const masterProductPriceInfo = Map({
+            masterProductId: masterProduct.get('id'),
+            storeId: stores.find(_ => _.get('name').localeCompare('Countdown') === 0).get('id'),
+            capturedDate,
+            priceDetails: Map({
+              specialType: CountdownService.getSpecialType(product),
+              price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
+              wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
+              multiBuyInfo: CountdownService.getMultiBuyInfo(product),
+            }),
+          });
+
+          await MasterProductPriceService.create(masterProductPriceInfo);
+        })
+        .toArray(),
     );
   };
 
@@ -429,11 +406,7 @@ export default class CountdownService {
     );
 
     try {
-      result.event.subscribe((info) => {
-        const resultSet = info.get('resultSet');
-
-        tags = tags.add(resultSet.get('productCategory'));
-      });
+      result.event.subscribe(info => (tags = tags.add(info.getIn(['resultSet', 'productCategory']))));
 
       await result.promise;
     } finally {
