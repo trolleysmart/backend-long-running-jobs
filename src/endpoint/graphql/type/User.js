@@ -1,7 +1,7 @@
 // @flow
 
 import { List, Map } from 'immutable';
-import { GraphQLID, GraphQLList, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
@@ -61,7 +61,7 @@ export default new GraphQLObjectType({
       },
     },
     shoppingList: {
-      type: new GraphQLList(ShoppingListType),
+      type: ShoppingListType,
       resolve: async (_) => {
         const criteria = Map({
           includeMasterProductPrices: true,
