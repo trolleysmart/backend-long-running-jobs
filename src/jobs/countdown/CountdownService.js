@@ -194,11 +194,11 @@ export default class CountdownService {
       }),
     );
 
-    const highLevelProductCategories = crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']);
+    const highLevelProductCategories = Immutable.fromJS(crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']));
 
     this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
-    const newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
+    const newConfig = currentConfig.first().setIn(['config', 'productCategories'], highLevelProductCategories);
 
     this.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
