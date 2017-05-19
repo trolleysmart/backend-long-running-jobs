@@ -91,9 +91,7 @@ export default new GraphQLObjectType({
         const masterProductCriteria = Map({
           includeStore: true,
           includeMasterProduct: true,
-          conditions: Map({
-            id: masterProductPriceIds.first(),
-          }),
+          ids: masterProductPriceIds,
         });
 
         const result = MasterProductPriceService.searchAll(masterProductCriteria);
