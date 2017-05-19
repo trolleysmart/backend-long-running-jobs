@@ -27,8 +27,8 @@
     "graphql-relay": "^0.5.1",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.22",
-    "micro-business-parse-server-common": "^0.1.66",
-    "smart-grocery-parse-server-common": "^0.1.103",
+    "micro-business-parse-server-common": "^0.1.67",
+    "smart-grocery-parse-server-common": "^0.1.104",
     "store-crawler": "^0.1.88"
   },
   "devDependencies": {
