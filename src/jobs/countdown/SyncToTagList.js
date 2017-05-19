@@ -1,10 +1,11 @@
 // @flow
 
+import { Exception } from 'micro-business-parse-server-common';
 import CountdownService from './CountdownService';
 
 const jobName = 'Sync Countdown Product Categories to Tag List';
 
-Parse.Cloud.job(jobName, (request, status) => {
+Parse.Cloud.job(jobName, async (request, status) => {
   // eslint-disable-line no-undef
   const log = request.log;
 
@@ -17,14 +18,15 @@ Parse.Cloud.job(jobName, (request, status) => {
     logErrorFunc: message => log.error(message),
   });
 
-  service
-    .syncToTagList()
-    .then(() => {
-      log.info(`The job ${jobName} completed successfully.`);
-      status.success(`The job ${jobName} completed successfully.`);
-    })
-    .catch((error) => {
-      log.error(`The job ${jobName} ended in error. Error: ${JSON.stringify(error)}`);
-      status.error(`The job ${jobName} ended in error. Error: ${JSON.stringify(error)}`);
-    });
+  try {
+    await service.syncToTagList();
+
+    log.info(`The job ${jobName} completed successfully.`);
+    status.success(`The job ${jobName} completed successfully.`);
+  } catch (ex) {
+    const errorMessage = ex instanceof Exception ? ex.getRrrorMessage() : ex;
+
+    log.error(`The job ${jobName} ended in error. Error: ${errorMessage}`);
+    status.error(`The job ${jobName} ended in error. Error: ${errorMessage}`);
+  }
 });
