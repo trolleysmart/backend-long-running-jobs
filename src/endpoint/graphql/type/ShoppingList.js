@@ -15,14 +15,16 @@ export default new GraphQLObjectType({
         ...connectionArgs,
       },
       resolve: async (_, args) => {
-        if (_.isEmpty()) {
+        const masterProductPriceIds = _.get('masterProductPriceIds');
+
+        if (masterProductPriceIds.isEmpty()) {
           return List();
         }
 
         const masterProductCriteria = Map({
           includeStore: true,
           includeMasterProduct: true,
-          ids: _,
+          ids: masterProductPriceIds,
         });
 
         const result = MasterProductPriceService.searchAll(masterProductCriteria);
