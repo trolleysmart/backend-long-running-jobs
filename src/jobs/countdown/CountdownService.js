@@ -204,7 +204,7 @@ export default class CountdownService {
 
     await StoreCrawlerConfigurationService.create(newConfig);
 
-    this.logInfo(finalConfig, () => 'Updated new Store Crawler config for Countdown...');
+    this.logInfo(finalConfig, () => 'Updated new Store Crawler config for Countdown.');
   };
 
   syncToMasterProductList = async (config) => {

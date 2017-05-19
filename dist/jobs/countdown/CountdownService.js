@@ -29,7 +29,7 @@ var CountdownService = function CountdownService(_ref) {
 
   this.updateStoreCralwerProductCategoriesConfiguration = function () {
     var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee(config) {
-      var finalConfig, results, currentConfig, crawlResults, highLevelProductCategories, newConfig;
+      var finalConfig, currentConfig, crawlSessionInfos, crawlResults, highLevelProductCategories, newConfig;
       return regeneratorRuntime.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -52,50 +52,63 @@ var CountdownService = function CountdownService(_ref) {
 
 
               _this.logInfo(finalConfig, function () {
-                return 'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...';
+                return 'Fetching store crawler configuration...';
               }); // eslint-disable-line max-len
 
               _context.next = 9;
-              return Promise.all([_smartGroceryParseServerCommon.StoreCrawlerConfigurationService.search((0, _immutable.Map)({
+              return _smartGroceryParseServerCommon.StoreCrawlerConfigurationService.search((0, _immutable.Map)({
                 conditions: (0, _immutable.Map)({
                   name: 'Countdown'
                 }),
                 topMost: true
-              })), _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
+              }));
+
+            case 9:
+              currentConfig = _context.sent;
+
+
+              _this.logInfo(finalConfig, function () {
+                return 'Fetched store crawler configuration.';
+              }); // eslint-disable-line max-len
+
+              _this.logInfo(finalConfig, function () {
+                return 'Fetching the most recent Countdown crawling result for Countdown High Level Product Categories...';
+              }); // eslint-disable-line max-len
+
+              _context.next = 14;
+              return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
                 conditions: (0, _immutable.Map)({
                   sessionKey: 'Countdown High Level Product Categories'
                 }),
                 topMost: true
-              }))]);
+              }));
 
-            case 9:
-              results = _context.sent;
+            case 14:
+              crawlSessionInfos = _context.sent;
+
 
               _this.logInfo(finalConfig, function () {
-                return 'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.';
+                return 'Fetched the most recent Countdown crawling result for Countdown High Level Product Categories.';
               }); // eslint-disable-line max-len
-
-              currentConfig = results[0].first();
-
 
               _this.logVerbose(finalConfig, function () {
                 return 'Current Store Crawler config for Countdown: ' + currentConfig;
               });
 
-              _context.next = 15;
+              _context.next = 19;
               return _smartGroceryParseServerCommon.CrawlResultService.search((0, _immutable.Map)({
                 conditions: (0, _immutable.Map)({
-                  crawlSessionId: results[1].first().get('id')
+                  crawlSessionId: crawlSessionInfos.first().get('id')
                 })
               }));
 
-            case 15:
+            case 19:
               crawlResults = _context.sent;
               highLevelProductCategories = crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']);
 
 
               _this.logInfo(finalConfig, function () {
-                return 'Updating new Store Crawler config for Countdown';
+                return 'Updating new Store Crawler config for Countdown...';
               });
 
               newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
@@ -105,10 +118,16 @@ var CountdownService = function CountdownService(_ref) {
                 return 'New Store Crawler config for Countdown: ' + JSON.stringify(newConfig);
               });
 
-              _context.next = 22;
+              _context.next = 26;
               return _smartGroceryParseServerCommon.StoreCrawlerConfigurationService.create(newConfig);
 
-            case 22:
+            case 26:
+
+              _this.logInfo(finalConfig, function () {
+                return 'Updated new Store Crawler config for Countdown.';
+              });
+
+            case 27:
             case 'end':
               return _context.stop();
           }
