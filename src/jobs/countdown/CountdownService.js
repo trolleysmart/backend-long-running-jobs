@@ -209,93 +209,89 @@ export default class CountdownService {
     await StoreCrawlerConfigurationService.create(newConfig);
   };
 
-  syncToMasterProductList = (config) => {
-    const self = this;
-    const syncToMasterProductListInternal = (finalConfig) => {
-      self.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
+  syncToMasterProductList = async (config) => {
+    const finalConfig = config || (await CountdownService.getConfig());
 
-      return CrawlSessionService.search(
-        Map({
-          conditions: Map({
-            sessionKey: 'Countdown Products',
-          }),
-          topMost: true,
+    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
+
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey: 'Countdown Products',
         }),
-      ).then((crawlSessionInfos) => {
-        const sessionInfo = crawlSessionInfos.first();
-        const sessionId = sessionInfo.get('id');
-        let products = List();
+        topMost: true,
+      }),
+    );
 
-        self.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
+    const sessionInfo = crawlSessionInfos.first();
+    const sessionId = sessionInfo.get('id');
+    let products = List();
 
-        const result = CrawlResultService.searchAll(
-          Map({
-            conditions: Map({
-              crawlSessionId: sessionId,
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
+
+    const result = CrawlResultService.searchAll(
+      Map({
+        conditions: Map({
+          crawlSessionId: sessionId,
+        }),
+      }),
+    );
+
+    try {
+      result.event.subscribe(
+        info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
+      );
+
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
+    }
+
+    const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
+
+    this.logVerbose(finalConfig, () => 'Checking whether products already exist...');
+
+    const results = await Promise.all(
+      productsWithoutDuplication
+        .map(product =>
+          MasterProductService.exists(
+            Map({
+              conditions: product,
             }),
-          }),
-        );
+          ),
+        )
+        .toArray(),
+    );
 
-        result.event.subscribe(
-          info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
-        );
+    this.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-        return result.promise.then(() => {
-          // TODO: 20170506 - Morteza - Need to unsubscribe following event when promise is rejected...
-          result.event.unsubscribeAll();
+    const indexes = Range(0, productsWithoutDuplication.size);
+    const productsWithIndexes = productsWithoutDuplication.zipWith(
+      (product, index) =>
+        Map({
+          product,
+          index,
+        }),
+      indexes,
+    );
 
-          return new Promise((resolve, reject) => {
-            const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
+    const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')]).map(_ => _.get('product'));
 
-            self.logVerbose(finalConfig, () => 'Checking whether products already exist...');
+    if (newProducts.isEmpty()) {
+      return;
+    }
 
-            Promise.all(
-              productsWithoutDuplication
-                .map(product =>
-                  MasterProductService.exists(
-                    Map({
-                      conditions: product,
-                    }),
-                  ),
-                )
-                .toArray(),
-            ).then((results) => {
-              self.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
+    this.logInfo(finalConfig, () => 'Saving new products...');
 
-              const indexes = Range(0, productsWithoutDuplication.size);
-              const productsWithIndexes = productsWithoutDuplication.zipWith(
-                (product, index) =>
-                  Map({
-                    product,
-                    index,
-                  }),
-                indexes,
-              );
+    const newProductInfo = newProducts.map(_ =>
+        Map({
+          description: _.get('description'),
+          barcode: _.get('barcode'),
+          imageUrl: _.get('imageUrl'),
+        }),
+      );
 
-              const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')]).map(_ => _.get('product'));
-
-              if (newProducts.isEmpty()) {
-                resolve();
-              } else {
-                self.logInfo(finalConfig, () => 'Saving new products...');
-
-                const newProductInfo = newProducts.map(_ =>
-                  Map({
-                    description: _.get('description'),
-                    barcode: _.get('barcode'),
-                    imageUrl: _.get('imageUrl'),
-                  }),
-                );
-
-                Promise.all(newProductInfo.map(MasterProductService.create).toArray()).then(() => resolve()).catch(error => reject(error));
-              }
-            });
-          });
-        });
-      });
-    };
-
-    return config ? syncToMasterProductListInternal(config) : CountdownService.getConfig().then(syncToMasterProductListInternal);
+    await Promise.all(newProductInfo.map(MasterProductService.create).toArray());
   };
 
   syncToMasterProductPriceList = async (config) => {
