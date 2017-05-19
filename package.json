@@ -27,9 +27,9 @@
     "graphql-relay": "^0.5.1",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.22",
-    "micro-business-parse-server-common": "^0.1.65",
-    "smart-grocery-parse-server-common": "^0.1.102",
-    "store-crawler": "^0.1.87"
+    "micro-business-parse-server-common": "^0.1.66",
+    "smart-grocery-parse-server-common": "^0.1.103",
+    "store-crawler": "^0.1.88"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
