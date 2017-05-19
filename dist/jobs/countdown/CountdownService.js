@@ -121,141 +121,35 @@ var CountdownService = function CountdownService(_ref) {
     };
   }();
 
-  this.syncToMasterProductList = function (config) {
-    var self = _this;
-    var syncToMasterProductListInternal = function syncToMasterProductListInternal(finalConfig) {
-      self.logInfo(finalConfig, function () {
-        return 'Fetching the most recent Countdown crawling result for Countdown Products...';
-      });
-
-      return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
-        conditions: (0, _immutable.Map)({
-          sessionKey: 'Countdown Products'
-        }),
-        topMost: true
-      })).then(function (crawlSessionInfos) {
-        var sessionInfo = crawlSessionInfos.first();
-        var sessionId = sessionInfo.get('id');
-        var products = (0, _immutable.List)();
-
-        self.logInfo(finalConfig, function () {
-          return 'Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ' + sessionId;
-        });
-
-        var result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
-          conditions: (0, _immutable.Map)({
-            crawlSessionId: sessionId
-          })
-        }));
-
-        result.event.subscribe(function (info) {
-          return products = products.concat(info.getIn(['resultSet', 'products']).filterNot(function (_) {
-            return _.get('description').trim().length === 0;
-          }));
-        });
-
-        return result.promise.then(function () {
-          // TODO: 20170506 - Morteza - Need to unsubscribe following event when promise is rejected...
-          result.event.unsubscribeAll();
-
-          return new Promise(function (resolve, reject) {
-            var productsWithoutDuplication = products.groupBy(function (_) {
-              return _.get('description');
-            }).map(function (_) {
-              return _.first();
-            }).valueSeq();
-
-            self.logVerbose(finalConfig, function () {
-              return 'Checking whether products already exist...';
-            });
-
-            Promise.all(productsWithoutDuplication.map(function (product) {
-              return _smartGroceryParseServerCommon.MasterProductService.exists((0, _immutable.Map)({
-                conditions: product
-              }));
-            }).toArray()).then(function (results) {
-              self.logVerbose(finalConfig, function () {
-                return 'Finished checking whether products already exist.';
-              });
-
-              var indexes = (0, _immutable.Range)(0, productsWithoutDuplication.size);
-              var productsWithIndexes = productsWithoutDuplication.zipWith(function (product, index) {
-                return (0, _immutable.Map)({
-                  product: product,
-                  index: index
-                });
-              }, indexes);
-
-              var newProducts = productsWithIndexes.filterNot(function (_) {
-                return results[_.get('index')];
-              }).map(function (_) {
-                return _.get('product');
-              });
-
-              if (newProducts.isEmpty()) {
-                resolve();
-              } else {
-                self.logInfo(finalConfig, function () {
-                  return 'Saving new products...';
-                });
-
-                var newProductInfo = newProducts.map(function (_) {
-                  return (0, _immutable.Map)({
-                    description: _.get('description'),
-                    barcode: _.get('barcode'),
-                    imageUrl: _.get('imageUrl')
-                  });
-                });
-
-                Promise.all(newProductInfo.map(_smartGroceryParseServerCommon.MasterProductService.create).toArray()).then(function () {
-                  return resolve();
-                }).catch(function (error) {
-                  return reject(error);
-                });
-              }
-            });
-          });
-        });
-      });
-    };
-
-    return config ? syncToMasterProductListInternal(config) : CountdownService.getConfig().then(syncToMasterProductListInternal);
-  };
-
-  this.syncToMasterProductPriceList = function () {
-    var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(config) {
-      var finalConfig, stores, crawlSessionInfos, sessionInfo, sessionId, products, result, productsWithoutDuplication, capturedDate;
-      return regeneratorRuntime.wrap(function _callee3$(_context3) {
+  this.syncToMasterProductList = function () {
+    var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(config) {
+      var finalConfig, crawlSessionInfos, sessionInfo, sessionId, products, result, productsWithoutDuplication, results, indexes, productsWithIndexes, newProducts, newProductInfo;
+      return regeneratorRuntime.wrap(function _callee2$(_context2) {
         while (1) {
-          switch (_context3.prev = _context3.next) {
+          switch (_context2.prev = _context2.next) {
             case 0:
-              _context3.t0 = config;
+              _context2.t0 = config;
 
-              if (_context3.t0) {
-                _context3.next = 5;
+              if (_context2.t0) {
+                _context2.next = 5;
                 break;
               }
 
-              _context3.next = 4;
+              _context2.next = 4;
               return CountdownService.getConfig();
 
             case 4:
-              _context3.t0 = _context3.sent;
+              _context2.t0 = _context2.sent;
 
             case 5:
-              finalConfig = _context3.t0;
-              _context3.next = 8;
-              return CountdownService.getCountdownStore();
-
-            case 8:
-              stores = _context3.sent;
+              finalConfig = _context2.t0;
 
 
               _this.logInfo(finalConfig, function () {
-                return 'Fetching the most recent Countdown crawling result for Countdown Products Price...';
+                return 'Fetching the most recent Countdown crawling result for Countdown Products...';
               });
 
-              _context3.next = 12;
+              _context2.next = 9;
               return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
                 conditions: (0, _immutable.Map)({
                   sessionKey: 'Countdown Products'
@@ -263,15 +157,15 @@ var CountdownService = function CountdownService(_ref) {
                 topMost: true
               }));
 
-            case 12:
-              crawlSessionInfos = _context3.sent;
+            case 9:
+              crawlSessionInfos = _context2.sent;
               sessionInfo = crawlSessionInfos.first();
               sessionId = sessionInfo.get('id');
               products = (0, _immutable.List)();
 
 
               _this.logInfo(finalConfig, function () {
-                return 'Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ' + sessionId;
+                return 'Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ' + sessionId;
               });
 
               result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
@@ -279,7 +173,7 @@ var CountdownService = function CountdownService(_ref) {
                   crawlSessionId: sessionId
                 })
               }));
-              _context3.prev = 18;
+              _context2.prev = 15;
 
               result.event.subscribe(function (info) {
                 return products = products.concat(info.getIn(['resultSet', 'products']).filterNot(function (_) {
@@ -287,16 +181,16 @@ var CountdownService = function CountdownService(_ref) {
                 }));
               });
 
-              _context3.next = 22;
+              _context2.next = 19;
               return result.promise;
 
-            case 22:
-              _context3.prev = 22;
+            case 19:
+              _context2.prev = 19;
 
               result.event.unsubscribeAll();
-              return _context3.finish(22);
+              return _context2.finish(19);
 
-            case 25:
+            case 22:
               productsWithoutDuplication = products.groupBy(function (_) {
                 return _.get('description');
               }).map(function (_) {
@@ -305,74 +199,66 @@ var CountdownService = function CountdownService(_ref) {
 
 
               _this.logVerbose(finalConfig, function () {
-                return 'Finding the product in master product...';
+                return 'Checking whether products already exist...';
               });
 
-              capturedDate = new Date();
-              _context3.next = 30;
+              _context2.next = 26;
               return Promise.all(productsWithoutDuplication.map(function (product) {
-                return _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
-                  var results, masterProduct, masterProductPriceInfo;
-                  return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                    while (1) {
-                      switch (_context2.prev = _context2.next) {
-                        case 0:
-                          _context2.next = 2;
-                          return _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
-                            conditions: product
-                          }));
-
-                        case 2:
-                          results = _context2.sent;
-
-                          if (!results.isEmpty()) {
-                            _context2.next = 7;
-                            break;
-                          }
-
-                          throw new _microBusinessParseServerCommon.Exception('No master product found for: ' + JSON.stringify(product.toJS()));
-
-                        case 7:
-                          if (!(results.size > 1)) {
-                            _context2.next = 9;
-                            break;
-                          }
-
-                          throw new _microBusinessParseServerCommon.Exception('Multiple master products found for: ' + JSON.stringify(product.toJS()));
-
-                        case 9:
-                          masterProduct = results.first();
-                          masterProductPriceInfo = (0, _immutable.Map)({
-                            masterProductId: masterProduct.get('id'),
-                            storeId: stores.find(function (_) {
-                              return _.get('name').localeCompare('Countdown') === 0;
-                            }).get('id'),
-                            capturedDate: capturedDate,
-                            priceDetails: (0, _immutable.Map)({
-                              specialType: CountdownService.getSpecialType(product),
-                              price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
-                              wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
-                              multiBuyInfo: CountdownService.getMultiBuyInfo(product)
-                            })
-                          });
-                          _context2.next = 13;
-                          return _smartGroceryParseServerCommon.MasterProductPriceService.create(masterProductPriceInfo);
-
-                        case 13:
-                        case 'end':
-                          return _context2.stop();
-                      }
-                    }
-                  }, _callee2, _this);
+                return _smartGroceryParseServerCommon.MasterProductService.exists((0, _immutable.Map)({
+                  conditions: product
                 }));
               }).toArray());
 
-            case 30:
+            case 26:
+              results = _context2.sent;
+
+
+              _this.logVerbose(finalConfig, function () {
+                return 'Finished checking whether products already exist.';
+              });
+
+              indexes = (0, _immutable.Range)(0, productsWithoutDuplication.size);
+              productsWithIndexes = productsWithoutDuplication.zipWith(function (product, index) {
+                return (0, _immutable.Map)({
+                  product: product,
+                  index: index
+                });
+              }, indexes);
+              newProducts = productsWithIndexes.filterNot(function (_) {
+                return results[_.get('index')];
+              }).map(function (_) {
+                return _.get('product');
+              });
+
+              if (!newProducts.isEmpty()) {
+                _context2.next = 33;
+                break;
+              }
+
+              return _context2.abrupt('return');
+
+            case 33:
+
+              _this.logInfo(finalConfig, function () {
+                return 'Saving new products...';
+              });
+
+              newProductInfo = newProducts.map(function (_) {
+                return (0, _immutable.Map)({
+                  description: _.get('description'),
+                  barcode: _.get('barcode'),
+                  imageUrl: _.get('imageUrl')
+                });
+              });
+              _context2.next = 37;
+              return Promise.all(newProductInfo.map(_smartGroceryParseServerCommon.MasterProductService.create).toArray());
+
+            case 37:
             case 'end':
-              return _context3.stop();
+              return _context2.stop();
           }
         }
-      }, _callee3, _this, [[18,, 22, 25]]);
+      }, _callee2, _this, [[15,, 19, 22]]);
     }));
 
     return function (_x2) {
@@ -380,9 +266,9 @@ var CountdownService = function CountdownService(_ref) {
     };
   }();
 
-  this.syncToTagList = function () {
-    var _ref5 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(config) {
-      var finalConfig, existingTags, crawlSessionInfos, sessionInfo, sessionId, tags, result, newTags;
+  this.syncToMasterProductPriceList = function () {
+    var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(config) {
+      var finalConfig, stores, crawlSessionInfos, sessionInfo, sessionId, products, result, productsWithoutDuplication, capturedDate;
       return regeneratorRuntime.wrap(function _callee4$(_context4) {
         while (1) {
           switch (_context4.prev = _context4.next) {
@@ -403,10 +289,10 @@ var CountdownService = function CountdownService(_ref) {
             case 5:
               finalConfig = _context4.t0;
               _context4.next = 8;
-              return CountdownService.getExistingTags();
+              return CountdownService.getCountdownStore();
 
             case 8:
-              existingTags = _context4.sent;
+              stores = _context4.sent;
 
 
               _this.logInfo(finalConfig, function () {
@@ -425,7 +311,7 @@ var CountdownService = function CountdownService(_ref) {
               crawlSessionInfos = _context4.sent;
               sessionInfo = crawlSessionInfos.first();
               sessionId = sessionInfo.get('id');
-              tags = (0, _immutable.Set)();
+              products = (0, _immutable.List)();
 
 
               _this.logInfo(finalConfig, function () {
@@ -440,7 +326,9 @@ var CountdownService = function CountdownService(_ref) {
               _context4.prev = 18;
 
               result.event.subscribe(function (info) {
-                return tags = tags.add(info.getIn(['resultSet', 'productCategory']));
+                return products = products.concat(info.getIn(['resultSet', 'products']).filterNot(function (_) {
+                  return _.get('description').trim().length === 0;
+                }));
               });
 
               _context4.next = 22;
@@ -453,12 +341,168 @@ var CountdownService = function CountdownService(_ref) {
               return _context4.finish(22);
 
             case 25:
+              productsWithoutDuplication = products.groupBy(function (_) {
+                return _.get('description');
+              }).map(function (_) {
+                return _.first();
+              }).valueSeq();
+
+
+              _this.logVerbose(finalConfig, function () {
+                return 'Finding the product in master product...';
+              });
+
+              capturedDate = new Date();
+              _context4.next = 30;
+              return Promise.all(productsWithoutDuplication.map(function (product) {
+                return _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
+                  var results, masterProduct, masterProductPriceInfo;
+                  return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          _context3.next = 2;
+                          return _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
+                            conditions: product
+                          }));
+
+                        case 2:
+                          results = _context3.sent;
+
+                          if (!results.isEmpty()) {
+                            _context3.next = 7;
+                            break;
+                          }
+
+                          throw new _microBusinessParseServerCommon.Exception('No master product found for: ' + JSON.stringify(product.toJS()));
+
+                        case 7:
+                          if (!(results.size > 1)) {
+                            _context3.next = 9;
+                            break;
+                          }
+
+                          throw new _microBusinessParseServerCommon.Exception('Multiple master products found for: ' + JSON.stringify(product.toJS()));
+
+                        case 9:
+                          masterProduct = results.first();
+                          masterProductPriceInfo = (0, _immutable.Map)({
+                            masterProductId: masterProduct.get('id'),
+                            storeId: stores.find(function (_) {
+                              return _.get('name').localeCompare('Countdown') === 0;
+                            }).get('id'),
+                            capturedDate: capturedDate,
+                            priceDetails: (0, _immutable.Map)({
+                              specialType: CountdownService.getSpecialType(product),
+                              price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
+                              wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
+                              multiBuyInfo: CountdownService.getMultiBuyInfo(product)
+                            })
+                          });
+                          _context3.next = 13;
+                          return _smartGroceryParseServerCommon.MasterProductPriceService.create(masterProductPriceInfo);
+
+                        case 13:
+                        case 'end':
+                          return _context3.stop();
+                      }
+                    }
+                  }, _callee3, _this);
+                }));
+              }).toArray());
+
+            case 30:
+            case 'end':
+              return _context4.stop();
+          }
+        }
+      }, _callee4, _this, [[18,, 22, 25]]);
+    }));
+
+    return function (_x3) {
+      return _ref4.apply(this, arguments);
+    };
+  }();
+
+  this.syncToTagList = function () {
+    var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee5(config) {
+      var finalConfig, existingTags, crawlSessionInfos, sessionInfo, sessionId, tags, result, newTags;
+      return regeneratorRuntime.wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              _context5.t0 = config;
+
+              if (_context5.t0) {
+                _context5.next = 5;
+                break;
+              }
+
+              _context5.next = 4;
+              return CountdownService.getConfig();
+
+            case 4:
+              _context5.t0 = _context5.sent;
+
+            case 5:
+              finalConfig = _context5.t0;
+              _context5.next = 8;
+              return CountdownService.getExistingTags();
+
+            case 8:
+              existingTags = _context5.sent;
+
+
+              _this.logInfo(finalConfig, function () {
+                return 'Fetching the most recent Countdown crawling result for Countdown Products Price...';
+              });
+
+              _context5.next = 12;
+              return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
+                conditions: (0, _immutable.Map)({
+                  sessionKey: 'Countdown Products'
+                }),
+                topMost: true
+              }));
+
+            case 12:
+              crawlSessionInfos = _context5.sent;
+              sessionInfo = crawlSessionInfos.first();
+              sessionId = sessionInfo.get('id');
+              tags = (0, _immutable.Set)();
+
+
+              _this.logInfo(finalConfig, function () {
+                return 'Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ' + sessionId;
+              });
+
+              result = _smartGroceryParseServerCommon.CrawlResultService.searchAll((0, _immutable.Map)({
+                conditions: (0, _immutable.Map)({
+                  crawlSessionId: sessionId
+                })
+              }));
+              _context5.prev = 18;
+
+              result.event.subscribe(function (info) {
+                return tags = tags.add(info.getIn(['resultSet', 'productCategory']));
+              });
+
+              _context5.next = 22;
+              return result.promise;
+
+            case 22:
+              _context5.prev = 22;
+
+              result.event.unsubscribeAll();
+              return _context5.finish(22);
+
+            case 25:
               newTags = tags.filterNot(function (tag) {
                 return existingTags.find(function (_) {
                   return _.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0;
                 });
               });
-              _context4.next = 28;
+              _context5.next = 28;
               return Promise.all(newTags.map(function (tag) {
                 return _smartGroceryParseServerCommon.TagService.create((0, _immutable.Map)({
                   name: tag,
@@ -468,51 +512,51 @@ var CountdownService = function CountdownService(_ref) {
 
             case 28:
             case 'end':
-              return _context4.stop();
+              return _context5.stop();
           }
         }
-      }, _callee4, _this, [[18,, 22, 25]]);
+      }, _callee5, _this, [[18,, 22, 25]]);
     }));
 
-    return function (_x3) {
-      return _ref5.apply(this, arguments);
+    return function (_x4) {
+      return _ref6.apply(this, arguments);
     };
   }();
 
   this.syncMasterProductTags = function () {
-    var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee6(config) {
+    var _ref7 = _asyncToGenerator(regeneratorRuntime.mark(function _callee7(config) {
       var finalConfig, existingTags, crawlSessionInfos, sessionInfo, sessionId, products, result, productsGroupedByDescription;
-      return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      return regeneratorRuntime.wrap(function _callee7$(_context7) {
         while (1) {
-          switch (_context6.prev = _context6.next) {
+          switch (_context7.prev = _context7.next) {
             case 0:
-              _context6.t0 = config;
+              _context7.t0 = config;
 
-              if (_context6.t0) {
-                _context6.next = 5;
+              if (_context7.t0) {
+                _context7.next = 5;
                 break;
               }
 
-              _context6.next = 4;
+              _context7.next = 4;
               return CountdownService.getConfig();
 
             case 4:
-              _context6.t0 = _context6.sent;
+              _context7.t0 = _context7.sent;
 
             case 5:
-              finalConfig = _context6.t0;
-              _context6.next = 8;
+              finalConfig = _context7.t0;
+              _context7.next = 8;
               return CountdownService.getExistingTags();
 
             case 8:
-              existingTags = _context6.sent;
+              existingTags = _context7.sent;
 
 
               _this.logInfo(finalConfig, function () {
                 return 'Fetching the most recent Countdown crawling result for Countdown Products Price...';
               });
 
-              _context6.next = 12;
+              _context7.next = 12;
               return _smartGroceryParseServerCommon.CrawlSessionService.search((0, _immutable.Map)({
                 conditions: (0, _immutable.Map)({
                   sessionKey: 'Countdown Products'
@@ -521,7 +565,7 @@ var CountdownService = function CountdownService(_ref) {
               }));
 
             case 12:
-              crawlSessionInfos = _context6.sent;
+              crawlSessionInfos = _context7.sent;
               sessionInfo = crawlSessionInfos.first();
               sessionId = sessionInfo.get('id');
               products = (0, _immutable.List)();
@@ -536,7 +580,7 @@ var CountdownService = function CountdownService(_ref) {
                   crawlSessionId: sessionId
                 })
               }));
-              _context6.prev = 18;
+              _context7.prev = 18;
 
               result.event.subscribe(function (info) {
                 var resultSet = info.get('resultSet');
@@ -548,14 +592,14 @@ var CountdownService = function CountdownService(_ref) {
                 }));
               });
 
-              _context6.next = 22;
+              _context7.next = 22;
               return result.promise;
 
             case 22:
-              _context6.prev = 22;
+              _context7.prev = 22;
 
               result.event.unsubscribeAll();
-              return _context6.finish(22);
+              return _context7.finish(22);
 
             case 25:
               productsGroupedByDescription = products.groupBy(function (_) {
@@ -567,25 +611,25 @@ var CountdownService = function CountdownService(_ref) {
                 return 'Finding the product in master product...';
               });
 
-              _context6.next = 29;
+              _context7.next = 29;
               return Promise.all(productsGroupedByDescription.keySeq().map(function (key) {
-                return _asyncToGenerator(regeneratorRuntime.mark(function _callee5() {
+                return _asyncToGenerator(regeneratorRuntime.mark(function _callee6() {
                   var product, results, existingProduct, tags, notFoundTags, tagIds, newTagIds;
-                  return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                  return regeneratorRuntime.wrap(function _callee6$(_context6) {
                     while (1) {
-                      switch (_context5.prev = _context5.next) {
+                      switch (_context6.prev = _context6.next) {
                         case 0:
                           product = productsGroupedByDescription.get(key).first();
-                          _context5.next = 3;
+                          _context6.next = 3;
                           return _smartGroceryParseServerCommon.MasterProductService.search((0, _immutable.Map)({
                             conditions: product
                           }));
 
                         case 3:
-                          results = _context5.sent;
+                          results = _context6.sent;
 
                           if (!results.isEmpty()) {
-                            _context5.next = 8;
+                            _context6.next = 8;
                             break;
                           }
 
@@ -593,7 +637,7 @@ var CountdownService = function CountdownService(_ref) {
 
                         case 8:
                           if (!(results.size > 1)) {
-                            _context5.next = 10;
+                            _context6.next = 10;
                             break;
                           }
 
@@ -611,7 +655,7 @@ var CountdownService = function CountdownService(_ref) {
                           });
 
                           if (notFoundTags.isEmpty()) {
-                            _context5.next = 15;
+                            _context6.next = 15;
                             break;
                           }
 
@@ -630,14 +674,14 @@ var CountdownService = function CountdownService(_ref) {
                           });
 
                           if (!newTagIds.isEmpty()) {
-                            _context5.next = 19;
+                            _context6.next = 19;
                             break;
                           }
 
-                          return _context5.abrupt('return');
+                          return _context6.abrupt('return');
 
                         case 19:
-                          _context5.next = 21;
+                          _context6.next = 21;
                           return _smartGroceryParseServerCommon.MasterProductService.update(existingProduct.update('tagIds', function (currentTags) {
                             if (currentTags) {
                               return currentTags.concat(newTagIds);
@@ -648,23 +692,23 @@ var CountdownService = function CountdownService(_ref) {
 
                         case 21:
                         case 'end':
-                          return _context5.stop();
+                          return _context6.stop();
                       }
                     }
-                  }, _callee5, _this);
+                  }, _callee6, _this);
                 }));
               }).toArray());
 
             case 29:
             case 'end':
-              return _context6.stop();
+              return _context7.stop();
           }
         }
-      }, _callee6, _this, [[18,, 22, 25]]);
+      }, _callee7, _this, [[18,, 22, 25]]);
     }));
 
-    return function (_x4) {
-      return _ref6.apply(this, arguments);
+    return function (_x5) {
+      return _ref7.apply(this, arguments);
     };
   }();
 
@@ -691,55 +735,55 @@ var CountdownService = function CountdownService(_ref) {
   this.logErrorFunc = logErrorFunc;
 };
 
-CountdownService.getConfig = _asyncToGenerator(regeneratorRuntime.mark(function _callee7() {
+CountdownService.getConfig = _asyncToGenerator(regeneratorRuntime.mark(function _callee8() {
   var config, jobConfig;
-  return regeneratorRuntime.wrap(function _callee7$(_context7) {
+  return regeneratorRuntime.wrap(function _callee8$(_context8) {
     while (1) {
-      switch (_context7.prev = _context7.next) {
+      switch (_context8.prev = _context8.next) {
         case 0:
-          _context7.next = 2;
+          _context8.next = 2;
           return _microBusinessParseServerCommon.ParseWrapperService.getConfig();
 
         case 2:
-          config = _context7.sent;
+          config = _context8.sent;
           jobConfig = config.get('Job');
 
           if (!jobConfig) {
-            _context7.next = 6;
+            _context8.next = 6;
             break;
           }
 
-          return _context7.abrupt('return', _immutable2.default.fromJS(jobConfig));
+          return _context8.abrupt('return', _immutable2.default.fromJS(jobConfig));
 
         case 6:
           throw new _microBusinessParseServerCommon.Exception('No config found called Job.');
 
         case 7:
         case 'end':
-          return _context7.stop();
+          return _context8.stop();
       }
     }
-  }, _callee7, undefined);
+  }, _callee8, undefined);
 }));
-CountdownService.getCountdownStore = _asyncToGenerator(regeneratorRuntime.mark(function _callee8() {
+CountdownService.getCountdownStore = _asyncToGenerator(regeneratorRuntime.mark(function _callee9() {
   var criteria, results;
-  return regeneratorRuntime.wrap(function _callee8$(_context8) {
+  return regeneratorRuntime.wrap(function _callee9$(_context9) {
     while (1) {
-      switch (_context8.prev = _context8.next) {
+      switch (_context9.prev = _context9.next) {
         case 0:
           criteria = (0, _immutable.Map)({
             conditions: (0, _immutable.Map)({
               name: 'Countdown'
             })
           });
-          _context8.next = 3;
+          _context9.next = 3;
           return _smartGroceryParseServerCommon.StoreService.search(criteria);
 
         case 3:
-          results = _context8.sent;
+          results = _context9.sent;
 
           if (!results.isEmpty()) {
-            _context8.next = 8;
+            _context9.next = 8;
             break;
           }
 
@@ -747,30 +791,30 @@ CountdownService.getCountdownStore = _asyncToGenerator(regeneratorRuntime.mark(f
 
         case 8:
           if (!(results.size === 1)) {
-            _context8.next = 12;
+            _context9.next = 12;
             break;
           }
 
-          return _context8.abrupt('return', results.first());
+          return _context9.abrupt('return', results.first());
 
         case 12:
           throw new _microBusinessParseServerCommon.Exception('Multiple store found called Countdown.');
 
         case 13:
         case 'end':
-          return _context8.stop();
+          return _context9.stop();
       }
     }
-  }, _callee8, undefined);
+  }, _callee9, undefined);
 }));
-CountdownService.getExistingTags = _asyncToGenerator(regeneratorRuntime.mark(function _callee9() {
+CountdownService.getExistingTags = _asyncToGenerator(regeneratorRuntime.mark(function _callee10() {
   var result, tags;
-  return regeneratorRuntime.wrap(function _callee9$(_context9) {
+  return regeneratorRuntime.wrap(function _callee10$(_context10) {
     while (1) {
-      switch (_context9.prev = _context9.next) {
+      switch (_context10.prev = _context10.next) {
         case 0:
           result = _smartGroceryParseServerCommon.TagService.searchAll((0, _immutable.Map)());
-          _context9.prev = 1;
+          _context10.prev = 1;
           tags = (0, _immutable.List)();
 
 
@@ -778,24 +822,24 @@ CountdownService.getExistingTags = _asyncToGenerator(regeneratorRuntime.mark(fun
             return tags = tags.push(info);
           });
 
-          _context9.next = 6;
+          _context10.next = 6;
           return result.promise;
 
         case 6:
-          return _context9.abrupt('return', tags);
+          return _context10.abrupt('return', tags);
 
         case 7:
-          _context9.prev = 7;
+          _context10.prev = 7;
 
           result.event.unsubscribeAll();
-          return _context9.finish(7);
+          return _context10.finish(7);
 
         case 10:
         case 'end':
-          return _context9.stop();
+          return _context10.stop();
       }
     }
-  }, _callee9, undefined, [[1,, 7, 10]]);
+  }, _callee10, undefined, [[1,, 7, 10]]);
 }));
 
 CountdownService.getSpecialType = function (product) {
