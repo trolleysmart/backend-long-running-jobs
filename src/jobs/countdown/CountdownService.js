@@ -158,55 +158,53 @@ export default class CountdownService {
   updateStoreCralwerProductCategoriesConfiguration = async (config) => {
     const finalConfig = config || (await CountdownService.getConfig());
 
-    this.logInfo(
-      finalConfig,
-      () => 'Fetching store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories...',
-    ); // eslint-disable-line max-len
+    this.logInfo(finalConfig, () => 'Fetching store crawler configuration...'); // eslint-disable-line max-len
 
-    const results = await Promise.all([
-      StoreCrawlerConfigurationService.search(
-        Map({
-          conditions: Map({
-            name: 'Countdown',
-          }),
-          topMost: true,
+    const currentConfig = await StoreCrawlerConfigurationService.search(
+      Map({
+        conditions: Map({
+          name: 'Countdown',
         }),
-      ),
-      CrawlSessionService.search(
-        Map({
-          conditions: Map({
-            sessionKey: 'Countdown High Level Product Categories',
-          }),
-          topMost: true,
-        }),
-      ),
-    ]);
-    this.logInfo(
-      finalConfig,
-      () => 'Fetched both store crawler configuration and the most recent Countdown crawling result for Countdown High Level Product Categories.',
-    ); // eslint-disable-line max-len
+        topMost: true,
+      }),
+    );
 
-    const currentConfig = results[0].first();
+    this.logInfo(finalConfig, () => 'Fetched store crawler configuration.'); // eslint-disable-line max-len
+
+    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
+
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey: 'Countdown High Level Product Categories',
+        }),
+        topMost: true,
+      }),
+    );
+
+    this.logInfo(finalConfig, () => 'Fetched the most recent Countdown crawling result for Countdown High Level Product Categories.'); // eslint-disable-line max-len
 
     this.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
 
     const crawlResults = await CrawlResultService.search(
       Map({
         conditions: Map({
-          crawlSessionId: results[1].first().get('id'),
+          crawlSessionId: crawlSessionInfos.first().get('id'),
         }),
       }),
     );
 
     const highLevelProductCategories = crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']);
 
-    this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown');
+    this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
     const newConfig = currentConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
 
     this.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
     await StoreCrawlerConfigurationService.create(newConfig);
+
+    this.logInfo(finalConfig, () => 'Updated new Store Crawler config for Countdown...');
   };
 
   syncToMasterProductList = async (config) => {
@@ -284,12 +282,12 @@ export default class CountdownService {
     this.logInfo(finalConfig, () => 'Saving new products...');
 
     const newProductInfo = newProducts.map(_ =>
-        Map({
-          description: _.get('description'),
-          barcode: _.get('barcode'),
-          imageUrl: _.get('imageUrl'),
-        }),
-      );
+      Map({
+        description: _.get('description'),
+        barcode: _.get('barcode'),
+        imageUrl: _.get('imageUrl'),
+      }),
+    );
 
     await Promise.all(newProductInfo.map(MasterProductService.create).toArray());
   };
