@@ -1,64 +1,43 @@
 // @flow
 
-import { GraphQLID, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
-import { NodeInterface } from '../interface';
-import { multiBuyType } from './Specials';
+import { List, Map } from 'immutable';
+import { GraphQLObjectType } from 'graphql';
+import { connectionArgs, connectionFromArray } from 'graphql-relay';
+import { MasterProductPriceService } from 'smart-grocery-parse-server-common';
+import SpecialsConnection from './Specials';
 
 export default new GraphQLObjectType({
   name: 'ShoppingList',
   fields: {
-    id: {
-      type: new GraphQLNonNull(GraphQLID),
-      resolve: _ => _.get('id'),
-    },
-    description: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'description']),
-    },
-    imageUrl: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'imageUrl']),
-    },
-    barcode: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'barcode']),
-    },
-    specialType: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['priceDetails', 'specialType']),
-    },
-    price: {
-      type: GraphQLFloat,
-      resolve: _ => _.getIn(['priceDetails', 'price']),
-    },
-    wasPrice: {
-      type: GraphQLFloat,
-      resolve: _ => _.getIn(['priceDetails', 'wasPrice']),
-    },
-    multiBuy: {
-      type: multiBuyType,
-      resolve: _ => _.getIn(['priceDetails', 'multiBuyInfo']),
-    },
-    storeName: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['store', 'name']),
-    },
-    storeImageUrl: {
-      type: GraphQLString,
-      resolve: _ => _.getIn(['store', 'imageUrl']),
-    },
-    comments: {
-      type: GraphQLString,
-      resolve: () => '',
-    },
-    unitSize: {
-      type: GraphQLString,
-      resolve: () => '',
-    },
-    expiryDate: {
-      type: GraphQLString,
-      resolve: () => new Date().toISOString(),
+    specials: {
+      type: SpecialsConnection,
+      args: {
+        ...connectionArgs,
+      },
+      resolve: async (_, args) => {
+        if (_.isEmpty()) {
+          return List();
+        }
+
+        const masterProductCriteria = Map({
+          includeStore: true,
+          includeMasterProduct: true,
+          ids: _,
+        });
+
+        const result = MasterProductPriceService.searchAll(masterProductCriteria);
+
+        try {
+          let specials = List();
+
+          result.event.subscribe(info => (specials = specials.push(info)));
+
+          await result.promise;
+          return connectionFromArray(specials.toArray(), args);
+        } finally {
+          result.event.unsubscribeAll();
+        }
+      },
     },
   },
-  interfaces: [NodeInterface],
 });

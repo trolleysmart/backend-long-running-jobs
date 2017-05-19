@@ -3,34 +3,20 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.multiBuyType = undefined;
 
 var _graphql = require('graphql');
 
+var _graphqlRelay = require('graphql-relay');
+
 var _interface = require('../interface');
 
-var multiBuyType = new _graphql.GraphQLObjectType({
-  name: 'MultiBuy',
-  fields: function fields() {
-    return {
-      count: {
-        type: _graphql.GraphQLInt,
-        resolve: function resolve(_) {
-          return _.get('count');
-        }
-      },
-      price: {
-        type: _graphql.GraphQLFloat,
-        resolve: function resolve(_) {
-          return _.get('price');
-        }
-      }
-    };
-  }
-});
+var _MultiBuy = require('./MultiBuy');
 
-exports.multiBuyType = multiBuyType;
-exports.default = new _graphql.GraphQLObjectType({
+var _MultiBuy2 = _interopRequireDefault(_MultiBuy);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var specialType = new _graphql.GraphQLObjectType({
   name: 'Special',
   fields: {
     id: {
@@ -76,7 +62,7 @@ exports.default = new _graphql.GraphQLObjectType({
       }
     },
     multiBuy: {
-      type: multiBuyType,
+      type: _MultiBuy2.default,
       resolve: function resolve(_) {
         return _.getIn(['priceDetails', 'multiBuyInfo']);
       }
@@ -114,3 +100,11 @@ exports.default = new _graphql.GraphQLObjectType({
   },
   interfaces: [_interface.NodeInterface]
 });
+
+var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
+  name: 'Special',
+  nodeType: specialType
+}),
+    specialsConnection = _connectionDefinition.connectionType;
+
+exports.default = specialsConnection;

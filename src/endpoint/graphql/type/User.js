@@ -2,16 +2,11 @@
 
 import { List, Map } from 'immutable';
 import { GraphQLID, GraphQLList, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
-import { connectionArgs, connectionDefinitions, connectionFromArray } from 'graphql-relay';
+import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
-import SpecialType from './Specials';
+import SpecialsConnection from './Specials';
 import ShoppingListType from './ShoppingList';
-
-const { connectionType: specialsConnection } = connectionDefinitions({
-  name: 'Special',
-  nodeType: SpecialType,
-});
 
 export default new GraphQLObjectType({
   name: 'User',
@@ -25,7 +20,7 @@ export default new GraphQLObjectType({
       resolve: _ => _.get('username'),
     },
     specials: {
-      type: specialsConnection,
+      type: SpecialsConnection,
       args: {
         ...connectionArgs,
         description: {
@@ -79,36 +74,10 @@ export default new GraphQLObjectType({
         const shoppingList = await ShoppingListService.search(criteria);
 
         if (shoppingList.isEmpty()) {
-          return List();
+          return Map({ masterProductPriceIds: List() });
         }
 
-        const masterProductPriceIds = shoppingList.first().get('masterProductPriceIds');
-
-        if (masterProductPriceIds.isEmpty()) {
-          return List();
-        }
-
-        const masterProductCriteria = Map({
-          includeStore: true,
-          includeMasterProduct: true,
-          ids: masterProductPriceIds,
-        });
-
-        const result = MasterProductPriceService.searchAll(masterProductCriteria);
-
-        try {
-          let specials = List();
-
-          result.event.subscribe((info) => {
-            specials = specials.push(info);
-            console.log(`//////// ${JSON.stringify(info.toJS())}`);
-          });
-          await result.promise;
-
-          return specials;
-        } finally {
-          result.event.unsubscribeAll();
-        }
+        return Map({ masterProductPriceIds: shoppingList.first().get('masterProductPriceIds') });
       },
     },
   },

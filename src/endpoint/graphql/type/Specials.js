@@ -1,25 +1,11 @@
 // @flow
 
-import { GraphQLID, GraphQLFloat, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { GraphQLID, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { connectionDefinitions } from 'graphql-relay';
 import { NodeInterface } from '../interface';
+import multiBuyType from './MultiBuy';
 
-const multiBuyType = new GraphQLObjectType({
-  name: 'MultiBuy',
-  fields: () => ({
-    count: {
-      type: GraphQLInt,
-      resolve: _ => _.get('count'),
-    },
-    price: {
-      type: GraphQLFloat,
-      resolve: _ => _.get('price'),
-    },
-  }),
-});
-
-export { multiBuyType };
-
-export default new GraphQLObjectType({
+const specialType = new GraphQLObjectType({
   name: 'Special',
   fields: {
     id: {
@@ -77,3 +63,10 @@ export default new GraphQLObjectType({
   },
   interfaces: [NodeInterface],
 });
+
+const { connectionType: specialsConnection } = connectionDefinitions({
+  name: 'Special',
+  nodeType: specialType,
+});
+
+export default specialsConnection;

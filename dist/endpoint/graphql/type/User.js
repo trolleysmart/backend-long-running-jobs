@@ -28,12 +28,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var _connectionDefinition = (0, _graphqlRelay.connectionDefinitions)({
-  name: 'Special',
-  nodeType: _Specials2.default
-}),
-    specialsConnection = _connectionDefinition.connectionType;
-
 exports.default = new _graphql.GraphQLObjectType({
   name: 'User',
   fields: {
@@ -50,7 +44,7 @@ exports.default = new _graphql.GraphQLObjectType({
       }
     },
     specials: {
-      type: specialsConnection,
+      type: _Specials2.default,
       args: _extends({}, _graphqlRelay.connectionArgs, {
         description: {
           type: _graphql.GraphQLString
@@ -125,7 +119,7 @@ exports.default = new _graphql.GraphQLObjectType({
       type: new _graphql.GraphQLList(_ShoppingList2.default),
       resolve: function () {
         var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(_) {
-          var criteria, shoppingList, masterProductPriceIds, masterProductCriteria, result, specials;
+          var criteria, shoppingList;
           return regeneratorRuntime.wrap(function _callee2$(_context2) {
             while (1) {
               switch (_context2.prev = _context2.next) {
@@ -148,53 +142,17 @@ exports.default = new _graphql.GraphQLObjectType({
                     break;
                   }
 
-                  return _context2.abrupt('return', (0, _immutable.List)());
+                  return _context2.abrupt('return', (0, _immutable.Map)({ masterProductPriceIds: (0, _immutable.List)() }));
 
                 case 6:
-                  masterProductPriceIds = shoppingList.first().get('masterProductPriceIds');
+                  return _context2.abrupt('return', (0, _immutable.Map)({ masterProductPriceIds: shoppingList.first().get('masterProductPriceIds') }));
 
-                  if (!masterProductPriceIds.isEmpty()) {
-                    _context2.next = 9;
-                    break;
-                  }
-
-                  return _context2.abrupt('return', (0, _immutable.List)());
-
-                case 9:
-                  masterProductCriteria = (0, _immutable.Map)({
-                    includeStore: true,
-                    includeMasterProduct: true,
-                    conditions: (0, _immutable.Map)({
-                      id: masterProductPriceIds.first()
-                    })
-                  });
-                  result = _smartGroceryParseServerCommon.MasterProductPriceService.searchAll(masterProductCriteria);
-                  _context2.prev = 11;
-                  specials = (0, _immutable.List)();
-
-
-                  result.event.subscribe(function (info) {
-                    specials = specials.push(info);
-                    console.log('//////// ' + JSON.stringify(info.toJS()));
-                  });
-                  _context2.next = 16;
-                  return result.promise;
-
-                case 16:
-                  return _context2.abrupt('return', specials);
-
-                case 17:
-                  _context2.prev = 17;
-
-                  result.event.unsubscribeAll();
-                  return _context2.finish(17);
-
-                case 20:
+                case 7:
                 case 'end':
                   return _context2.stop();
               }
             }
-          }, _callee2, undefined, [[11,, 17, 20]]);
+          }, _callee2, undefined);
         }));
 
         return function resolve(_x3) {

@@ -4,93 +4,83 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _immutable = require('immutable');
+
 var _graphql = require('graphql');
 
-var _interface = require('../interface');
+var _graphqlRelay = require('graphql-relay');
+
+var _smartGroceryParseServerCommon = require('smart-grocery-parse-server-common');
 
 var _Specials = require('./Specials');
+
+var _Specials2 = _interopRequireDefault(_Specials);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 exports.default = new _graphql.GraphQLObjectType({
   name: 'ShoppingList',
   fields: {
-    id: {
-      type: new _graphql.GraphQLNonNull(_graphql.GraphQLID),
-      resolve: function resolve(_) {
-        return _.get('id');
-      }
-    },
-    description: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['masterProduct', 'description']);
-      }
-    },
-    imageUrl: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['masterProduct', 'imageUrl']);
-      }
-    },
-    barcode: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['masterProduct', 'barcode']);
-      }
-    },
-    specialType: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['priceDetails', 'specialType']);
-      }
-    },
-    price: {
-      type: _graphql.GraphQLFloat,
-      resolve: function resolve(_) {
-        return _.getIn(['priceDetails', 'price']);
-      }
-    },
-    wasPrice: {
-      type: _graphql.GraphQLFloat,
-      resolve: function resolve(_) {
-        return _.getIn(['priceDetails', 'wasPrice']);
-      }
-    },
-    multiBuy: {
-      type: _Specials.multiBuyType,
-      resolve: function resolve(_) {
-        return _.getIn(['priceDetails', 'multiBuyInfo']);
-      }
-    },
-    storeName: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['store', 'name']);
-      }
-    },
-    storeImageUrl: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve(_) {
-        return _.getIn(['store', 'imageUrl']);
-      }
-    },
-    comments: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve() {
-        return '';
-      }
-    },
-    unitSize: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve() {
-        return '';
-      }
-    },
-    expiryDate: {
-      type: _graphql.GraphQLString,
-      resolve: function resolve() {
-        return new Date().toISOString();
-      }
+    specials: {
+      type: _Specials2.default,
+      args: _extends({}, _graphqlRelay.connectionArgs),
+      resolve: function () {
+        var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(_, args) {
+          var masterProductCriteria, result, specials;
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  if (!_.isEmpty()) {
+                    _context.next = 2;
+                    break;
+                  }
+
+                  return _context.abrupt('return', (0, _immutable.List)());
+
+                case 2:
+                  masterProductCriteria = (0, _immutable.Map)({
+                    includeStore: true,
+                    includeMasterProduct: true,
+                    ids: _
+                  });
+                  result = _smartGroceryParseServerCommon.MasterProductPriceService.searchAll(masterProductCriteria);
+                  _context.prev = 4;
+                  specials = (0, _immutable.List)();
+
+
+                  result.event.subscribe(function (info) {
+                    return specials = specials.push(info);
+                  });
+
+                  _context.next = 9;
+                  return result.promise;
+
+                case 9:
+                  return _context.abrupt('return', (0, _graphqlRelay.connectionFromArray)(specials.toArray(), args));
+
+                case 10:
+                  _context.prev = 10;
+
+                  result.event.unsubscribeAll();
+                  return _context.finish(10);
+
+                case 13:
+                case 'end':
+                  return _context.stop();
+              }
+            }
+          }, _callee, undefined, [[4,, 10, 13]]);
+        }));
+
+        return function resolve(_x, _x2) {
+          return _ref.apply(this, arguments);
+        };
+      }()
     }
-  },
-  interfaces: [_interface.NodeInterface]
+  }
 });
