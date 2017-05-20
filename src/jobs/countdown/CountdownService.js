@@ -543,7 +543,7 @@ export default class CountdownService {
     );
 
     if (!notFoundTags.isEmpty()) {
-      throw new Exception(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
+      throw new Exception(`Tags not found in existing tag list: ${JSON.stringify(notFoundTags.toJS())}`);
     }
 
     const tagIds = tags.map(tag =>
