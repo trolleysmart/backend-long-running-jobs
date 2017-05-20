@@ -1,5 +1,6 @@
 // @flow
 
+import BluebirdPromise from 'bluebird';
 import Immutable, { List, Map, Range, Set } from 'immutable';
 import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
 import {
@@ -13,6 +14,8 @@ import {
 } from 'smart-grocery-parse-server-common';
 
 export default class CountdownService {
+  static splitIntoChunks = (list, chunkSize) => Range(0, list.count(), chunkSize).map(chunkStart => list.slice(chunkStart, chunkStart + chunkSize));
+
   static getConfig = async () => {
     const config = await ParseWrapperService.getConfig();
     const jobConfig = config.get('Job');
@@ -294,7 +297,7 @@ export default class CountdownService {
 
   syncToMasterProductPriceList = async (config) => {
     const finalConfig = config || (await CountdownService.getConfig());
-    const stores = await CountdownService.getCountdownStore();
+    const store = await CountdownService.getCountdownStore();
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
@@ -332,42 +335,71 @@ export default class CountdownService {
     }
 
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
-
-    this.logVerbose(finalConfig, () => 'Finding the product in master product...');
-
     const capturedDate = new Date();
+    const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
 
-    await Promise.all(
-      productsWithoutDuplication
-        .map(product => async () => {
-          const results = await MasterProductService.search(
+    await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
+      Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store.get('id')))),
+    );
+  };
+
+  createOrUpdateMasterProductPrice = async (product, config, capturedDate, storeId) => {
+    const masterProductPriceResults = await MasterProductPriceService.search(
+      Map({
+        conditions: Map({
+          masterProductDescription: product.get('description'),
+          storeId,
+        }),
+      }),
+    );
+
+    if (masterProductPriceResults.isEmpty()) {
+      this.logVerbose(config, () => 'Creating new master product price....');
+
+      const masterProductResults = await MasterProductService.search(
+        Map({
+          conditions: product,
+        }),
+      );
+
+      if (masterProductResults.isEmpty()) {
+        throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
+      } else if (masterProductResults.size > 1) {
+        throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+      }
+
+      const masterProduct = masterProductResults.first();
+      const masterProductPriceInfo = Map({
+        masterProductId: masterProduct.get('id'),
+        storeId,
+        capturedDate,
+        priceDetails: Map({
+          specialType: CountdownService.getSpecialType(product),
+          price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
+          wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
+          multiBuyInfo: CountdownService.getMultiBuyInfo(product),
+        }),
+      });
+
+      await MasterProductPriceService.create(masterProductPriceInfo);
+    } else {
+      this.logVerbose(config, () => 'Updating existing master product price....');
+      const masterProductPriceInfo = masterProductPriceResults.first();
+
+      await MasterProductPriceService.update(
+        masterProductPriceInfo
+          .set(
+            'priceDetails',
             Map({
-              conditions: product,
-            }),
-          );
-          if (results.isEmpty()) {
-            throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
-          } else if (results.size > 1) {
-            throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
-          }
-
-          const masterProduct = results.first();
-          const masterProductPriceInfo = Map({
-            masterProductId: masterProduct.get('id'),
-            storeId: stores.find(_ => _.get('name').localeCompare('Countdown') === 0).get('id'),
-            capturedDate,
-            priceDetails: Map({
               specialType: CountdownService.getSpecialType(product),
               price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
               wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
               multiBuyInfo: CountdownService.getMultiBuyInfo(product),
             }),
-          });
-
-          await MasterProductPriceService.create(masterProductPriceInfo);
-        })
-        .toArray(),
-    );
+          )
+          .set('capturedDate', capturedDate),
+      );
+    }
   };
 
   syncToTagList = async (config) => {
