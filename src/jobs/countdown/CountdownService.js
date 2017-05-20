@@ -292,7 +292,11 @@ export default class CountdownService {
       }),
     );
 
-    await Promise.all(newProductInfo.map(MasterProductService.create).toArray());
+    const splittedProductInfo = CountdownService.splitIntoChunks(newProductInfo, 100);
+
+    await BluebirdPromise.each(splittedProductInfo.toArray(), productInfoChunks =>
+      Promise.all(productInfoChunks.map(productInfo => MasterProductService.create(productInfo))),
+    );
   };
 
   syncToMasterProductPriceList = async (config) => {
@@ -505,53 +509,60 @@ export default class CountdownService {
 
     this.logVerbose(finalConfig, () => 'Finding the product in master product...');
 
-    await Promise.all(
-      productsGroupedByDescription
-        .keySeq()
-        .map(key => async () => {
-          const product = productsGroupedByDescription.get(key).first();
-          const results = await MasterProductService.search(
-            Map({
-              conditions: product,
-            }),
-          );
+    const keys = productsGroupedByDescription.keySeq();
 
-          if (results.isEmpty()) {
-            throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
-          } else if (results.size > 1) {
-            throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
-          }
+    if (keys.isEmpty()) {
+      return;
+    }
 
-          const existingProduct = results.first();
-          const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
-          const notFoundTags = tags.filterNot(tag =>
-            existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
-          );
+    const splittedKeys = CountdownService.splitIntoChunks(keys, 100);
 
-          if (!notFoundTags.isEmpty()) {
-            throw new Exception(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
-          }
+    await BluebirdPromise.each(splittedKeys.toArray(), keyChunks =>
+      Promise.all(keyChunks.map(key => this.updateProductTags(key, productsGroupedByDescription, existingTags))),
+    );
+  };
 
-          const tagIds = tags.map(tag =>
-            existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
-          );
-          const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
+  updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
+    const product = productsGroupedByDescription.get(key).first();
+    const results = await MasterProductService.search(
+      Map({
+        conditions: product,
+      }),
+    );
 
-          if (newTagIds.isEmpty()) {
-            return;
-          }
+    if (results.isEmpty()) {
+      throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
+    } else if (results.size > 1) {
+      throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+    }
 
-          await MasterProductService.update(
-            existingProduct.update('tagIds', (currentTags) => {
-              if (currentTags) {
-                return currentTags.concat(newTagIds);
-              }
+    const existingProduct = results.first();
+    const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
+    const notFoundTags = tags.filterNot(tag =>
+      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+    );
 
-              return newTagIds;
-            }),
-          );
-        })
-        .toArray(),
+    if (!notFoundTags.isEmpty()) {
+      throw new Exception(`Multiple master products found for: ${JSON.stringify(notFoundTags.toJS())}`);
+    }
+
+    const tagIds = tags.map(tag =>
+      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
+    );
+    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
+
+    if (newTagIds.isEmpty()) {
+      return;
+    }
+
+    await MasterProductService.update(
+      existingProduct.update('tagIds', (currentTags) => {
+        if (currentTags) {
+          return currentTags.concat(newTagIds);
+        }
+
+        return newTagIds;
+      }),
     );
   };
 
