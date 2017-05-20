@@ -293,9 +293,6 @@ export default class CountdownService {
     }
 
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
-
-    this.logVerbose(finalConfig, () => 'Checking whether products already exist...');
-
     const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
