@@ -387,7 +387,7 @@ export default class CountdownService {
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
       Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store.get('id')))),
     );
-    await this.clearOldMasterProductPrices(config, capturedDate);
+    await this.clearOldMasterProductPrices(finalConfig, capturedDate);
   };
 
   createOrUpdateMasterProductPrice = async (product, config, capturedDate, storeId) => {
