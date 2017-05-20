@@ -38,7 +38,7 @@ export default class CountdownService {
 
     if (results.isEmpty()) {
       throw new Exception('No store found called Countdown.');
-    } else if (results.size === 1) {
+    } else if (results.count() === 1) {
       return results.first();
     } else {
       throw new Exception('Multiple store found called Countdown.');
@@ -266,7 +266,7 @@ export default class CountdownService {
 
     this.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
 
-    const indexes = Range(0, productsWithoutDuplication.size);
+    const indexes = Range(0, productsWithoutDuplication.count());
     const productsWithIndexes = productsWithoutDuplication.zipWith(
       (product, index) =>
         Map({
@@ -368,7 +368,7 @@ export default class CountdownService {
 
       if (masterProductResults.isEmpty()) {
         throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
-      } else if (masterProductResults.size > 1) {
+      } else if (masterProductResults.count() > 1) {
         throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
       }
 
@@ -532,7 +532,7 @@ export default class CountdownService {
 
     if (results.isEmpty()) {
       throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
-    } else if (results.size > 1) {
+    } else if (results.count() > 1) {
       throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
     }
 
