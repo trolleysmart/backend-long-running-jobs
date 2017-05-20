@@ -61,6 +61,50 @@ export default class CountdownService {
     }
   };
 
+  static updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
+    const product = productsGroupedByDescription.get(key).first();
+    const results = await MasterProductService.search(
+      Map({
+        conditions: product,
+      }),
+    );
+
+    if (results.isEmpty()) {
+      throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
+    } else if (results.count() > 1) {
+      throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
+    }
+
+    const existingProduct = results.first();
+    const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
+    const notFoundTags = tags.filterNot(tag =>
+      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+    );
+
+    if (!notFoundTags.isEmpty()) {
+      throw new Exception(`Tags not found in existing tag list: ${JSON.stringify(notFoundTags.toJS())}`);
+    }
+
+    const tagIds = tags.map(tag =>
+      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
+    );
+    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
+
+    if (newTagIds.isEmpty()) {
+      return;
+    }
+
+    await MasterProductService.update(
+      existingProduct.update('tagIds', (currentTags) => {
+        if (currentTags) {
+          return currentTags.concat(newTagIds);
+        }
+
+        return newTagIds;
+      }),
+    );
+  };
+
   static getSpecialType = (product) => {
     if (product.has('special') && product.get('special')) {
       return 'special';
@@ -294,9 +338,7 @@ export default class CountdownService {
 
     const splittedProductInfo = CountdownService.splitIntoChunks(newProductInfo, 100);
 
-    await BluebirdPromise.each(splittedProductInfo.toArray(), productInfoChunks =>
-      Promise.all(productInfoChunks.map(productInfo => MasterProductService.create(productInfo))),
-    );
+    await BluebirdPromise.each(splittedProductInfo.toArray(), productInfoChunks => Promise.all(productInfoChunks.map(MasterProductService.create)));
   };
 
   syncToMasterProductPriceList = async (config) => {
@@ -345,6 +387,7 @@ export default class CountdownService {
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
       Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store.get('id')))),
     );
+    await this.clearOldMasterProductPrices(config, capturedDate);
   };
 
   createOrUpdateMasterProductPrice = async (product, config, capturedDate, storeId) => {
@@ -404,6 +447,45 @@ export default class CountdownService {
           .set('capturedDate', capturedDate),
       );
     }
+  };
+
+  clearOldMasterProductPrices = async (config, capturedDate) => {
+    this.logInfo(config, () => 'Start clearing old price details...');
+
+    const dateToCleanFrom = new Date();
+    dateToCleanFrom.setDate(new Date().getDate() - 2);
+
+    let masterProductPrices = List();
+
+    const result = MasterProductPriceService.searchAll(
+      Map({
+        conditions: Map({
+          lessThanOrEqualTo_capturedDate: dateToCleanFrom,
+        }),
+      }),
+    );
+
+    try {
+      result.event.subscribe(info => (masterProductPrices = masterProductPrices.push(info)));
+
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
+    }
+
+    console.log(masterProductPrices.count());
+
+    const splittedMasterProductPrices = CountdownService.splitIntoChunks(masterProductPrices, 100);
+
+    await BluebirdPromise.each(splittedMasterProductPrices.toArray(), masterProductPriceChunks =>
+      Promise.all(
+        masterProductPriceChunks.map(masterProductPrice =>
+          MasterProductPriceService.update(masterProductPrice.set('priceDetails', Map()).set('capturedDate', capturedDate)),
+        ),
+      ),
+    );
+
+    this.logInfo(config, () => 'Finished clearing old price details.');
   };
 
   syncToTagList = async (config) => {
@@ -518,51 +600,7 @@ export default class CountdownService {
     const splittedKeys = CountdownService.splitIntoChunks(keys, 100);
 
     await BluebirdPromise.each(splittedKeys.toArray(), keyChunks =>
-      Promise.all(keyChunks.map(key => this.updateProductTags(key, productsGroupedByDescription, existingTags))),
-    );
-  };
-
-  updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
-    const product = productsGroupedByDescription.get(key).first();
-    const results = await MasterProductService.search(
-      Map({
-        conditions: product,
-      }),
-    );
-
-    if (results.isEmpty()) {
-      throw new Exception(`No master product found for: ${JSON.stringify(product.toJS())}`);
-    } else if (results.count() > 1) {
-      throw new Exception(`Multiple master products found for: ${JSON.stringify(product.toJS())}`);
-    }
-
-    const existingProduct = results.first();
-    const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
-    const notFoundTags = tags.filterNot(tag =>
-      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
-    );
-
-    if (!notFoundTags.isEmpty()) {
-      throw new Exception(`Tags not found in existing tag list: ${JSON.stringify(notFoundTags.toJS())}`);
-    }
-
-    const tagIds = tags.map(tag =>
-      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
-    );
-    const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
-
-    if (newTagIds.isEmpty()) {
-      return;
-    }
-
-    await MasterProductService.update(
-      existingProduct.update('tagIds', (currentTags) => {
-        if (currentTags) {
-          return currentTags.concat(newTagIds);
-        }
-
-        return newTagIds;
-      }),
+      Promise.all(keyChunks.map(key => CountdownService.updateProductTags(key, productsGroupedByDescription, existingTags))),
     );
   };
 
