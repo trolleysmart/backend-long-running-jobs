@@ -296,49 +296,39 @@ export default class CountdownService {
 
     this.logVerbose(finalConfig, () => 'Checking whether products already exist...');
 
-    const results = await Promise.all(
-      productsWithoutDuplication
-        .map(product =>
-          MasterProductService.exists(
-            Map({
-              conditions: product,
-            }),
-          ),
-        )
-        .toArray(),
+    const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
+
+    await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
+      Promise.all(productChunks.map(product => this.createOrUpdateproduct(product, finalConfig))),
     );
+  };
 
-    this.logVerbose(finalConfig, () => 'Finished checking whether products already exist.');
-
-    const indexes = Range(0, productsWithoutDuplication.count());
-    const productsWithIndexes = productsWithoutDuplication.zipWith(
-      (product, index) =>
-        Map({
-          product,
-          index,
-        }),
-      indexes,
-    );
-
-    const newProducts = productsWithIndexes.filterNot(_ => results[_.get('index')]).map(_ => _.get('product'));
-
-    if (newProducts.isEmpty()) {
-      return;
-    }
-
-    this.logInfo(finalConfig, () => 'Saving new products...');
-
-    const newProductInfo = newProducts.map(_ =>
+  createOrUpdateproduct = async (product, config) => {
+    const results = await MasterProductService.search(
       Map({
-        description: _.get('description'),
-        barcode: _.get('barcode'),
-        imageUrl: _.get('imageUrl'),
+        conditions: product,
       }),
     );
 
-    const splittedProductInfo = CountdownService.splitIntoChunks(newProductInfo, 100);
+    if (results.isEmpty()) {
+      this.logInfo(config, () => 'Creating new master product...');
 
-    await BluebirdPromise.each(splittedProductInfo.toArray(), productInfoChunks => Promise.all(productInfoChunks.map(MasterProductService.create)));
+      await MasterProductService.create(
+        Map({
+          description: product.get('description'),
+          barcode: product.get('barcode'),
+          imageUrl: product.get('imageUrl'),
+        }),
+      );
+    } else if (results.count() > 1) {
+      throw new Exception(`Multiple master product found for product: ${JSON.stringify(product.toJS())}`);
+    } else {
+      this.logInfo(config, () => 'Updating an existing master product...');
+
+      const productInfo = results.first();
+
+      await MasterProductService.update(productInfo.set('imageUrl', product.get('imageUrl')).set('barcode', product.get('barcode')));
+    }
   };
 
   syncToMasterProductPriceList = async (config) => {
@@ -429,6 +419,8 @@ export default class CountdownService {
       });
 
       await MasterProductPriceService.create(masterProductPriceInfo);
+    } else if (masterProductPriceResults.count() > 1) {
+      throw new Exception(`Multiple master product price found for product: ${JSON.stringify(product.toJS())} and storeId: ${storeId}`);
     } else {
       this.logVerbose(config, () => 'Updating existing master product price....');
       const masterProductPriceInfo = masterProductPriceResults.first();
