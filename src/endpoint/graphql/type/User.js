@@ -63,21 +63,26 @@ export default new GraphQLObjectType({
     shoppingList: {
       type: ShoppingListType,
       resolve: async (_) => {
+        const userId = _.get('id');
         const criteria = Map({
           includeMasterProductPrices: true,
           topMost: true,
           conditions: Map({
-            userId: _.get('id'),
+            userId,
           }),
         });
 
-        const shoppingList = await ShoppingListService.search(criteria);
+        const results = await ShoppingListService.search(criteria);
 
-        if (shoppingList.isEmpty()) {
-          return Map({ masterProductPriceIds: List() });
+        if (results.isEmpty()) {
+          const shoppingListId = await ShoppingListService.create(Map({ userId }));
+
+          return Map({ id: shoppingListId, masterProductPriceIds: List() });
         }
 
-        return Map({ masterProductPriceIds: shoppingList.first().get('masterProductPriceIds') });
+        const shoppingList = results.first();
+
+        return Map({ id: shoppingList.get('id'), masterProductPriceIds: shoppingList.get('masterProductPriceIds') });
       },
     },
   },
