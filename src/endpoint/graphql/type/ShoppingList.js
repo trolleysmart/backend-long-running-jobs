@@ -22,7 +22,7 @@ export default new GraphQLObjectType({
         const masterProductPriceIds = _.get('masterProductPriceIds');
 
         if (masterProductPriceIds.isEmpty()) {
-          return List();
+          return connectionFromArray(List(), args);
         }
 
         const masterProductCriteria = Map({
