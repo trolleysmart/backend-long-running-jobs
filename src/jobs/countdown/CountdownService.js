@@ -296,11 +296,11 @@ export default class CountdownService {
     const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
-      Promise.all(productChunks.map(product => this.createOrUpdateproduct(product, finalConfig))),
+      Promise.all(productChunks.map(product => this.createOrUpdateMasterProduct(product, finalConfig))),
     );
   };
 
-  createOrUpdateproduct = async (product, config) => {
+  createOrUpdateMasterProduct = async (product, config) => {
     const results = await MasterProductService.search(
       Map({
         conditions: product,
