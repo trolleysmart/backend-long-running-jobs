@@ -4,7 +4,7 @@ import { List, Map } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService } from 'smart-grocery-parse-server-common';
-import SpecialsConnection from './Specials';
+import SpecialConnectionDefinition from './Specials';
 
 export default new GraphQLObjectType({
   name: 'ShoppingList',
@@ -14,7 +14,7 @@ export default new GraphQLObjectType({
       resolve: _ => _.get('id'),
     },
     specials: {
-      type: SpecialsConnection,
+      type: SpecialConnectionDefinition.connectionType,
       args: {
         ...connectionArgs,
       },

@@ -64,9 +64,9 @@ const specialType = new GraphQLObjectType({
   interfaces: [NodeInterface],
 });
 
-const { connectionType: specialsConnection } = connectionDefinitions({
+const SpecialConnectionDefinition = connectionDefinitions({
   name: 'Special',
   nodeType: specialType,
 });
 
-export default specialsConnection;
+export default SpecialConnectionDefinition;

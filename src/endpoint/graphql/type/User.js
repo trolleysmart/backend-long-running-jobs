@@ -5,7 +5,7 @@ import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'gra
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
-import SpecialsConnection from './Specials';
+import SpecialConnectionDefinition from './Specials';
 import ShoppingListType from './ShoppingList';
 
 export default new GraphQLObjectType({
@@ -20,7 +20,7 @@ export default new GraphQLObjectType({
       resolve: _ => _.get('username'),
     },
     specials: {
-      type: SpecialsConnection,
+      type: SpecialConnectionDefinition.connectionType,
       args: {
         ...connectionArgs,
         description: {
