@@ -17,6 +17,7 @@ type MultiBuy {
 
 type Mutation {
   addSpecialItemToUserShoppingList(input: AddSpecialItemToUserShoppingListInput!): AddSpecialItemToUserShoppingListPayload
+  removeSpecialItemFromUserShoppingList(input: RemoveSpecialItemFromUserShoppingListInput!): RemoveSpecialItemFromUserShoppingListPayload
 }
 
 # An object with an ID
@@ -48,6 +49,18 @@ type Query {
     # The ID of an object
     id: ID!
   ): Node
+}
+
+input RemoveSpecialItemFromUserShoppingListInput {
+  userId: ID!
+  specialItemId: ID!
+  clientMutationId: String
+}
+
+type RemoveSpecialItemFromUserShoppingListPayload {
+  errorMessage: String
+  shoppingList: ShoppingList
+  clientMutationId: String
 }
 
 type ShoppingList {
