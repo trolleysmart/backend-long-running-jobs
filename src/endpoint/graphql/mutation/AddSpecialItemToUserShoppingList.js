@@ -20,6 +20,7 @@ export default mutationWithClientMutationId({
     special: {
       type: SpecialConnectionDefinition.edgeType,
       resolve: _ => ({
+        cursor: 'DummyCursor',
         node: _.special,
       }),
     },
