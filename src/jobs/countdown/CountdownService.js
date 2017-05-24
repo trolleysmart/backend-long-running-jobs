@@ -405,6 +405,7 @@ export default class CountdownService {
       const masterProduct = masterProductResults.first();
       const masterProductPriceInfo = Map({
         masterProductId: masterProduct.get('id'),
+        masterProductDescription: masterProduct.get('description'),
         storeId,
         capturedDate,
         priceDetails: Map({

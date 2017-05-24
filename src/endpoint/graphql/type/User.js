@@ -30,6 +30,7 @@ export default new GraphQLObjectType({
         const criteria = Map({
           includeStore: true,
           includeMasterProduct: true,
+          orderByFieldAscending: 'masterProductDescription',
           conditions: Map({
             contains_masterProductDescription: args.description ? args.description.trim() : undefined,
             not_specialType: 'none',
@@ -93,6 +94,7 @@ export default new GraphQLObjectType({
         const masterProductCriteria = Map({
           includeStore: true,
           includeMasterProduct: true,
+          orderByFieldAscending: 'masterProductDescription',
           ids: specialIds,
         });
 
