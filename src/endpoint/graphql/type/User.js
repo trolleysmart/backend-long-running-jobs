@@ -37,25 +37,7 @@ export default new GraphQLObjectType({
           }),
         });
 
-        let specials;
-
-        if (args.first) {
-          specials = await MasterProductPriceService.search(criteria.set('limit', args.first));
-        } else {
-          const result = MasterProductPriceService.searchAll(criteria);
-
-          try {
-            specials = List();
-
-            result.event.subscribe((info) => {
-              specials = specials.push(info);
-            });
-
-            await result.promise;
-          } finally {
-            result.event.unsubscribeAll();
-          }
-        }
+        const specials = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
 
         return connectionFromArray(specials.toArray(), args);
       },
@@ -76,16 +58,8 @@ export default new GraphQLObjectType({
           }),
         });
 
-        const shoppingListSearchResult = await ShoppingListService.searchAll(criteria);
-        let specialIds = Set();
-
-        try {
-          shoppingListSearchResult.event.subscribe(info => (specialIds = specialIds.add(info.getIn(['masterProductPrice', 'id']))));
-
-          await shoppingListSearchResult.promise;
-        } finally {
-          shoppingListSearchResult.event.unsubscribeAll();
-        }
+        const specialsInfo = await ShoppingListService.search(criteria.set('limit', args.first ? args.first : 1000));
+        const specialIds = specialsInfo.map(special => special.getIn(['masterProductPrice', 'id'])).toSet();
 
         if (specialIds.isEmpty()) {
           return connectionFromArray([], args);
@@ -98,18 +72,9 @@ export default new GraphQLObjectType({
           ids: specialIds,
         });
 
-        const masterProductPriceSearchResult = MasterProductPriceService.searchAll(masterProductCriteria);
+        const specials = await MasterProductPriceService.search(masterProductCriteria);
 
-        try {
-          let specials = List();
-
-          masterProductPriceSearchResult.event.subscribe(info => (specials = specials.push(info)));
-
-          await masterProductPriceSearchResult.promise;
-          return connectionFromArray(specials.toArray(), args);
-        } finally {
-          masterProductPriceSearchResult.event.unsubscribeAll();
-        }
+        return connectionFromArray(specials.toArray(), args);
       },
     },
   },
