@@ -62,11 +62,6 @@ type RemoveSpecialItemFromUserShoppingListPayload {
   clientMutationId: String
 }
 
-type ShoppingList {
-  id: ID!
-  specials(after: String, first: Int, before: String, last: Int): SpecialConnection
-}
-
 type Special implements Node {
   id: ID!
   description: String
@@ -105,5 +100,5 @@ type User implements Node {
   id: ID!
   username: String
   specials(after: String, first: Int, before: String, last: Int, description: String): SpecialConnection
-  shoppingList: ShoppingList
+  specialsInShoppingList(after: String, first: Int, before: String, last: Int): SpecialConnection
 }

@@ -20,30 +20,33 @@ export default mutationWithClientMutationId({
   mutateAndGetPayload: async ({ userId, specialItemId }) => {
     try {
       const criteria = Map({
-        includeMasterProductPrices: true,
-        topMost: true,
+        includeMasterProductPrice: true,
         conditions: Map({
           userId,
+          masterProductPriceId: specialItemId,
+          excludeItemsMarkedAsDone: true,
+          includeMasterProductPriceOnly: true,
         }),
       });
 
-      const results = await ShoppingListService.search(criteria);
-      const shoppingListId = results.isEmpty() ? await ShoppingListService.create(Map({ userId })) : results.first().get('id');
+      const result = await ShoppingListService.searchAll(criteria);
+      let shoppingListItems = List();
 
-      if (results.isEmpty()) {
-        return { shoppingList: Map({ id: shoppingListId, masterProductPriceIds: List() }) };
+      try {
+        result.event.subscribe(info => (shoppingListItems = shoppingListItems.push(info)));
+
+        await result.promise;
+      } finally {
+        result.event.unsubscribeAll();
       }
 
-      const shoppingListInfo = await ShoppingListService.read(shoppingListId);
-      const masterProductPriceIds = shoppingListInfo.get('masterProductPriceIds');
-
-      if (!masterProductPriceIds.find(_ => _.localeCompare(specialItemId) === 0)) {
+      if (shoppingListItems.isEmpty()) {
         return {};
       }
 
-      const updatedShoppingListInfo = shoppingListInfo.update('masterProductPriceIds', _ => _.filterNot(id => id.localeCompare(specialItemId) === 0));
-
-      await ShoppingListService.update(updatedShoppingListInfo);
+      await Promise.all(
+        shoppingListItems.map(shoppingListItem => ShoppingListService.update(shoppingListItem.set('doneDate', new Date()))).toArray(),
+      );
 
       return {};
     } catch (ex) {

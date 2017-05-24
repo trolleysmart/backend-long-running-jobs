@@ -1,12 +1,11 @@
 // @flow
 
-import { List, Map } from 'immutable';
+import { List, Map, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
 import SpecialConnectionDefinition from './Specials';
-import ShoppingListType from './ShoppingList';
 
 export default new GraphQLObjectType({
   name: 'User',
@@ -60,29 +59,55 @@ export default new GraphQLObjectType({
         return connectionFromArray(specials.toArray(), args);
       },
     },
-    shoppingList: {
-      type: ShoppingListType,
-      resolve: async (_) => {
+    specialsInShoppingList: {
+      type: SpecialConnectionDefinition.connectionType,
+      args: {
+        ...connectionArgs,
+      },
+      resolve: async (_, args) => {
         const userId = _.get('id');
         const criteria = Map({
-          includeMasterProductPrices: true,
-          topMost: true,
+          includeMasterProductPrice: true,
           conditions: Map({
             userId,
+            excludeItemsMarkedAsDone: true,
+            includeSpecialsOnly: true,
           }),
         });
 
-        const results = await ShoppingListService.search(criteria);
+        const shoppingListSearchResult = await ShoppingListService.searchAll(criteria);
+        let specialIds = Set();
 
-        if (results.isEmpty()) {
-          const shoppingListId = await ShoppingListService.create(Map({ userId }));
+        try {
+          shoppingListSearchResult.event.subscribe(info => (specialIds = specialIds.add(info.getIn(['masterProductPrice', 'id']))));
 
-          return Map({ id: shoppingListId, masterProductPriceIds: List() });
+          await shoppingListSearchResult.promise;
+        } finally {
+          shoppingListSearchResult.event.unsubscribeAll();
         }
 
-        const shoppingList = results.first();
+        if (specialIds.isEmpty()) {
+          return connectionFromArray([], args);
+        }
 
-        return Map({ id: shoppingList.get('id'), masterProductPriceIds: shoppingList.get('masterProductPriceIds') });
+        const masterProductCriteria = Map({
+          includeStore: true,
+          includeMasterProduct: true,
+          ids: specialIds,
+        });
+
+        const masterProductPriceSearchResult = MasterProductPriceService.searchAll(masterProductCriteria);
+
+        try {
+          let specials = List();
+
+          masterProductPriceSearchResult.event.subscribe(info => (specials = specials.push(info)));
+
+          await masterProductPriceSearchResult.promise;
+          return connectionFromArray(specials.toArray(), args);
+        } finally {
+          masterProductPriceSearchResult.event.unsubscribeAll();
+        }
       },
     },
   },

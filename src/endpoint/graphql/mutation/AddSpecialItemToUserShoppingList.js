@@ -39,32 +39,10 @@ export default mutationWithClientMutationId({
         throw new Exception('Provided special item Id is invalid.');
       }
 
-      const specialItem = masterProductPriceInfoSearchResults.first();
-      const criteria = Map({
-        includeMasterProductPrices: true,
-        topMost: true,
-        conditions: Map({
-          userId,
-        }),
-      });
-
-      const results = await ShoppingListService.search(criteria);
-      const shoppingListId = results.isEmpty() ? await ShoppingListService.create(Map({ userId })) : results.first().get('id');
-      const shoppingListInfo = await ShoppingListService.read(shoppingListId);
-      const masterProductPriceIds = shoppingListInfo.get('masterProductPriceIds');
-
-      if (masterProductPriceIds.find(_ => _.localeCompare(specialItemId) === 0)) {
-        return {
-          special: specialItem,
-        };
-      }
-
-      const updatedShoppingListInfo = shoppingListInfo.update('masterProductPriceIds', _ => _.push(specialItemId));
-
-      await ShoppingListService.update(updatedShoppingListInfo);
+      await ShoppingListService.create(Map({ userId, masterProductPriceId: specialItemId }));
 
       return {
-        special: specialItem,
+        special: masterProductPriceInfoSearchResults.first(),
       };
     } catch (ex) {
       return { errorMessage: ex instanceof Exception ? ex.getErrorMessage() : ex };
