@@ -1,6 +1,6 @@
 // @flow
 
-import { List, Map, Set } from 'immutable';
+import { Map } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
