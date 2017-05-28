@@ -1,6 +1,6 @@
 // @flow
 
-import { Map } from 'immutable';
+import Immutable, { Map, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
@@ -27,19 +27,54 @@ export default new GraphQLObjectType({
         },
       },
       resolve: async (_, args) => {
-        const criteria = Map({
-          includeStore: true,
-          includeMasterProduct: true,
-          orderByFieldAscending: 'masterProductDescription',
-          conditions: Map({
-            contains_masterProductDescription: args.description ? args.description.trim() : undefined,
-            not_specialType: 'none',
-          }),
-        });
+        const descriptions = args.description
+          ? Immutable.fromJS(args.description.replace(/\W/g, ' ').trim().toLowerCase().split(' '))
+              .map(description => description.trim())
+              .filter(description => description.length > 0)
+              .toSet()
+          : Set();
 
-        const specials = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
+        if (descriptions.isEmpty() || descriptions.count() === 1) {
+          const criteria = Map({
+            includeStore: true,
+            includeMasterProduct: true,
+            orderByFieldAscending: 'masterProductDescription',
+            conditions: Map({
+              contains_masterProductDescription: descriptions.isEmpty() ? undefined : descriptions.first(),
+              not_specialType: 'none',
+            }),
+          });
 
-        return connectionFromArray(specials.toArray(), args);
+          const specials = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
+
+          return connectionFromArray(specials.toArray(), args);
+        }
+
+        const allMatchedSpecials = await Promise.all(
+          descriptions
+            .map((description) => {
+              const criteria = Map({
+                includeStore: true,
+                includeMasterProduct: true,
+                orderByFieldAscending: 'masterProductDescription',
+                conditions: Map({
+                  contains_masterProductDescription: description,
+                  not_specialType: 'none',
+                }),
+              });
+
+              return MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
+            })
+            .toArray(),
+        );
+
+        /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
+         * undefined for unknown reason. */
+        const flattenMatchedSpecials = Immutable.fromJS(allMatchedSpecials).flatMap(matchedSpecials => matchedSpecials);
+        const groupedSpecialIds = flattenMatchedSpecials.groupBy(matchedSpecial => matchedSpecial.get('id')).filter(item => item.count() > 1);
+        const specialsIntersect = flattenMatchedSpecials.filter(matchedSpecial => groupedSpecialIds.has(matchedSpecial.get('id')));
+
+        return connectionFromArray(specialsIntersect.toArray(), args);
       },
     },
     specialsInShoppingList: {
