@@ -303,7 +303,9 @@ export default class CountdownService {
   createOrUpdateMasterProduct = async (product, config) => {
     const results = await MasterProductService.search(
       Map({
-        conditions: product,
+        conditions: Map({
+          description: product.get('description'),
+        }),
       }),
     );
 
