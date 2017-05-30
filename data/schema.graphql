@@ -96,9 +96,44 @@ type SpecialEdge {
   cursor: String!
 }
 
+type SpecialInShoppingList implements Node {
+  id: ID!
+  description: String
+  imageUrl: String
+  barcode: String
+  specialType: String
+  price: Float
+  wasPrice: Float
+  multiBuy: MultiBuy
+  storeName: String
+  storeImageUrl: String
+  comments: String
+  unitSize: String
+  expiryDate: String
+  quantity: Int
+}
+
+# A connection to a list of items.
+type SpecialInShoppingListConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [SpecialInShoppingListEdge]
+}
+
+# An edge in a connection.
+type SpecialInShoppingListEdge {
+  # The item at the end of the edge
+  node: SpecialInShoppingList
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
 type User implements Node {
   id: ID!
   username: String
   specials(after: String, first: Int, before: String, last: Int, description: String): SpecialConnection
-  specialsInShoppingList(after: String, first: Int, before: String, last: Int): SpecialConnection
+  specialsInShoppingList(after: String, first: Int, before: String, last: Int): SpecialInShoppingListConnection
 }

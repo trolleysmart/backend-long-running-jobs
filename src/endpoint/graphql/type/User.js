@@ -6,6 +6,7 @@ import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
 import SpecialConnectionDefinition from './Specials';
+import SpecialInShoppingListConnectionDefinition from './SpecialsInShoppingList';
 
 export default new GraphQLObjectType({
   name: 'User',
@@ -78,7 +79,7 @@ export default new GraphQLObjectType({
       },
     },
     specialsInShoppingList: {
-      type: SpecialConnectionDefinition.connectionType,
+      type: SpecialInShoppingListConnectionDefinition.connectionType,
       args: {
         ...connectionArgs,
       },
@@ -94,7 +95,8 @@ export default new GraphQLObjectType({
         });
 
         const specialsInfo = await ShoppingListService.search(criteria.set('limit', args.first ? args.first : 1000));
-        const specialIds = specialsInfo.map(special => special.getIn(['masterProductPrice', 'id'])).toSet();
+        const specialIds = specialsInfo.map(special => special.getIn(['masterProductPrice', 'id']));
+        const groupedSpecialIds = specialIds.groupBy(specialId => specialId);
 
         if (specialIds.isEmpty()) {
           return connectionFromArray([], args);
@@ -104,12 +106,12 @@ export default new GraphQLObjectType({
           includeStore: true,
           includeMasterProduct: true,
           orderByFieldAscending: 'masterProductDescription',
-          ids: specialIds,
+          ids: specialIds.toSet(),
         });
 
         const specials = await MasterProductPriceService.search(masterProductCriteria);
 
-        return connectionFromArray(specials.toArray(), args);
+        return connectionFromArray(specials.map(special => special.set('quantity', groupedSpecialIds.get(special.get('id')).size)).toArray(), args);
       },
     },
   },
