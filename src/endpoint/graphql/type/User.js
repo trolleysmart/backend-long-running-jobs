@@ -154,14 +154,8 @@ const getShoppingListItems = async (userId, args) => {
     shoppingListInfo = flattenMatchedShoppingList.filter(item => groupedShoppingList.has(item.get('id')));
   }
 
-  const stapleShoppingListIds = shoppingListInfo
-    .filter(item => item.get('stapleShoppingList'))
-    .map(special => special.getIn(['stapleShoppingList', 'id']))
-    .toSet();
-  const masterProductPriceIds = shoppingListInfo
-    .filter(item => item.get('masterProductPrice'))
-    .map(special => special.getIn(['masterProductPrice', 'id']))
-    .toSet();
+  const stapleShoppingListIds = shoppingListInfo.filter(item => item.get('stapleShoppingList')).map(item => item.get('stapleShoppingListId')).toSet();
+  const masterProductPriceIds = shoppingListInfo.filter(item => item.get('masterProductPrice')).map(item => item.get('masterProductPriceId')).toSet();
 
   const results = await Promise.all([getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(masterProductPriceIds)]);
 
@@ -170,8 +164,7 @@ const getShoppingListItems = async (userId, args) => {
       .map((shoppingListItem) => {
         if (shoppingListItem.get('stapleShoppingList')) {
           const info = results[0];
-
-          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.getIn(['stapleShoppingList', 'id'])));
+          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('stapleShoppingListId')));
 
           if (foundItem) {
             return Map({ id: shoppingListItem.get('id'), stapleShoppingListId: foundItem.get('id'), description: foundItem.get('description') });
@@ -180,8 +173,7 @@ const getShoppingListItems = async (userId, args) => {
           throw new Exception(`Staple Shopping List not found: ${shoppingListItem.getIn(['stapleShoppingList', 'id'])}`);
         } else {
           const info = results[1];
-
-          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.getIn(['masterProductPrice', 'id'])));
+          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('masterProductPriceId')) === 0);
 
           if (foundItem) {
             return Map({
