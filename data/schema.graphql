@@ -77,7 +77,7 @@ type ShoppingList implements Node {
   storeImageUrl: String
   comments: String
   unitSize: String
-  expiryDate: String
+  quantity: Int
 }
 
 # A connection to a list of items.

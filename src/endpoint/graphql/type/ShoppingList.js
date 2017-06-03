@@ -1,6 +1,6 @@
 // @flow
 
-import { GraphQLID, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { GraphQLID, GraphQLFloat, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionDefinitions } from 'graphql-relay';
 import { NodeInterface } from '../interface';
 import multiBuyType from './MultiBuy';
@@ -18,7 +18,7 @@ const shoppingListType = new GraphQLObjectType({
     },
     masterProductPriceId: {
       type: GraphQLID,
-      resolve: _ => _.get('masterProductPriceId'),
+      resolve: _ => _.get('specialId'),
     },
     description: {
       type: GraphQLString,
@@ -64,9 +64,9 @@ const shoppingListType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: () => '',
     },
-    expiryDate: {
-      type: GraphQLString,
-      resolve: () => new Date().toISOString(),
+    quantity: {
+      type: GraphQLInt,
+      resolve: _ => _.get('quantity'),
     },
   },
   interfaces: [NodeInterface],

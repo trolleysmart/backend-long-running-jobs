@@ -184,7 +184,7 @@ const getShoppingListItems = async (userId, args) => {
           if (foundItem) {
             return Map({
               id: shoppingListItem.get('id'),
-              masterProductPriceId: foundItem.get('id'),
+              specialId: foundItem.get('id'),
               description: foundItem.getIn(['masterProduct', 'description']),
               imageUrl: foundItem.getIn(['masterProduct', 'imageUrl']),
               barcode: foundItem.getIn(['masterProduct', 'barcode']),

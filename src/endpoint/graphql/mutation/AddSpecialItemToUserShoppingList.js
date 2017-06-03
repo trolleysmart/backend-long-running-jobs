@@ -46,7 +46,7 @@ export default mutationWithClientMutationId({
       return {
         special: Map({
           id,
-          masterProductPriceId: result.get('id'),
+          specialId: result.get('id'),
           description: result.getIn(['masterProduct', 'description']),
           imageUrl: result.getIn(['masterProduct', 'imageUrl']),
           barcode: result.getIn(['masterProduct', 'barcode']),

@@ -1027,12 +1027,12 @@
               "deprecationReason": null
             },
             {
-              "name": "expiryDate",
+              "name": "quantity",
               "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "String",
+                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,
