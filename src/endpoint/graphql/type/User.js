@@ -29,9 +29,7 @@ const getMasterProductMatchCriteria = async (args, description) => {
     }),
   });
 
-  const masterProductPriceItems = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 10));
-
-  return connectionFromArray(masterProductPriceItems.toArray(), args);
+  return MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 10));
 };
 
 const getMasterProductPriceItems = async (args) => {
@@ -218,9 +216,7 @@ const getStapleShoppingListMatchCriteria = async (args, userId, description) => 
     }),
   });
 
-  const stapleShoppingListItems = await StapleShoppingListService.search(criteria.set('limit', args.first ? args.first : 10));
-
-  return connectionFromArray(stapleShoppingListItems.toArray(), args);
+  return StapleShoppingListService.search(criteria.set('limit', args.first ? args.first : 10));
 };
 
 const getStapleShoppingListItems = async (userId, args) => {
