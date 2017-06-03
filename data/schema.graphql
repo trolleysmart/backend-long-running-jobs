@@ -62,6 +62,42 @@ type RemoveSpecialItemFromUserShoppingListPayload {
   clientMutationId: String
 }
 
+type ShoppingList implements Node {
+  id: ID!
+  stapleShoppingListId: ID
+  masterProductPriceId: ID
+  description: String
+  imageUrl: String
+  barcode: String
+  specialType: String
+  price: Float
+  wasPrice: Float
+  multiBuy: MultiBuy
+  storeName: String
+  storeImageUrl: String
+  comments: String
+  unitSize: String
+  expiryDate: String
+}
+
+# A connection to a list of items.
+type ShoppingListConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [ShoppingListEdge]
+}
+
+# An edge in a connection.
+type ShoppingListEdge {
+  # The item at the end of the edge
+  node: ShoppingList
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
 type Special implements Node {
   id: ID!
   description: String
@@ -96,36 +132,25 @@ type SpecialEdge {
   cursor: String!
 }
 
-type SpecialInShoppingList implements Node {
+type StapleShoppingList implements Node {
   id: ID!
   description: String
-  imageUrl: String
-  barcode: String
-  specialType: String
-  price: Float
-  wasPrice: Float
-  multiBuy: MultiBuy
-  storeName: String
-  storeImageUrl: String
-  comments: String
-  unitSize: String
-  expiryDate: String
-  quantity: Int
+  tags: [MultiBuy]
 }
 
 # A connection to a list of items.
-type SpecialInShoppingListConnection {
+type StapleShoppingListConnection {
   # Information to aid in pagination.
   pageInfo: PageInfo!
 
   # A list of edges.
-  edges: [SpecialInShoppingListEdge]
+  edges: [StapleShoppingListEdge]
 }
 
 # An edge in a connection.
-type SpecialInShoppingListEdge {
+type StapleShoppingListEdge {
   # The item at the end of the edge
-  node: SpecialInShoppingList
+  node: StapleShoppingList
 
   # A cursor for use in pagination
   cursor: String!
@@ -135,5 +160,6 @@ type User implements Node {
   id: ID!
   username: String
   specials(after: String, first: Int, before: String, last: Int, description: String): SpecialConnection
-  specialsInShoppingList(after: String, first: Int, before: String, last: Int): SpecialInShoppingListConnection
+  shoppingList(after: String, first: Int, before: String, last: Int, description: String): ShoppingListConnection
+  stapleShoppingList(after: String, first: Int, before: String, last: Int, description: String): StapleShoppingListConnection
 }

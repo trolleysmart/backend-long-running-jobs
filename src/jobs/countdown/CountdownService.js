@@ -78,7 +78,7 @@ export default class CountdownService {
     const existingProduct = results.first();
     const tags = productsGroupedByDescription.get(key).map(_ => _.get('productCategory')).toSet();
     const notFoundTags = tags.filterNot(tag =>
-      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+      existingTags.find(existingTag => existingTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
     );
 
     if (!notFoundTags.isEmpty()) {
@@ -86,7 +86,7 @@ export default class CountdownService {
     }
 
     const tagIds = tags.map(tag =>
-      existingTags.find(existingTag => existingTag.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
+      existingTags.find(existingTag => existingTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0).get('id'),
     );
     const newTagIds = tagIds.filterNot(tagId => existingProduct.get('tagIds').find(id => id === tagId));
 
@@ -374,17 +374,17 @@ export default class CountdownService {
     const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
-      Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store.get('id')))),
+      Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store))),
     );
     await this.clearOldMasterProductPrices(finalConfig, capturedDate);
   };
 
-  createOrUpdateMasterProductPrice = async (product, config, capturedDate, storeId) => {
+  createOrUpdateMasterProductPrice = async (product, config, capturedDate, store) => {
     const masterProductPriceResults = await MasterProductPriceService.search(
       Map({
         conditions: Map({
-          masterProductDescription: product.get('description'),
-          storeId,
+          description: product.get('description'),
+          storeId: store.get('id'),
         }),
       }),
     );
@@ -407,8 +407,9 @@ export default class CountdownService {
       const masterProduct = masterProductResults.first();
       const masterProductPriceInfo = Map({
         masterProductId: masterProduct.get('id'),
-        masterProductDescription: masterProduct.get('description'),
-        storeId,
+        description: masterProduct.get('description'),
+        storeId: store.get('id'),
+        storeName: store.get('name'),
         capturedDate,
         priceDetails: Map({
           specialType: CountdownService.getSpecialType(product),
@@ -420,7 +421,9 @@ export default class CountdownService {
 
       await MasterProductPriceService.create(masterProductPriceInfo);
     } else if (masterProductPriceResults.count() > 1) {
-      throw new Exception(`Multiple master product price found for product: ${JSON.stringify(product.toJS())} and storeId: ${storeId}`);
+      throw new Exception(
+        `Multiple master product price found for product: ${JSON.stringify(product.toJS())} and storeId: ${store.get('id')} - ${store.get('name')}`,
+      );
     } else {
       this.logVerbose(config, () => 'Updating existing master product price....');
       const masterProductPriceInfo = masterProductPriceResults.first();
@@ -517,14 +520,14 @@ export default class CountdownService {
       result.event.unsubscribeAll();
     }
 
-    const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('name').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0));
+    const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0));
 
     await Promise.all(
       newTags
         .map(tag =>
           TagService.create(
             Map({
-              name: tag,
+              key: tag,
               weight: 1,
             }),
           ),

@@ -1,52 +1,60 @@
 // @flow
 
-import { GraphQLID, GraphQLInt, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { GraphQLID, GraphQLFloat, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionDefinitions } from 'graphql-relay';
 import { NodeInterface } from '../interface';
 import multiBuyType from './MultiBuy';
 
-const specialType = new GraphQLObjectType({
-  name: 'SpecialInShoppingList',
+const shoppingListType = new GraphQLObjectType({
+  name: 'ShoppingList',
   fields: {
     id: {
       type: new GraphQLNonNull(GraphQLID),
       resolve: _ => _.get('id'),
     },
+    stapleShoppingListId: {
+      type: GraphQLID,
+      resolve: _ => _.get('stapleShoppingListId'),
+    },
+    masterProductPriceId: {
+      type: GraphQLID,
+      resolve: _ => _.get('masterProductPriceId'),
+    },
     description: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'description']),
+      resolve: _ => _.get('description'),
     },
     imageUrl: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'imageUrl']),
+      resolve: _ => _.get('imageUrl'),
     },
     barcode: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['masterProduct', 'barcode']),
+      resolve: _ => _.get('barcode'),
     },
     specialType: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['priceDetails', 'specialType']),
+      resolve: _ => _.get('specialType'),
     },
     price: {
       type: GraphQLFloat,
-      resolve: _ => _.getIn(['priceDetails', 'price']),
+      resolve: _ => _.get('price'),
     },
     wasPrice: {
       type: GraphQLFloat,
-      resolve: _ => _.getIn(['priceDetails', 'wasPrice']),
+      resolve: _ => _.get('wasPrice'),
     },
     multiBuy: {
       type: multiBuyType,
-      resolve: _ => _.getIn(['priceDetails', 'multiBuyInfo']),
+      resolve: _ => _.get('multiBuyInfo'),
     },
     storeName: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['store', 'name']),
+      resolve: _ => _.get('storeName'),
     },
     storeImageUrl: {
       type: GraphQLString,
-      resolve: _ => _.getIn(['store', 'imageUrl']),
+      resolve: _ => _.get('storeImageUrl'),
     },
     comments: {
       type: GraphQLString,
@@ -60,17 +68,13 @@ const specialType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: () => new Date().toISOString(),
     },
-    quantity: {
-      type: GraphQLInt,
-      resolve: _ => _.get('quantity'),
-    },
   },
   interfaces: [NodeInterface],
 });
 
-const SpecialInShoppingListConnectionDefinition = connectionDefinitions({
-  name: 'SpecialInShoppingList',
-  nodeType: specialType,
+const ShoppingListConnectionDefinition = connectionDefinitions({
+  name: 'ShoppingList',
+  nodeType: shoppingListType,
 });
 
-export default SpecialInShoppingListConnectionDefinition;
+export default ShoppingListConnectionDefinition;

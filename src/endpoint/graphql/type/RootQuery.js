@@ -15,10 +15,7 @@ const rootQueryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLString),
         },
       },
-      resolve: (_, args) =>
-        new Promise((resolve, reject) => {
-          UserService.getUserInfo(args.username).then(info => resolve(info)).catch(error => reject(error));
-        }),
+      resolve: (_, args) => UserService.getUserInfo(args.username),
     },
     node: NodeField,
   },

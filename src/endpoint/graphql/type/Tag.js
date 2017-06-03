@@ -1,30 +1,21 @@
 // @flow
 
-import { Map } from 'immutable';
-import { GraphQLInt, GraphQLList, GraphQLObjectType, GraphQLString } from 'graphql';
-import { TagService } from 'smart-grocery-parse-server-common';
+import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 
-const tagType = new GraphQLObjectType({
+export default new GraphQLObjectType({
   name: 'Tag',
-  fields: () => ({
+  fields: {
     id: {
+      type: new GraphQLNonNull(GraphQLID),
+      resolve: _ => _.get('id'),
+    },
+    key: {
       type: GraphQLString,
+      resolve: _ => _.get('key'),
     },
-    name: {
+    description: {
       type: GraphQLString,
+      resolve: _ => _.get('description'),
     },
-    weight: {
-      type: GraphQLInt,
-    },
-  }),
+  },
 });
-
-const tagsField = {
-  type: new GraphQLList(tagType),
-  resolve: () =>
-    new Promise((resolve, reject) => {
-      TagService.search(Map({})).then(info => resolve(info.toJS())).catch(error => reject(error));
-    }),
-};
-
-export { tagType, tagsField };

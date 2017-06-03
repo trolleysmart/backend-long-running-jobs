@@ -1,12 +1,253 @@
 // @flow
 
-import Immutable, { Map, Set } from 'immutable';
+import Immutable, { List, Map, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
-import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
+import { Exception } from 'micro-business-parse-server-common';
+import { MasterProductPriceService, ShoppingListService, StapleShoppingListService } from 'smart-grocery-parse-server-common';
 import { NodeInterface } from '../interface';
 import SpecialConnectionDefinition from './Specials';
-import SpecialInShoppingListConnectionDefinition from './SpecialsInShoppingList';
+import ShoppingListConnectionDefinition from './ShoppingList';
+import StapleShoppingListConnectionDefinition from './StapleShoppingList';
+
+const convertDescriptionArgumentToSet = (description) => {
+  if (description) {
+    return Immutable.fromJS(description.replace(/\W/g, ' ').trim().toLowerCase().split(' ')).map(_ => _.trim()).filter(_ => _.length > 0).toSet();
+  }
+
+  return Set();
+};
+
+const getMasterProductMatchCriteria = async (args, description) => {
+  const criteria = Map({
+    includeStore: true,
+    includeMasterProduct: true,
+    orderByFieldAscending: 'description',
+    conditions: Map({
+      description,
+      not_specialType: 'none',
+    }),
+  });
+
+  const masterProductPriceItems = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 10));
+
+  return connectionFromArray(masterProductPriceItems.toArray(), args);
+};
+
+const getMasterProductPriceItems = async (args) => {
+  const descriptions = convertDescriptionArgumentToSet(args.description);
+
+  if (descriptions.isEmpty() || descriptions.count() === 1) {
+    const masterPorductPriceItems = await getMasterProductMatchCriteria(args, descriptions.isEmpty() ? undefined : descriptions.first());
+
+    return connectionFromArray(masterPorductPriceItems.toArray(), args);
+  }
+
+  const allMatchedMasterProductPriceItems = await Promise.all(
+    descriptions.map(description => getMasterProductMatchCriteria(args, description)).toArray(),
+  );
+
+  /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
+         * undefined for unknown reason. */
+  const flattenMasterProductPriceItems = Immutable.fromJS(allMatchedMasterProductPriceItems).flatMap(item => item);
+  const groupedMasterProductPriceIds = flattenMasterProductPriceItems
+    .groupBy(masterProductPriceItem => masterProductPriceItem.get('id'))
+    .filter(item => item.count() > 1);
+  const masterProductPriceItemsIntersect = flattenMasterProductPriceItems.filter(masterProductPriceItem =>
+    groupedMasterProductPriceIds.has(masterProductPriceItem.get('id')),
+  );
+
+  return connectionFromArray(masterProductPriceItemsIntersect.toArray(), args);
+};
+
+const getShoppingListMatchCriteria = async (userId, description) => {
+  let shoppingListInfo = List();
+  const criteria = Map({
+    includeStapleShoppingList: true,
+    includeMasterProductPrice: true,
+    orderByFieldAscending: 'description',
+    conditions: Map({
+      userId,
+      excludeItemsMarkedAsDone: true,
+      includeSpecialsOnly: true,
+      description,
+    }),
+  });
+
+  const result = await ShoppingListService.searchAll(criteria);
+
+  try {
+    result.event.subscribe(info => (shoppingListInfo = shoppingListInfo.push(info)));
+
+    await result.promise;
+  } finally {
+    result.event.unsubscribeAll();
+  }
+
+  return shoppingListInfo;
+};
+
+const getStapleShoppingListInfo = async (ids) => {
+  if (ids.isEmpty()) {
+    return List();
+  }
+
+  const criteria = Map({
+    ids,
+  });
+
+  let stapleShoppingListInfo = List();
+  const masterProductPriceSearchResult = await StapleShoppingListService.searchAll(criteria);
+
+  try {
+    masterProductPriceSearchResult.event.subscribe(info => (stapleShoppingListInfo = stapleShoppingListInfo.push(info)));
+
+    await masterProductPriceSearchResult.promise;
+  } finally {
+    masterProductPriceSearchResult.event.unsubscribeAll();
+  }
+
+  return stapleShoppingListInfo;
+};
+
+const getMasterProductPriceInfo = async (ids) => {
+  if (ids.isEmpty()) {
+    return List();
+  }
+
+  const criteria = Map({
+    includeStore: true,
+    includeMasterProduct: true,
+    ids,
+  });
+
+  let masterProductPriceInfo = List();
+  const masterProductPriceSearchResult = await MasterProductPriceService.searchAll(criteria);
+
+  try {
+    masterProductPriceSearchResult.event.subscribe(info => (masterProductPriceInfo = masterProductPriceInfo.push(info)));
+
+    await masterProductPriceSearchResult.promise;
+  } finally {
+    masterProductPriceSearchResult.event.unsubscribeAll();
+  }
+
+  return masterProductPriceInfo;
+};
+
+const getShoppingListItems = async (userId, args) => {
+  const descriptions = convertDescriptionArgumentToSet(args.description);
+  let shoppingListInfo = List();
+
+  if (descriptions.isEmpty() || descriptions.count() === 1) {
+    shoppingListInfo = getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
+  } else {
+    const allMatchedShoppingListInfo = await Promise.all(
+      descriptions.map(description => getShoppingListMatchCriteria(userId, description)).toArray(),
+    );
+
+    /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
+         * undefined for unknown reason. */
+    const flattenMatchedShoppingList = Immutable.fromJS(allMatchedShoppingListInfo).flatMap(item => item);
+    const groupedShoppingList = flattenMatchedShoppingList.groupBy(item => item.get('id')).filter(item => item.count() > 1);
+
+    shoppingListInfo = flattenMatchedShoppingList.filter(item => groupedShoppingList.has(item.get('id')));
+  }
+
+  const stapleShoppingListIds = shoppingListInfo
+    .filter(item => item.get('stapleShoppingList'))
+    .map(special => special.getIn(['stapleShoppingList', 'id']))
+    .toSet();
+  const masterProductPriceIds = shoppingListInfo
+    .filter(item => item.get('masterProductPrice'))
+    .map(special => special.getIn(['masterProductPrice', 'id']))
+    .toSet();
+
+  const results = Promise.all(getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(userId, masterProductPriceIds));
+
+  return connectionFromArray(
+    shoppingListInfo
+      .map((shoppingListItem) => {
+        if (shoppingListItem.get('stapleShoppingList')) {
+          const info = results[0];
+
+          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.getIn(['stapleShoppingList', 'id'])));
+
+          if (foundItem) {
+            return Map({ id: shoppingListItem.get('id'), stapleShoppingListId: foundItem.get('id'), description: foundItem.get('description') });
+          }
+
+          throw new Exception(`Staple Shopping List not found: ${shoppingListItem.getIn(['stapleShoppingList', 'id'])}`);
+        } else {
+          const info = results[1];
+
+          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.getIn(['masterProductPrice', 'id'])));
+
+          if (foundItem) {
+            return Map({
+              id: shoppingListItem.get('id'),
+              masterProductPriceId: foundItem.get('id'),
+              description: foundItem.getIn(['masterProduct', 'description']),
+              imageUrl: foundItem.getIn(['masterProduct', 'imageUrl']),
+              barcode: foundItem.getIn(['masterProduct', 'barcode']),
+              specialType: foundItem.getIn(['priceDetails', 'specialType']),
+              price: foundItem.getIn(['priceDetails', 'price']),
+              wasPrice: foundItem.getIn(['priceDetails', 'wasPrice']),
+              multiBuyInfo: foundItem.getIn(['priceDetails', 'multiBuyInfo']),
+              storeName: foundItem.getIn(['store', 'name']),
+              storeImageUrl: foundItem.getIn(['store', 'imageUrl']),
+            });
+          }
+
+          throw new Exception(`Master Product Price not found: ${shoppingListItem.getIn(['masterProductPrice', 'id'])}`);
+        }
+      })
+      .toArray(),
+    args,
+  );
+};
+
+const getStapleShoppingListMatchCriteria = async (args, userId, description) => {
+  const criteria = Map({
+    includeTags: true,
+    orderByFieldAscending: 'description',
+    conditions: Map({
+      userId,
+      description,
+      not_specialType: 'none',
+    }),
+  });
+
+  const stapleShoppingListItems = await StapleShoppingListService.search(criteria.set('limit', args.first ? args.first : 10));
+
+  return connectionFromArray(stapleShoppingListItems.toArray(), args);
+};
+
+const getStapleShoppingListItems = async (userId, args) => {
+  const descriptions = convertDescriptionArgumentToSet(args.description);
+
+  if (descriptions.isEmpty() || descriptions.count() === 1) {
+    const stapleShoppingListItems = await getStapleShoppingListMatchCriteria(args, userId, descriptions.isEmpty() ? undefined : descriptions.first());
+
+    return connectionFromArray(stapleShoppingListItems.toArray(), args);
+  }
+
+  const allMatchedStapleShoppingListItems = await Promise.all(
+    descriptions.map(description => getStapleShoppingListMatchCriteria(args, userId, description)).toArray(),
+  );
+
+  /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
+         * undefined for unknown reason. */
+  const flattenStapleShoppingListItems = Immutable.fromJS(allMatchedStapleShoppingListItems).flatMap(item => item);
+  const groupedStapleShoppingListIds = flattenStapleShoppingListItems
+    .groupBy(stapleShoppingListItem => stapleShoppingListItem.get('id'))
+    .filter(item => item.count() > 1);
+  const stapleShoppingListIntersect = flattenStapleShoppingListItems.filter(stapleShoppingListItem =>
+    groupedStapleShoppingListIds.has(stapleShoppingListItem.get('id')),
+  );
+
+  return connectionFromArray(stapleShoppingListIntersect.toArray(), args);
+};
 
 export default new GraphQLObjectType({
   name: 'User',
@@ -27,92 +268,27 @@ export default new GraphQLObjectType({
           type: GraphQLString,
         },
       },
-      resolve: async (_, args) => {
-        const descriptions = args.description
-          ? Immutable.fromJS(args.description.replace(/\W/g, ' ').trim().toLowerCase().split(' '))
-              .map(description => description.trim())
-              .filter(description => description.length > 0)
-              .toSet()
-          : Set();
-
-        if (descriptions.isEmpty() || descriptions.count() === 1) {
-          const criteria = Map({
-            includeStore: true,
-            includeMasterProduct: true,
-            orderByFieldAscending: 'masterProductDescription',
-            conditions: Map({
-              contains_masterProductDescription: descriptions.isEmpty() ? undefined : descriptions.first(),
-              not_specialType: 'none',
-            }),
-          });
-
-          const specials = await MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
-
-          return connectionFromArray(specials.toArray(), args);
-        }
-
-        const allMatchedSpecials = await Promise.all(
-          descriptions
-            .map((description) => {
-              const criteria = Map({
-                includeStore: true,
-                includeMasterProduct: true,
-                orderByFieldAscending: 'masterProductDescription',
-                conditions: Map({
-                  contains_masterProductDescription: description,
-                  not_specialType: 'none',
-                }),
-              });
-
-              return MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 1000));
-            })
-            .toArray(),
-        );
-
-        /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-         * undefined for unknown reason. */
-        const flattenMatchedSpecials = Immutable.fromJS(allMatchedSpecials).flatMap(matchedSpecials => matchedSpecials);
-        const groupedSpecialIds = flattenMatchedSpecials.groupBy(matchedSpecial => matchedSpecial.get('id')).filter(item => item.count() > 1);
-        const specialsIntersect = flattenMatchedSpecials.filter(matchedSpecial => groupedSpecialIds.has(matchedSpecial.get('id')));
-
-        return connectionFromArray(specialsIntersect.toArray(), args);
-      },
+      resolve: async (_, args) => getMasterProductPriceItems(args),
     },
-    specialsInShoppingList: {
-      type: SpecialInShoppingListConnectionDefinition.connectionType,
+    shoppingList: {
+      type: ShoppingListConnectionDefinition.connectionType,
       args: {
         ...connectionArgs,
+        description: {
+          type: GraphQLString,
+        },
       },
-      resolve: async (_, args) => {
-        const userId = _.get('id');
-        const criteria = Map({
-          includeMasterProductPrice: true,
-          conditions: Map({
-            userId,
-            excludeItemsMarkedAsDone: true,
-            includeSpecialsOnly: true,
-          }),
-        });
-
-        const specialsInfo = await ShoppingListService.search(criteria.set('limit', args.first ? args.first : 1000));
-        const specialIds = specialsInfo.map(special => special.getIn(['masterProductPrice', 'id']));
-        const groupedSpecialIds = specialIds.groupBy(specialId => specialId);
-
-        if (specialIds.isEmpty()) {
-          return connectionFromArray([], args);
-        }
-
-        const masterProductCriteria = Map({
-          includeStore: true,
-          includeMasterProduct: true,
-          orderByFieldAscending: 'masterProductDescription',
-          ids: specialIds.toSet(),
-        });
-
-        const specials = await MasterProductPriceService.search(masterProductCriteria);
-
-        return connectionFromArray(specials.map(special => special.set('quantity', groupedSpecialIds.get(special.get('id')).size)).toArray(), args);
+      resolve: async (_, args) => getShoppingListItems(_.get('id'), args),
+    },
+    stapleShoppingList: {
+      type: StapleShoppingListConnectionDefinition.connectionType,
+      args: {
+        ...connectionArgs,
+        description: {
+          type: GraphQLString,
+        },
       },
+      resolve: async (_, args) => getStapleShoppingListItems(_.get('id'), args),
     },
   },
   interfaces: [NodeInterface],

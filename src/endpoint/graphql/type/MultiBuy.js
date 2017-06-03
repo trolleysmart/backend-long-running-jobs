@@ -4,7 +4,7 @@ import { GraphQLFloat, GraphQLInt, GraphQLObjectType } from 'graphql';
 
 export default new GraphQLObjectType({
   name: 'MultiBuy',
-  fields: () => ({
+  fields: {
     count: {
       type: GraphQLInt,
       resolve: _ => _.get('count'),
@@ -13,5 +13,5 @@ export default new GraphQLObjectType({
       type: GraphQLFloat,
       resolve: _ => _.get('price'),
     },
-  }),
+  },
 });
