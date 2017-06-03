@@ -5,7 +5,7 @@ import { GraphQLID, GraphQLString, GraphQLNonNull } from 'graphql';
 import { mutationWithClientMutationId } from 'graphql-relay';
 import { Exception } from 'micro-business-parse-server-common';
 import { MasterProductPriceService, ShoppingListService } from 'smart-grocery-parse-server-common';
-import { SpecialConnectionDefinition } from '../type';
+import { ShoppingListConnectionDefinition } from '../type';
 
 export default mutationWithClientMutationId({
   name: 'AddSpecialItemToUserShoppingList',
@@ -18,7 +18,7 @@ export default mutationWithClientMutationId({
       type: GraphQLString,
     },
     special: {
-      type: SpecialConnectionDefinition.edgeType,
+      type: ShoppingListConnectionDefinition.edgeType,
       resolve: _ => ({
         cursor: 'DummyCursor',
         node: _.special,
