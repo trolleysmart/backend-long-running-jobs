@@ -46,7 +46,7 @@ const getMasterProductPriceItems = async (args) => {
   );
 
   /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-         * undefined for unknown reason. */
+   * undefined for unknown reason. */
   const flattenMasterProductPriceItems = Immutable.fromJS(allMatchedMasterProductPriceItems).flatMap(item => item);
   const groupedMasterProductPriceIds = flattenMasterProductPriceItems.groupBy(item => item.get('id')).filter(item => item.count() > 1);
   const masterProductPriceItemsIntersect = flattenMasterProductPriceItems
@@ -146,7 +146,7 @@ const getShoppingListItems = async (userId, args) => {
     );
 
     /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-         * undefined for unknown reason. */
+     * undefined for unknown reason. */
     const flattenMatchedShoppingList = Immutable.fromJS(allMatchedShoppingListInfo).flatMap(item => item);
     const groupedShoppingList = flattenMatchedShoppingList.groupBy(item => item.get('id')).filter(item => item.count() > 1);
 
@@ -156,48 +156,68 @@ const getShoppingListItems = async (userId, args) => {
       .map(item => item.first());
   }
 
-  const stapleShoppingListIds = shoppingListInfo.filter(item => item.get('stapleShoppingList')).map(item => item.get('stapleShoppingListId')).toSet();
-  const masterProductPriceIds = shoppingListInfo.filter(item => item.get('masterProductPrice')).map(item => item.get('masterProductPriceId')).toSet();
-  const results = await Promise.all([getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(masterProductPriceIds)]);
+  const stapleShoppingListIds = shoppingListInfo.filter(item => item.get('stapleShoppingList')).map(item => item.get('stapleShoppingListId'));
+  const masterProductPriceIds = shoppingListInfo.filter(item => item.get('masterProductPrice')).map(item => item.get('masterProductPriceId'));
+  const results = await Promise.all([
+    getStapleShoppingListInfo(userId, stapleShoppingListIds.toSet()),
+    getMasterProductPriceInfo(masterProductPriceIds.toSet()),
+  ]);
+  const groupedStapleShoppingListIds = stapleShoppingListIds.groupBy(id => id);
+  const groupedMasterProductPriceIds = masterProductPriceIds.groupBy(id => id);
+  const completeListWithDuplication = shoppingListInfo.map((shoppingListItem) => {
+    if (shoppingListItem.get('stapleShoppingList')) {
+      const info = results[0];
+      const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('stapleShoppingListId')));
 
-  return connectionFromArray(
-    shoppingListInfo
-      .map((shoppingListItem) => {
-        if (shoppingListItem.get('stapleShoppingList')) {
-          const info = results[0];
-          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('stapleShoppingListId')));
+      if (foundItem) {
+        return Map({
+          id: shoppingListItem.get('id'),
+          stapleShoppingListId: foundItem.get('id'),
+          description: foundItem.get('description'),
+          quantity: groupedStapleShoppingListIds.get(foundItem.get('id')).size,
+        });
+      }
 
-          if (foundItem) {
-            return Map({ id: shoppingListItem.get('id'), stapleShoppingListId: foundItem.get('id'), description: foundItem.get('description') });
-          }
+      throw new Exception(`Staple Shopping List not found: ${shoppingListItem.getIn(['stapleShoppingList', 'id'])}`);
+    } else {
+      const info = results[1];
+      const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('masterProductPriceId')) === 0);
 
-          throw new Exception(`Staple Shopping List not found: ${shoppingListItem.getIn(['stapleShoppingList', 'id'])}`);
-        } else {
-          const info = results[1];
-          const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('masterProductPriceId')) === 0);
+      if (foundItem) {
+        return Map({
+          id: shoppingListItem.get('id'),
+          specialId: foundItem.get('id'),
+          description: foundItem.getIn(['masterProduct', 'description']),
+          imageUrl: foundItem.getIn(['masterProduct', 'imageUrl']),
+          barcode: foundItem.getIn(['masterProduct', 'barcode']),
+          specialType: foundItem.getIn(['priceDetails', 'specialType']),
+          price: foundItem.getIn(['priceDetails', 'price']),
+          wasPrice: foundItem.getIn(['priceDetails', 'wasPrice']),
+          multiBuyInfo: foundItem.getIn(['priceDetails', 'multiBuyInfo']),
+          storeName: foundItem.getIn(['store', 'name']),
+          storeImageUrl: foundItem.getIn(['store', 'imageUrl']),
+          quantity: groupedMasterProductPriceIds.get(foundItem.get('id')).size,
+        });
+      }
 
-          if (foundItem) {
-            return Map({
-              id: shoppingListItem.get('id'),
-              specialId: foundItem.get('id'),
-              description: foundItem.getIn(['masterProduct', 'description']),
-              imageUrl: foundItem.getIn(['masterProduct', 'imageUrl']),
-              barcode: foundItem.getIn(['masterProduct', 'barcode']),
-              specialType: foundItem.getIn(['priceDetails', 'specialType']),
-              price: foundItem.getIn(['priceDetails', 'price']),
-              wasPrice: foundItem.getIn(['priceDetails', 'wasPrice']),
-              multiBuyInfo: foundItem.getIn(['priceDetails', 'multiBuyInfo']),
-              storeName: foundItem.getIn(['store', 'name']),
-              storeImageUrl: foundItem.getIn(['store', 'imageUrl']),
-            });
-          }
+      throw new Exception(`Master Product Price not found: ${shoppingListItem.getIn(['masterProductPrice', 'id'])}`);
+    }
+  });
 
-          throw new Exception(`Master Product Price not found: ${shoppingListItem.getIn(['masterProductPrice', 'id'])}`);
-        }
-      })
-      .toArray(),
-    args,
-  );
+  const completeStapleShoppingList = completeListWithDuplication
+    .filter(item => item.get('stapleShoppingListId'))
+    .groupBy(item => item.get('stapleShoppingListId'))
+    .map(item => item.first());
+  const completeMasterProductPrice = completeListWithDuplication
+    .filter(item => item.get('specialId'))
+    .groupBy(item => item.get('specialId'))
+    .map(item => item.first());
+  const completeList = completeStapleShoppingList
+    .concat(completeMasterProductPrice)
+    .sort((item1, item2) => item1.get('description').localeCompare(item2.get('description')))
+    .take(args.first ? args.first : 10);
+
+  return connectionFromArray(completeList.toArray(), args);
 };
 
 const getStapleShoppingListMatchCriteria = async (args, userId, description) => {
@@ -228,7 +248,7 @@ const getStapleShoppingListItems = async (userId, args) => {
   );
 
   /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-         * undefined for unknown reason. */
+   * undefined for unknown reason. */
   const flattenStapleShoppingListItems = Immutable.fromJS(allMatchedStapleShoppingListItems).flatMap(item => item);
   const groupedStapleShoppingListIds = flattenStapleShoppingListItems.groupBy(item => item.get('id')).filter(item => item.count() > 1);
   const stapleShoppingListIntersect = flattenStapleShoppingListItems
