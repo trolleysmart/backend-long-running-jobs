@@ -48,12 +48,11 @@ const getMasterProductPriceItems = async (args) => {
   /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
          * undefined for unknown reason. */
   const flattenMasterProductPriceItems = Immutable.fromJS(allMatchedMasterProductPriceItems).flatMap(item => item);
-  const groupedMasterProductPriceIds = flattenMasterProductPriceItems
-    .groupBy(masterProductPriceItem => masterProductPriceItem.get('id'))
-    .filter(item => item.count() > 1);
-  const masterProductPriceItemsIntersect = flattenMasterProductPriceItems.filter(masterProductPriceItem =>
-    groupedMasterProductPriceIds.has(masterProductPriceItem.get('id')),
-  );
+  const groupedMasterProductPriceIds = flattenMasterProductPriceItems.groupBy(item => item.get('id')).filter(item => item.count() > 1);
+  const masterProductPriceItemsIntersect = flattenMasterProductPriceItems
+    .filter(item => groupedMasterProductPriceIds.has(item.get('id')))
+    .groupBy(item => item.get('id'))
+    .map(item => item.first());
 
   return connectionFromArray(masterProductPriceItemsIntersect.toArray(), args);
 };
@@ -151,12 +150,14 @@ const getShoppingListItems = async (userId, args) => {
     const flattenMatchedShoppingList = Immutable.fromJS(allMatchedShoppingListInfo).flatMap(item => item);
     const groupedShoppingList = flattenMatchedShoppingList.groupBy(item => item.get('id')).filter(item => item.count() > 1);
 
-    shoppingListInfo = flattenMatchedShoppingList.filter(item => groupedShoppingList.has(item.get('id')));
+    shoppingListInfo = flattenMatchedShoppingList
+      .filter(item => groupedShoppingList.has(item.get('id')))
+      .groupBy(item => item.get('id'))
+      .map(item => item.first());
   }
 
   const stapleShoppingListIds = shoppingListInfo.filter(item => item.get('stapleShoppingList')).map(item => item.get('stapleShoppingListId')).toSet();
   const masterProductPriceIds = shoppingListInfo.filter(item => item.get('masterProductPrice')).map(item => item.get('masterProductPriceId')).toSet();
-
   const results = await Promise.all([getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(masterProductPriceIds)]);
 
   return connectionFromArray(
@@ -229,12 +230,11 @@ const getStapleShoppingListItems = async (userId, args) => {
   /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
          * undefined for unknown reason. */
   const flattenStapleShoppingListItems = Immutable.fromJS(allMatchedStapleShoppingListItems).flatMap(item => item);
-  const groupedStapleShoppingListIds = flattenStapleShoppingListItems
-    .groupBy(stapleShoppingListItem => stapleShoppingListItem.get('id'))
-    .filter(item => item.count() > 1);
-  const stapleShoppingListIntersect = flattenStapleShoppingListItems.filter(stapleShoppingListItem =>
-    groupedStapleShoppingListIds.has(stapleShoppingListItem.get('id')),
-  );
+  const groupedStapleShoppingListIds = flattenStapleShoppingListItems.groupBy(item => item.get('id')).filter(item => item.count() > 1);
+  const stapleShoppingListIntersect = flattenStapleShoppingListItems
+    .filter(item => groupedStapleShoppingListIds.has(item.get('id')))
+    .groupBy(item => item.get('id'))
+    .map(item => item.first());
 
   return connectionFromArray(stapleShoppingListIntersect.toArray(), args);
 };
