@@ -883,7 +883,7 @@
               "deprecationReason": null
             },
             {
-              "name": "masterProductPriceId",
+              "name": "specialId",
               "description": null,
               "args": [],
               "type": {

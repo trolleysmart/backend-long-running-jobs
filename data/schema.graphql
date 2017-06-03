@@ -65,7 +65,7 @@ type RemoveSpecialItemFromUserShoppingListPayload {
 type ShoppingList implements Node {
   id: ID!
   stapleShoppingListId: ID
-  masterProductPriceId: ID
+  specialId: ID
   description: String
   imageUrl: String
   barcode: String

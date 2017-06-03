@@ -16,7 +16,7 @@ const shoppingListType = new GraphQLObjectType({
       type: GraphQLID,
       resolve: _ => _.get('stapleShoppingListId'),
     },
-    masterProductPriceId: {
+    specialId: {
       type: GraphQLID,
       resolve: _ => _.get('specialId'),
     },
