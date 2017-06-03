@@ -24,7 +24,7 @@ const getMasterProductMatchCriteria = async (args, description) => {
     includeMasterProduct: true,
     orderByFieldAscending: 'description',
     conditions: Map({
-      description,
+      contains_description: description,
       not_specialType: 'none',
     }),
   });
@@ -65,9 +65,9 @@ const getShoppingListMatchCriteria = async (userId, description) => {
     includeMasterProductPrice: true,
     conditions: Map({
       userId,
+      contains_description: description,
       excludeItemsMarkedAsDone: true,
       includeSpecialsOnly: true,
-      description,
     }),
   });
 
@@ -205,7 +205,7 @@ const getStapleShoppingListMatchCriteria = async (args, userId, description) => 
     orderByFieldAscending: 'description',
     conditions: Map({
       userId,
-      description,
+      contains_description: description,
       not_specialType: 'none',
     }),
   });
