@@ -63,7 +63,6 @@ const getShoppingListMatchCriteria = async (userId, description) => {
   const criteria = Map({
     includeStapleShoppingList: true,
     includeMasterProductPrice: true,
-    orderByFieldAscending: 'description',
     conditions: Map({
       userId,
       excludeItemsMarkedAsDone: true,
@@ -85,13 +84,16 @@ const getShoppingListMatchCriteria = async (userId, description) => {
   return shoppingListInfo;
 };
 
-const getStapleShoppingListInfo = async (ids) => {
+const getStapleShoppingListInfo = async (userId, ids) => {
   if (ids.isEmpty()) {
     return List();
   }
 
   const criteria = Map({
     ids,
+    conditions: Map({
+      userId,
+    }),
   });
 
   let stapleShoppingListInfo = List();
@@ -138,7 +140,7 @@ const getShoppingListItems = async (userId, args) => {
   let shoppingListInfo = List();
 
   if (descriptions.isEmpty() || descriptions.count() === 1) {
-    shoppingListInfo = getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
+    shoppingListInfo = await getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
   } else {
     const allMatchedShoppingListInfo = await Promise.all(
       descriptions.map(description => getShoppingListMatchCriteria(userId, description)).toArray(),
@@ -161,7 +163,7 @@ const getShoppingListItems = async (userId, args) => {
     .map(special => special.getIn(['masterProductPrice', 'id']))
     .toSet();
 
-  const results = Promise.all(getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(userId, masterProductPriceIds));
+  const results = await Promise.all([getStapleShoppingListInfo(userId, stapleShoppingListIds), getMasterProductPriceInfo(masterProductPriceIds)]);
 
   return connectionFromArray(
     shoppingListInfo
