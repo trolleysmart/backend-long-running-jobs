@@ -1342,7 +1342,7 @@
               "args": [],
               "type": {
                 "kind": "OBJECT",
-                "name": "SpecialEdge",
+                "name": "ShoppingListEdge",
                 "ofType": null
               },
               "isDeprecated": false,

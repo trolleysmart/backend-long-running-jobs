@@ -6,7 +6,7 @@ input AddSpecialItemToUserShoppingListInput {
 
 type AddSpecialItemToUserShoppingListPayload {
   errorMessage: String
-  special: SpecialEdge
+  special: ShoppingListEdge
   clientMutationId: String
 }
 
