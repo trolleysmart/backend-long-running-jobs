@@ -20,7 +20,6 @@ export default mutationWithClientMutationId({
   mutateAndGetPayload: async ({ userId, specialItemId }) => {
     try {
       const criteria = Map({
-        includeMasterProductPrice: true,
         conditions: Map({
           userId,
           masterProductPriceId: specialItemId,

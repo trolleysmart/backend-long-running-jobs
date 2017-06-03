@@ -28,21 +28,35 @@ export default mutationWithClientMutationId({
   mutateAndGetPayload: async ({ userId, specialItemId }) => {
     try {
       const masterProductPriceCriteria = Map({
+        includeStore: true,
+        includeMasterProduct: true,
         id: specialItemId,
       });
 
-      const masterProductPriceInfoSearchResults = await MasterProductPriceService.search(masterProductPriceCriteria);
+      const results = await MasterProductPriceService.search(masterProductPriceCriteria);
 
-      if (masterProductPriceInfoSearchResults.isEmpty()) {
+      if (results.isEmpty()) {
         throw new Exception('Provided special item Id is invalid.');
       }
 
-      await ShoppingListService.create(
-        Map({ userId, masterProductPriceId: specialItemId, description: masterProductPriceInfoSearchResults.first().get('description') }),
-      );
+      const result = results.first();
+
+      const id = await ShoppingListService.create(Map({ userId, masterProductPriceId: specialItemId, description: result.get('description') }));
 
       return {
-        special: masterProductPriceInfoSearchResults.first(),
+        special: Map({
+          id,
+          masterProductPriceId: result.get('id'),
+          description: result.getIn(['masterProduct', 'description']),
+          imageUrl: result.getIn(['masterProduct', 'imageUrl']),
+          barcode: result.getIn(['masterProduct', 'barcode']),
+          specialType: result.getIn(['priceDetails', 'specialType']),
+          price: result.getIn(['priceDetails', 'price']),
+          wasPrice: result.getIn(['priceDetails', 'wasPrice']),
+          multiBuyInfo: result.getIn(['priceDetails', 'multiBuyInfo']),
+          storeName: result.getIn(['store', 'name']),
+          storeImageUrl: result.getIn(['store', 'imageUrl']),
+        }),
       };
     } catch (ex) {
       return { errorMessage: ex instanceof Exception ? ex.getErrorMessage() : ex };
