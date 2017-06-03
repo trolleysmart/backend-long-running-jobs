@@ -28,8 +28,6 @@ export default mutationWithClientMutationId({
   mutateAndGetPayload: async ({ userId, specialItemId }) => {
     try {
       const masterProductPriceCriteria = Map({
-        includeStore: true,
-        includeMasterProduct: true,
         id: specialItemId,
       });
 
@@ -39,7 +37,9 @@ export default mutationWithClientMutationId({
         throw new Exception('Provided special item Id is invalid.');
       }
 
-      await ShoppingListService.create(Map({ userId, masterProductPriceId: specialItemId }));
+      await ShoppingListService.create(
+        Map({ userId, masterProductPriceId: specialItemId, description: masterProductPriceInfoSearchResults.first().get('description') }),
+      );
 
       return {
         special: masterProductPriceInfoSearchResults.first(),
