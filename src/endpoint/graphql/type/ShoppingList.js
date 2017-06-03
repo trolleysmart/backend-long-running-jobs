@@ -64,6 +64,10 @@ const shoppingListType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: () => '',
     },
+    expiryDate: {
+      type: GraphQLString,
+      resolve: () => new Date().toISOString(),
+    },
     quantity: {
       type: GraphQLInt,
       resolve: _ => _.get('quantity'),
