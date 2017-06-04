@@ -58,7 +58,7 @@ const getMasterProductPriceItems = async (args) => {
 };
 
 const getShoppingListMatchCriteria = async (userId, description) => {
-  let shoppingListInfo = List();
+  let shoppingListItems = List();
   const criteria = Map({
     includeStapleShoppingList: true,
     includeMasterProductPrice: true,
@@ -73,14 +73,14 @@ const getShoppingListMatchCriteria = async (userId, description) => {
   const result = await ShoppingListService.searchAll(criteria);
 
   try {
-    result.event.subscribe(info => (shoppingListInfo = shoppingListInfo.push(info)));
+    result.event.subscribe(info => (shoppingListItems = shoppingListItems.push(info)));
 
     await result.promise;
   } finally {
     result.event.unsubscribeAll();
   }
 
-  return shoppingListInfo;
+  return shoppingListItems;
 };
 
 const getStapleShoppingListInfo = async (userId, ids) => {
@@ -136,10 +136,10 @@ const getMasterProductPriceInfo = async (ids) => {
 
 const getShoppingListItems = async (userId, args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
-  let shoppingListInfo = List();
+  let shoppingListItems = List();
 
   if (descriptions.isEmpty() || descriptions.count() === 1) {
-    shoppingListInfo = await getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
+    shoppingListItems = await getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
   } else {
     const allMatchedShoppingListInfo = await Promise.all(
       descriptions.map(description => getShoppingListMatchCriteria(userId, description)).toArray(),
@@ -150,14 +150,14 @@ const getShoppingListItems = async (userId, args) => {
     const flattenMatchedShoppingList = Immutable.fromJS(allMatchedShoppingListInfo).flatMap(item => item);
     const groupedShoppingList = flattenMatchedShoppingList.groupBy(item => item.get('id')).filter(item => item.count() > 1);
 
-    shoppingListInfo = flattenMatchedShoppingList
+    shoppingListItems = flattenMatchedShoppingList
       .filter(item => groupedShoppingList.has(item.get('id')))
       .groupBy(item => item.get('id'))
       .map(item => item.first());
   }
 
-  const stapleShoppingListInInShoppingList = shoppingListInfo.filter(item => item.get('stapleShoppingList'));
-  const masterProductPriceInShoppingList = shoppingListInfo.filter(item => item.get('masterProductPrice'));
+  const stapleShoppingListInInShoppingList = shoppingListItems.filter(item => item.get('stapleShoppingList'));
+  const masterProductPriceInShoppingList = shoppingListItems.filter(item => item.get('masterProductPrice'));
   const stapleShoppingListIds = stapleShoppingListInInShoppingList.map(item => item.get('stapleShoppingListId'));
   const masterProductPriceIds = masterProductPriceInShoppingList.map(item => item.get('masterProductPriceId'));
   const results = await Promise.all([
@@ -166,10 +166,10 @@ const getShoppingListItems = async (userId, args) => {
   ]);
   const groupedStapleShoppingListIds = stapleShoppingListIds.groupBy(id => id);
   const groupedMasterProductPriceIds = masterProductPriceIds.groupBy(id => id);
-  const completeListWithDuplication = shoppingListInfo.map((shoppingListItem) => {
+  const completeListWithDuplication = shoppingListItems.map((shoppingListItem) => {
     if (shoppingListItem.get('stapleShoppingList')) {
       const info = results[0];
-      const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('stapleShoppingListId')));
+      const foundItem = info.find(item => item.get('id').localeCompare(shoppingListItem.get('stapleShoppingListId')) === 0);
 
       if (foundItem) {
         return Map({
