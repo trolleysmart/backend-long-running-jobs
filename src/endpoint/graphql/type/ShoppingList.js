@@ -1,6 +1,6 @@
 // @flow
 
-import { GraphQLID, GraphQLFloat, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
+import { GraphQLID, GraphQLFloat, GraphQLList, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionDefinitions } from 'graphql-relay';
 import { NodeInterface } from '../interface';
 import multiBuyType from './MultiBuy';
@@ -11,6 +11,10 @@ const shoppingListType = new GraphQLObjectType({
     id: {
       type: new GraphQLNonNull(GraphQLID),
       resolve: _ => _.get('id'),
+    },
+    shoppingListIds: {
+      type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
+      resolve: _ => _.get('shoppingListIds').toArray(),
     },
     stapleShoppingListId: {
       type: GraphQLID,

@@ -1,5 +1,6 @@
 // @flow
 
+import hasha from 'hasha';
 import Immutable, { List, Map, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
@@ -156,8 +157,10 @@ const getShoppingListItems = async (userId, args) => {
       .map(item => item.first());
   }
 
-  const stapleShoppingListIds = shoppingListInfo.filter(item => item.get('stapleShoppingList')).map(item => item.get('stapleShoppingListId'));
-  const masterProductPriceIds = shoppingListInfo.filter(item => item.get('masterProductPrice')).map(item => item.get('masterProductPriceId'));
+  const stapleShoppingListInInShoppingList = shoppingListInfo.filter(item => item.get('stapleShoppingList'));
+  const masterProductPriceInShoppingList = shoppingListInfo.filter(item => item.get('masterProductPrice'));
+  const stapleShoppingListIds = stapleShoppingListInInShoppingList.map(item => item.get('stapleShoppingListId'));
+  const masterProductPriceIds = masterProductPriceInShoppingList.map(item => item.get('masterProductPriceId'));
   const results = await Promise.all([
     getStapleShoppingListInfo(userId, stapleShoppingListIds.toSet()),
     getMasterProductPriceInfo(masterProductPriceIds.toSet()),
@@ -172,6 +175,9 @@ const getShoppingListItems = async (userId, args) => {
       if (foundItem) {
         return Map({
           id: shoppingListItem.get('id'),
+          shoppingListIds: stapleShoppingListInInShoppingList
+            .filter(item => item.get('stapleShoppingListId').localeCompare(foundItem.get('id')) === 0)
+            .map(item => item.get('id')),
           stapleShoppingListId: foundItem.get('id'),
           description: foundItem.get('description'),
           quantity: groupedStapleShoppingListIds.get(foundItem.get('id')).size,
@@ -207,11 +213,19 @@ const getShoppingListItems = async (userId, args) => {
   const completeStapleShoppingList = completeListWithDuplication
     .filter(item => item.get('stapleShoppingListId'))
     .groupBy(item => item.get('stapleShoppingListId'))
-    .map(item => item.first());
+    .map((item) => {
+      const ids = item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2));
+
+      return item.first().set('id', hasha(ids.toArray().join(), { algorithm: 'md5' })).set('shoppingListIds', ids);
+    });
   const completeMasterProductPrice = completeListWithDuplication
     .filter(item => item.get('specialId'))
     .groupBy(item => item.get('specialId'))
-    .map(item => item.first());
+    .map((item) => {
+      const ids = item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2));
+
+      return item.first().set('id', hasha(ids.toArray().join(), { algorithm: 'md5' })).set('shoppingListIds', ids);
+    });
   const completeList = completeStapleShoppingList
     .concat(completeMasterProductPrice)
     .sort((item1, item2) => item1.get('description').localeCompare(item2.get('description')))
