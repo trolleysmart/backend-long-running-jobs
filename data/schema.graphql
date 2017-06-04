@@ -60,6 +60,7 @@ input RemoveSpecialItemFromUserShoppingListInput {
 
 type RemoveSpecialItemFromUserShoppingListPayload {
   errorMessage: String
+  special: ShoppingListEdge
   clientMutationId: String
 }
 

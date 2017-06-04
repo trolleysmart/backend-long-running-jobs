@@ -33,17 +33,17 @@ const getAllShoppingListContainsSpecialItemId = async (userId, specialItemId) =>
   });
 
   const result = await ShoppingListService.searchAll(criteria);
-  let shoppingListInfo = List();
+  let shoppingListItems = List();
 
   try {
-    result.event.subscribe(info => (shoppingListInfo = shoppingListInfo.push(info)));
+    result.event.subscribe(info => (shoppingListItems = shoppingListItems.push(info)));
 
     await result.promise;
   } finally {
     result.event.unsubscribeAll();
   }
 
-  return shoppingListInfo;
+  return shoppingListItems;
 };
 
 export default mutationWithClientMutationId({

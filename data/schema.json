@@ -1531,6 +1531,18 @@
               "deprecationReason": null
             },
             {
+              "name": "special",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "OBJECT",
+                "name": "ShoppingListEdge",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "clientMutationId",
               "description": null,
               "args": [],
