@@ -56,11 +56,11 @@ export default mutationWithClientMutationId({
     errorMessage: {
       type: GraphQLString,
     },
-    special: {
+    item: {
       type: ShoppingListConnectionDefinition.edgeType,
       resolve: _ => ({
         cursor: 'DummyCursor',
-        node: _.special,
+        node: _.item,
       }),
     },
   },
@@ -81,7 +81,7 @@ export default mutationWithClientMutationId({
       const masterProductPrice = await getMasterProductPrice(specialItemId);
 
       return {
-        special: Map({
+        item: Map({
           shoppingListIds: shoppingListItems.skip(1).map(item => item.get('id')),
           specialId: masterProductPrice.get('id'),
           description: masterProductPrice.getIn(['masterProduct', 'description']),

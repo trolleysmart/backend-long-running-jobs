@@ -1516,7 +1516,7 @@
               "deprecationReason": null
             },
             {
-              "name": "special",
+              "name": "item",
               "description": null,
               "args": [],
               "type": {
@@ -1612,7 +1612,7 @@
               "deprecationReason": null
             },
             {
-              "name": "special",
+              "name": "item",
               "description": null,
               "args": [],
               "type": {
@@ -1792,7 +1792,7 @@
               "deprecationReason": null
             },
             {
-              "name": "special",
+              "name": "item",
               "description": null,
               "args": [],
               "type": {
@@ -1888,7 +1888,7 @@
               "deprecationReason": null
             },
             {
-              "name": "special",
+              "name": "item",
               "description": null,
               "args": [],
               "type": {

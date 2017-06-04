@@ -57,11 +57,11 @@ export default mutationWithClientMutationId({
     errorMessage: {
       type: GraphQLString,
     },
-    special: {
+    item: {
       type: ShoppingListConnectionDefinition.edgeType,
       resolve: _ => ({
         cursor: 'DummyCursor',
-        node: _.special,
+        node: _.item,
       }),
     },
   },
@@ -74,7 +74,7 @@ export default mutationWithClientMutationId({
       const shoppingListItems = await getAllShoppingListContainsStapleShoppingListItemId(userId, stapleShoppingListItemId);
 
       return {
-        special: Map({
+        item: Map({
           shoppingListIds: shoppingListItems.map(item => item.get('id')),
           stapleShoppingListId: stapleShoppingList.get('id'),
           description: stapleShoppingList.get('description'),
