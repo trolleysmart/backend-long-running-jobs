@@ -212,11 +212,11 @@ const getShoppingListItems = async (userId, args) => {
   const completeStapleShoppingList = completeListWithDuplication
     .filter(item => item.get('stapleShoppingListId'))
     .groupBy(item => item.get('stapleShoppingListId'))
-    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2))));
+    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id'))));
   const completeMasterProductPrice = completeListWithDuplication
     .filter(item => item.get('specialId'))
     .groupBy(item => item.get('specialId'))
-    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2))));
+    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id'))));
   const completeList = completeStapleShoppingList
     .concat(completeMasterProductPrice)
     .sort((item1, item2) => item1.get('description').localeCompare(item2.get('description')))
