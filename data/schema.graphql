@@ -10,6 +10,18 @@ type AddSpecialItemToUserShoppingListPayload {
   clientMutationId: String
 }
 
+input AddStapleShoppingListItemToUserShoppingListInput {
+  userId: ID!
+  stapleShoppingListItemId: ID!
+  clientMutationId: String
+}
+
+type AddStapleShoppingListItemToUserShoppingListPayload {
+  errorMessage: String
+  special: ShoppingListEdge
+  clientMutationId: String
+}
+
 type MultiBuy {
   count: Int
   price: Float
@@ -19,6 +31,9 @@ type Mutation {
   addSpecialItemToUserShoppingList(input: AddSpecialItemToUserShoppingListInput!): AddSpecialItemToUserShoppingListPayload
   removeSpecialItemFromUserShoppingList(input: RemoveSpecialItemFromUserShoppingListInput!): RemoveSpecialItemFromUserShoppingListPayload
   removeSpecialItemsFromUserShoppingList(input: RemoveSpecialItemsFromUserShoppingListInput!): RemoveSpecialItemsFromUserShoppingListPayload
+  addStapleShoppingListItemToUserShoppingList(input: AddStapleShoppingListItemToUserShoppingListInput!): AddStapleShoppingListItemToUserShoppingListPayload
+  removeStapleShoppingListItemFromUserShoppingList(input: RemoveStapleShoppingListItemFromUserShoppingListInput!): RemoveStapleShoppingListItemFromUserShoppingListPayload
+  removeStapleShoppingListItemsFromUserShoppingList(input: RemoveStapleShoppingListItemsFromUserShoppingListInput!): RemoveStapleShoppingListItemsFromUserShoppingListPayload
 }
 
 # An object with an ID
@@ -71,6 +86,29 @@ input RemoveSpecialItemsFromUserShoppingListInput {
 }
 
 type RemoveSpecialItemsFromUserShoppingListPayload {
+  errorMessage: String
+  clientMutationId: String
+}
+
+input RemoveStapleShoppingListItemFromUserShoppingListInput {
+  userId: ID!
+  stapleShoppingListItemId: ID!
+  clientMutationId: String
+}
+
+type RemoveStapleShoppingListItemFromUserShoppingListPayload {
+  errorMessage: String
+  special: ShoppingListEdge
+  clientMutationId: String
+}
+
+input RemoveStapleShoppingListItemsFromUserShoppingListInput {
+  userId: ID!
+  stapleShoppingListItemId: ID!
+  clientMutationId: String
+}
+
+type RemoveStapleShoppingListItemsFromUserShoppingListPayload {
   errorMessage: String
   clientMutationId: String
 }
