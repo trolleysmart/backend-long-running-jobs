@@ -174,9 +174,6 @@ const getShoppingListItems = async (userId, args) => {
       if (foundItem) {
         return Map({
           id: shoppingListItem.get('id'),
-          shoppingListIds: stapleShoppingListInInShoppingList
-            .filter(item => item.get('stapleShoppingListId').localeCompare(foundItem.get('id')) === 0)
-            .map(item => item.get('id')),
           stapleShoppingListId: foundItem.get('id'),
           description: foundItem.get('description'),
           quantity: groupedStapleShoppingListIds.get(foundItem.get('id')).size,
