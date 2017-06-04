@@ -1,6 +1,5 @@
 // @flow
 
-import hasha from 'hasha';
 import Immutable, { List, Map, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
@@ -213,19 +212,11 @@ const getShoppingListItems = async (userId, args) => {
   const completeStapleShoppingList = completeListWithDuplication
     .filter(item => item.get('stapleShoppingListId'))
     .groupBy(item => item.get('stapleShoppingListId'))
-    .map((item) => {
-      const ids = item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2));
-
-      return item.first().set('id', hasha(ids.toArray().join(), { algorithm: 'md5' })).set('shoppingListIds', ids);
-    });
+    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2))));
   const completeMasterProductPrice = completeListWithDuplication
     .filter(item => item.get('specialId'))
     .groupBy(item => item.get('specialId'))
-    .map((item) => {
-      const ids = item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2));
-
-      return item.first().set('id', hasha(ids.toArray().join(), { algorithm: 'md5' })).set('shoppingListIds', ids);
-    });
+    .map(item => item.first().set('shoppingListIds', item.map(_ => _.get('id')).sort((item1, item2) => item1.localeCompare(item2))));
   const completeList = completeStapleShoppingList
     .concat(completeMasterProductPrice)
     .sort((item1, item2) => item1.get('description').localeCompare(item2.get('description')))
