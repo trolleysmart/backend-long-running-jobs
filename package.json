@@ -30,7 +30,6 @@
     "graphql": "^0.10.1",
     "graphql-fields": "^1.0.2",
     "graphql-relay": "^0.5.2",
-    "hasha": "^3.0.0",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.26",
     "micro-business-parse-server-common": "^0.1.72",

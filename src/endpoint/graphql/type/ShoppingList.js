@@ -1,6 +1,5 @@
 // @flow
 
-import hasha from 'hasha';
 import { GraphQLID, GraphQLFloat, GraphQLList, GraphQLInt, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionDefinitions } from 'graphql-relay';
 import { NodeInterface } from '../interface';
@@ -11,7 +10,16 @@ const shoppingListType = new GraphQLObjectType({
   fields: {
     id: {
       type: new GraphQLNonNull(GraphQLID),
-      resolve: _ => hasha(_.get('shoppingListIds').sort((id1, id2) => id1.localeCompare(id2)).toArray().join(), { algorithm: 'md5' }),
+      resolve: (_) => {
+        const stapleShoppingListId = _.get('stapleShoppingListId');
+        const specialId = _.get('specialId');
+
+        if (stapleShoppingListId) {
+          return `shoppingList-${stapleShoppingListId}`;
+        }
+
+        return `shoppingList-${specialId}`;
+      },
     },
     shoppingListIds: {
       type: new GraphQLList(new GraphQLNonNull(GraphQLID)),
