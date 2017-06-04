@@ -63,15 +63,15 @@ const shoppingListType = new GraphQLObjectType({
     },
     comments: {
       type: GraphQLString,
-      resolve: () => '',
+      resolve: _ => _.get('comments'),
     },
     unitSize: {
       type: GraphQLString,
-      resolve: () => '',
+      resolve: _ => _.get('unitSize'),
     },
     expiryDate: {
       type: GraphQLString,
-      resolve: () => new Date().toISOString(),
+      resolve: _ => _.get('expiryDate'),
     },
     quantity: {
       type: GraphQLInt,

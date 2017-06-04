@@ -198,6 +198,9 @@ const getShoppingListItems = async (userId, args) => {
           multiBuyInfo: foundItem.getIn(['priceDetails', 'multiBuyInfo']),
           storeName: foundItem.getIn(['store', 'name']),
           storeImageUrl: foundItem.getIn(['store', 'imageUrl']),
+          comments: '',
+          unitSize: '',
+          expiryDate: new Date().toISOString(),
           quantity: groupedMasterProductPriceIds.get(foundItem.get('id')).size,
         });
       }
