@@ -83,6 +83,7 @@ export default mutationWithClientMutationId({
           multiBuyInfo: masterProductPrice.getIn(['priceDetails', 'multiBuyInfo']),
           storeName: masterProductPrice.getIn(['store', 'name']),
           storeImageUrl: masterProductPrice.getIn(['store', 'imageUrl']),
+          expiryDate: new Date().toISOString(),
           quantity: shoppingListItems.count(),
         }),
       };
