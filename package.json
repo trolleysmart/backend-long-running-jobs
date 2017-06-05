@@ -47,7 +47,7 @@
     "jest": "^20.0.4",
     "lint-staged": "^3.6.0",
     "nodemon": "^1.11.0",
-    "prettier": "^1.4.1",
+    "prettier": "^1.4.2",
     "uuid": "^3.0.1"
   },
   "jest": {
