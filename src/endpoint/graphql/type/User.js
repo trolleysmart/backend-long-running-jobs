@@ -18,13 +18,13 @@ const convertDescriptionArgumentToSet = (description) => {
   return Set();
 };
 
-const getMasterProductMatchCriteria = async (args, description) => {
+const getMasterProductMatchCriteria = async (args, descriptions) => {
   const criteria = Map({
     includeStore: true,
     includeMasterProduct: true,
     orderByFieldAscending: 'description',
     conditions: Map({
-      contains_description: description,
+      contains_descriptions: descriptions,
       not_specialType: 'none',
     }),
   });
@@ -34,35 +34,19 @@ const getMasterProductMatchCriteria = async (args, description) => {
 
 const getMasterProductPriceItems = async (args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
+  const masterPorductPriceItems = await getMasterProductMatchCriteria(args, descriptions);
 
-  if (descriptions.isEmpty() || descriptions.count() === 1) {
-    const masterPorductPriceItems = await getMasterProductMatchCriteria(args, descriptions.isEmpty() ? undefined : descriptions.first());
-
-    return connectionFromArray(masterPorductPriceItems.toArray(), args);
-  }
-
-  const allMatchedMasterProductPriceItems = await Promise.all(
-    descriptions.map(description => getMasterProductMatchCriteria(args, description)).toArray(),
-  );
-
-  /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-   * undefined for unknown reason. */
-  const allItems = Immutable.fromJS(allMatchedMasterProductPriceItems);
-  const flattenItems = allItems.flatMap(item => item);
-  const groupedItemsByIds = flattenItems.groupBy(item => item.get('id')).filter(item => item.count() === allItems.count());
-  const itemsIntersect = flattenItems.filter(item => groupedItemsByIds.has(item.get('id'))).groupBy(item => item.get('id')).map(item => item.first());
-
-  return connectionFromArray(itemsIntersect.toArray(), args);
+  return connectionFromArray(masterPorductPriceItems.toArray(), args);
 };
 
-const getShoppingListMatchCriteria = async (userId, description) => {
+const getShoppingListMatchCriteria = async (userId, descriptions) => {
   let shoppingListItems = List();
   const criteria = Map({
     includeStapleShoppingList: true,
     includeMasterProductPrice: true,
     conditions: Map({
       userId,
-      contains_description: description,
+      contains_descriptions: descriptions,
       excludeItemsMarkedAsDone: true,
       includeSpecialsOnly: true,
     }),
@@ -134,26 +118,7 @@ const getMasterProductPriceInfo = async (ids) => {
 
 const getShoppingListItems = async (userId, args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
-  let shoppingListItems = List();
-
-  if (descriptions.isEmpty() || descriptions.count() === 1) {
-    shoppingListItems = await getShoppingListMatchCriteria(userId, descriptions.isEmpty() ? undefined : descriptions.first());
-  } else {
-    const allMatchedShoppingListInfo = await Promise.all(
-      descriptions.map(description => getShoppingListMatchCriteria(userId, description)).toArray(),
-    );
-
-    /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-     * undefined for unknown reason. */
-    const allItems = Immutable.fromJS(allMatchedShoppingListInfo);
-    const flattenItems = allItems.flatMap(item => item);
-    const groupedShoppingList = flattenItems.groupBy(item => item.get('id')).filter(item => item.count() === allItems.count());
-
-    shoppingListItems = flattenItems
-      .filter(item => groupedShoppingList.has(item.get('id')))
-      .groupBy(item => item.get('id'))
-      .map(item => item.first());
-  }
+  const shoppingListItems = await getShoppingListMatchCriteria(userId, descriptions);
 
   const stapleShoppingListInInShoppingList = shoppingListItems.filter(item => item.get('stapleShoppingList'));
   const masterProductPriceInShoppingList = shoppingListItems.filter(item => item.get('masterProductPrice'));
@@ -224,13 +189,13 @@ const getShoppingListItems = async (userId, args) => {
   return connectionFromArray(completeList.toArray(), args);
 };
 
-const getStapleShoppingListMatchCriteria = async (args, userId, description) => {
+const getStapleShoppingListMatchCriteria = async (args, userId, descriptions) => {
   const criteria = Map({
     includeTags: true,
     orderByFieldAscending: 'description',
     conditions: Map({
       userId,
-      contains_description: description,
+      contains_descriptions: descriptions,
       not_specialType: 'none',
     }),
   });
@@ -240,25 +205,9 @@ const getStapleShoppingListMatchCriteria = async (args, userId, description) => 
 
 const getStapleShoppingListItems = async (userId, args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
+  const stapleShoppingListItems = await getStapleShoppingListMatchCriteria(args, userId, descriptions);
 
-  if (descriptions.isEmpty() || descriptions.count() === 1) {
-    const stapleShoppingListItems = await getStapleShoppingListMatchCriteria(args, userId, descriptions.isEmpty() ? undefined : descriptions.first());
-
-    return connectionFromArray(stapleShoppingListItems.toArray(), args);
-  }
-
-  const allMatchedStapleShoppingListItems = await Promise.all(
-    descriptions.map(description => getStapleShoppingListMatchCriteria(args, userId, description)).toArray(),
-  );
-
-  /* TODO: 20170528 - Morteza: Should use Set.intersect instead of following implementation of it. Set.intersect currently is
-   * undefined for unknown reason. */
-  const allItems = Immutable.fromJS(allMatchedStapleShoppingListItems);
-  const flattenItems = allItems.flatMap(item => item);
-  const groupedItemsByIds = flattenItems.groupBy(item => item.get('id')).filter(item => item.count() === allItems.count());
-  const itemsIntersect = flattenItems.filter(item => groupedItemsByIds.has(item.get('id'))).groupBy(item => item.get('id')).map(item => item.first());
-
-  return connectionFromArray(itemsIntersect.toArray(), args);
+  return connectionFromArray(stapleShoppingListItems.toArray(), args);
 };
 
 export default new GraphQLObjectType({
