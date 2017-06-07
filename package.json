@@ -33,6 +33,7 @@
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.26",
     "micro-business-parse-server-common": "^0.1.72",
+    "newrelic": "^1.39.1",
     "smart-grocery-parse-server-common": "^0.1.127",
     "store-crawler": "^0.1.108"
   },

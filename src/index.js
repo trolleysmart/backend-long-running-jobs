@@ -1,5 +1,6 @@
 // @flow
 
+import 'newrelic';
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
 import setupEndPoint from './endpoint';
