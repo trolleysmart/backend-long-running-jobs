@@ -55,3 +55,5 @@ fastlane/screenshots
 .exponent
 
 /logs
+package-lock.json
+
