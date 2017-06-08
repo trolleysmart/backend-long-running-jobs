@@ -3,13 +3,13 @@
 import { GraphQLID, GraphQLString, GraphQLNonNull } from 'graphql';
 import { mutationWithClientMutationId } from 'graphql-relay';
 import { ShoppingListConnectionDefinition } from '../type';
-import { addStapleShoppingListItemToUserShoppingList } from './StapleShoppingListHelper';
+import { addNewStapleShoppingListToShoppingList } from './StapleShoppingListHelper';
 
 export default mutationWithClientMutationId({
-  name: 'AddStapleShoppingListItemToUserShoppingList',
+  name: 'AddNewStapleShoppingListToShoppingList',
   inputFields: {
     userId: { type: new GraphQLNonNull(GraphQLID) },
-    stapleShoppingListItemId: { type: new GraphQLNonNull(GraphQLID) },
+    description: { type: new GraphQLNonNull(GraphQLID) },
   },
   outputFields: {
     errorMessage: {
@@ -23,5 +23,5 @@ export default mutationWithClientMutationId({
       }),
     },
   },
-  mutateAndGetPayload: async ({ userId, stapleShoppingListItemId }) => addStapleShoppingListItemToUserShoppingList(userId, stapleShoppingListItemId),
+  mutateAndGetPayload: async ({ userId, description }) => addNewStapleShoppingListToShoppingList(userId, description),
 });

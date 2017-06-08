@@ -1,6 +1,7 @@
 // @flow
 
 import { GraphQLObjectType } from 'graphql';
+import addNewStapleShoppingListToShoppingList from './AddNewStapleShoppingListToShoppingList';
 import addSpecialItemToUserShoppingList from './AddSpecialItemToUserShoppingList';
 import removeSpecialItemFromUserShoppingList from './RemoveSpecialItemFromUserShoppingList';
 import removeSpecialItemsFromUserShoppingList from './RemoveSpecialItemsFromUserShoppingList';
@@ -11,6 +12,7 @@ import removeStapleShoppingListItemsFromUserShoppingList from './RemoveStapleSho
 export default new GraphQLObjectType({
   name: 'Mutation',
   fields: {
+    addNewStapleShoppingListToShoppingList,
     addSpecialItemToUserShoppingList,
     removeSpecialItemFromUserShoppingList,
     removeSpecialItemsFromUserShoppingList,
