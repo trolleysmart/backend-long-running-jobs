@@ -1,6 +1,6 @@
 // @flow
 
-import Immutable, { List, Map, Set } from 'immutable';
+import Immutable, { List, Map, Range, Set } from 'immutable';
 import { GraphQLID, GraphQLObjectType, GraphQLString, GraphQLNonNull } from 'graphql';
 import { connectionArgs, connectionFromArray } from 'graphql-relay';
 import { Exception } from 'micro-business-parse-server-common';
@@ -10,6 +10,62 @@ import SpecialConnectionDefinition from './Specials';
 import ShoppingListConnectionDefinition from './ShoppingList';
 import StapleShoppingListConnectionDefinition from './StapleShoppingList';
 
+const getLimitAndSkipValue = (args, defaultPageSize, maximumPageSize) => {
+  const { after, before } = args;
+  let { first, last } = args;
+
+  if ((first || after) && (last || before)) {
+    throw new Exception('Mixing first and after with last and before is not supported.');
+  }
+
+  let limit;
+  let skip;
+
+  if (first || after) {
+    if (!first) {
+      first = defaultPageSize;
+    }
+  } else if (last || before) {
+    if (!last) {
+      last = defaultPageSize;
+    }
+  } else {
+    first = defaultPageSize;
+  }
+
+  if (first > maximumPageSize) {
+    first = maximumPageSize;
+  }
+
+  if (last > maximumPageSize) {
+    last = maximumPageSize;
+  }
+
+  if (first && after) {
+    const afterValue = parseInt(after, 10);
+
+    limit = first;
+    skip = afterValue;
+  } else if (first) {
+    limit = first;
+    skip = 0;
+  } else if (last && before) {
+    const beforeValue = parseInt(before, 10);
+
+    limit = last;
+    skip = beforeValue.idx - last;
+
+    if (skip < 0) {
+      skip = 0;
+    }
+  } else if (last) {
+    limit = last;
+    skip = 0;
+  }
+
+  return { limit, skip };
+};
+
 const convertDescriptionArgumentToSet = (description) => {
   if (description) {
     return Immutable.fromJS(description.replace(/\W/g, ' ').trim().toLowerCase().split(' ')).map(_ => _.trim()).filter(_ => _.length > 0).toSet();
@@ -18,7 +74,7 @@ const convertDescriptionArgumentToSet = (description) => {
   return Set();
 };
 
-const getMasterProductMatchCriteria = async (args, descriptions) => {
+const getMasterProductMatchCriteria = async (limit, skip, descriptions) => {
   const criteria = Map({
     includeStore: true,
     includeMasterProduct: true,
@@ -29,14 +85,24 @@ const getMasterProductMatchCriteria = async (args, descriptions) => {
     }),
   });
 
-  return MasterProductPriceService.search(criteria.set('limit', args.first ? args.first : 10));
+  return MasterProductPriceService.search(criteria.set('limit', limit).set('skip', skip));
 };
 
 const getMasterProductPriceItems = async (args) => {
-  const descriptions = convertDescriptionArgumentToSet(args.description);
-  const masterPorductPriceItems = await getMasterProductMatchCriteria(args, descriptions);
+  const { limit, skip } = getLimitAndSkipValue(args, 10, 1000);
 
-  return connectionFromArray(masterPorductPriceItems.toArray(), args);
+  const descriptions = convertDescriptionArgumentToSet(args.description);
+  const masterProductPriceItems = await getMasterProductMatchCriteria(limit, skip, descriptions);
+  const indexedMasterProductPriceItems = masterProductPriceItems.zip(Range(skip, skip + limit));
+
+  const edges = indexedMasterProductPriceItems
+    .map(indexedItem => ({
+      node: indexedItem[0],
+      cursor: indexedItem[1] + 1,
+    }))
+    .toArray();
+
+  return { edges };
 };
 
 const getShoppingListMatchCriteria = async (userId, descriptions) => {
