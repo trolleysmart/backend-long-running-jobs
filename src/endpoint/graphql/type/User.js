@@ -10,7 +10,7 @@ import SpecialConnectionDefinition from './Specials';
 import ShoppingListConnectionDefinition from './ShoppingList';
 import StapleShoppingListConnectionDefinition from './StapleShoppingList';
 
-const getLimitAndSkipValue = (args, defaultPageSize, maximumPageSize) => {
+const getLimitAndSkipValue = (args, count, defaultPageSize, maximumPageSize) => {
   const { after, before } = args;
   let { first, last } = args;
 
@@ -63,7 +63,10 @@ const getLimitAndSkipValue = (args, defaultPageSize, maximumPageSize) => {
     skip = 0;
   }
 
-  return { limit, skip };
+  const hasNextPage = skip + limit < count;
+  const hasPreviousPage = skip !== 0;
+
+  return { limit, skip, hasNextPage, hasPreviousPage };
 };
 
 const convertDescriptionArgumentToSet = (description) => {
@@ -72,6 +75,20 @@ const convertDescriptionArgumentToSet = (description) => {
   }
 
   return Set();
+};
+
+const getMasterProductCountMatchCriteria = async (descriptions) => {
+  const criteria = Map({
+    includeStore: true,
+    includeMasterProduct: true,
+    orderByFieldAscending: 'description',
+    conditions: Map({
+      contains_descriptions: descriptions,
+      not_specialType: 'none',
+    }),
+  });
+
+  return MasterProductPriceService.count(criteria);
 };
 
 const getMasterProductMatchCriteria = async (limit, skip, descriptions) => {
@@ -89,20 +106,30 @@ const getMasterProductMatchCriteria = async (limit, skip, descriptions) => {
 };
 
 const getMasterProductPriceItems = async (args) => {
-  const { limit, skip } = getLimitAndSkipValue(args, 10, 1000);
-
   const descriptions = convertDescriptionArgumentToSet(args.description);
+  const count = await getMasterProductCountMatchCriteria(descriptions);
+  const { limit, skip, hasNextPage, hasPreviousPage } = getLimitAndSkipValue(args, count, 10, 1000);
   const masterProductPriceItems = await getMasterProductMatchCriteria(limit, skip, descriptions);
   const indexedMasterProductPriceItems = masterProductPriceItems.zip(Range(skip, skip + limit));
 
-  const edges = indexedMasterProductPriceItems
-    .map(indexedItem => ({
-      node: indexedItem[0],
-      cursor: indexedItem[1] + 1,
-    }))
-    .toArray();
+  const edges = indexedMasterProductPriceItems.map(indexedItem => ({
+    node: indexedItem[0],
+    cursor: indexedItem[1] + 1,
+  }));
 
-  return { edges };
+  const firstEdge = edges.first();
+  const lastEdge = edges.last();
+
+  return {
+    edges: edges.toArray(),
+    count,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : null,
+      endCursor: lastEdge ? lastEdge.cursor : null,
+      hasPreviousPage,
+      hasNextPage,
+    },
+  };
 };
 
 const getShoppingListMatchCriteria = async (userId, descriptions) => {
