@@ -282,7 +282,7 @@ const getShoppingListItems = async (userId, args) => {
   return connectionFromArray(completeList.toArray(), args);
 };
 
-const getStapleShoppingListMatchCriteria = async (args, userId, descriptions) => {
+const getStapleShoppingListCountMatchCriteria = async (userId, descriptions) => {
   const criteria = Map({
     includeTags: true,
     orderByFieldAscending: 'description',
@@ -293,14 +293,48 @@ const getStapleShoppingListMatchCriteria = async (args, userId, descriptions) =>
     }),
   });
 
-  return StapleShoppingListService.search(criteria.set('limit', args.first ? args.first : 10));
+  return StapleShoppingListService.count(criteria);
+};
+
+const getStapleShoppingListMatchCriteria = async (limit, skip, userId, descriptions) => {
+  const criteria = Map({
+    includeTags: true,
+    orderByFieldAscending: 'description',
+    conditions: Map({
+      userId,
+      contains_descriptions: descriptions,
+      not_specialType: 'none',
+    }),
+  });
+
+  return StapleShoppingListService.search(criteria.set('limit', limit).set('skip', skip));
 };
 
 const getStapleShoppingListItems = async (userId, args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
-  const stapleShoppingListItems = await getStapleShoppingListMatchCriteria(args, userId, descriptions);
+  const count = await getStapleShoppingListCountMatchCriteria(userId, descriptions);
+  const { limit, skip, hasNextPage, hasPreviousPage } = getLimitAndSkipValue(args, count, 10, 1000);
+  const stapleShoppingListItems = await getStapleShoppingListMatchCriteria(limit, skip, userId, descriptions);
+  const indexedStapleShoppingListItems = stapleShoppingListItems.zip(Range(skip, skip + limit));
 
-  return connectionFromArray(stapleShoppingListItems.toArray(), args);
+  const edges = indexedStapleShoppingListItems.map(indexedItem => ({
+    node: indexedItem[0],
+    cursor: indexedItem[1] + 1,
+  }));
+
+  const firstEdge = edges.first();
+  const lastEdge = edges.last();
+
+  return {
+    edges: edges.toArray(),
+    count,
+    pageInfo: {
+      startCursor: firstEdge ? firstEdge.cursor : null,
+      endCursor: lastEdge ? lastEdge.cursor : null,
+      hasPreviousPage,
+      hasNextPage,
+    },
+  };
 };
 
 export default new GraphQLObjectType({

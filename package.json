@@ -34,8 +34,8 @@
     "micro-business-parse-server-backend": "^0.1.27",
     "micro-business-parse-server-common": "^0.1.73",
     "newrelic": "^1.40.0",
-    "smart-grocery-parse-server-common": "^0.1.131",
-    "store-crawler": "^0.1.111"
+    "smart-grocery-parse-server-common": "^0.1.132",
+    "store-crawler": "^0.1.112"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
@@ -46,7 +46,7 @@
     "eslint-plugin-react": "^7.0.1",
     "flow-bin": "^0.47.0",
     "jest": "^20.0.4",
-    "lint-staged": "^3.6.0",
+    "lint-staged": "^3.6.1",
     "nodemon": "^1.11.0",
     "prettier": "^1.4.4",
     "uuid": "^3.0.1"
