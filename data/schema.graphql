@@ -231,7 +231,7 @@ type Tag {
 type User implements Node {
   id: ID!
   username: String
-  specials(after: String, first: Int, before: String, last: Int, description: String): SpecialConnection
+  specials(after: String, first: Int, before: String, last: Int, description: String, sortOption: String): SpecialConnection
   shoppingList(after: String, first: Int, before: String, last: Int, description: String): ShoppingListConnection
   stapleShoppingList(after: String, first: Int, before: String, last: Int, description: String): StapleShoppingListConnection
 }

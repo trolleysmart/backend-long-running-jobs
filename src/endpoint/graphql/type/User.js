@@ -66,7 +66,12 @@ const getLimitAndSkipValue = (args, count, defaultPageSize, maximumPageSize) => 
   const hasNextPage = skip + limit < count;
   const hasPreviousPage = skip !== 0;
 
-  return { limit, skip, hasNextPage, hasPreviousPage };
+  return {
+    limit,
+    skip,
+    hasNextPage,
+    hasPreviousPage,
+  };
 };
 
 const convertDescriptionArgumentToSet = (description) => {
@@ -77,39 +82,45 @@ const convertDescriptionArgumentToSet = (description) => {
   return Set();
 };
 
-const getMasterProductCountMatchCriteria = async (descriptions) => {
-  const criteria = Map({
-    includeStore: true,
-    includeMasterProduct: true,
-    orderByFieldAscending: 'description',
-    conditions: Map({
-      contains_descriptions: descriptions,
-      not_specialType: 'none',
-    }),
-  });
+const addSortOptionToCriteria = (criteria, sortOption) => {
+  if (sortOption && sortOption.localeCompare('DescriptionDescending') === 0) {
+    return criteria.set('orderByFieldDescending', 'description');
+  }
 
-  return MasterProductPriceService.count(criteria);
+  return criteria.set('orderByFieldAscending', 'description');
 };
 
-const getMasterProductMatchCriteria = async (limit, skip, descriptions) => {
+const getMasterProductCountMatchCriteria = async (descriptions, sortOption) => {
   const criteria = Map({
     includeStore: true,
     includeMasterProduct: true,
-    orderByFieldAscending: 'description',
     conditions: Map({
       contains_descriptions: descriptions,
       not_specialType: 'none',
     }),
   });
 
-  return MasterProductPriceService.search(criteria.set('limit', limit).set('skip', skip));
+  return MasterProductPriceService.count(addSortOptionToCriteria(criteria, sortOption));
+};
+
+const getMasterProductMatchCriteria = async (limit, skip, descriptions, sortOption) => {
+  const criteria = Map({
+    includeStore: true,
+    includeMasterProduct: true,
+    conditions: Map({
+      contains_descriptions: descriptions,
+      not_specialType: 'none',
+    }),
+  });
+
+  return MasterProductPriceService.search(addSortOptionToCriteria(criteria, sortOption).set('limit', limit).set('skip', skip));
 };
 
 const getMasterProductPriceItems = async (args) => {
   const descriptions = convertDescriptionArgumentToSet(args.description);
-  const count = await getMasterProductCountMatchCriteria(descriptions);
+  const count = await getMasterProductCountMatchCriteria(descriptions, args.sortOption);
   const { limit, skip, hasNextPage, hasPreviousPage } = getLimitAndSkipValue(args, count, 10, 1000);
-  const masterProductPriceItems = await getMasterProductMatchCriteria(limit, skip, descriptions);
+  const masterProductPriceItems = await getMasterProductMatchCriteria(limit, skip, descriptions, args.sortOption);
   const indexedMasterProductPriceItems = masterProductPriceItems.zip(Range(skip, skip + limit));
 
   const edges = indexedMasterProductPriceItems.map(indexedItem => ({
@@ -353,6 +364,9 @@ export default new GraphQLObjectType({
       args: {
         ...connectionArgs,
         description: {
+          type: GraphQLString,
+        },
+        sortOption: {
           type: GraphQLString,
         },
       },
