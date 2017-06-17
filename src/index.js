@@ -1,9 +1,7 @@
 // @flow
 
-import 'newrelic';
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
-import setupEndPoint from './endpoint';
 
 const backendInfo = backend({
   serverHost: process.env.HOST,
@@ -20,12 +18,10 @@ const backendInfo = backend({
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-setupEndPoint(backendInfo.get('server'));
-
 process.on('SIGINT', () => process.exit());
 
 backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
-  console.log('Smart Grocery backend started.');
+  console.log('Smart Grocery Backend Long Running Jobs started.');
   console.log('Server host: ', backendInfo.get('serverHost'));
   console.log('Listening port: ', backendInfo.get('serverPort'));
   console.log('Parse Server url: ', backendInfo.get('parseServerUrl'));
