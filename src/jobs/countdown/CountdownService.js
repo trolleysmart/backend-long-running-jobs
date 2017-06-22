@@ -11,6 +11,7 @@ import {
   MasterProductPriceService,
   StoreService,
   TagService,
+  StoreTagService,
 } from 'smart-grocery-parse-server-common';
 
 export default class CountdownService {
@@ -42,6 +43,22 @@ export default class CountdownService {
       return results.first();
     } else {
       throw new Exception('Multiple store found called Countdown.');
+    }
+  };
+
+  static getExistingStoreTags = async (storeId) => {
+    const result = StoreTagService.searchAll(Map({ conditions: Map({ storeId }) }));
+
+    try {
+      let storeTags = List();
+
+      result.event.subscribe(info => (storeTags = storeTags.push(info)));
+
+      await result.promise;
+
+      return storeTags;
+    } finally {
+      result.event.unsubscribeAll();
     }
   };
 
@@ -370,16 +387,16 @@ export default class CountdownService {
     }
 
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
-    const capturedDate = new Date();
+    const effectiveFrom = new Date();
     const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
-      Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, capturedDate, store))),
+      Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, effectiveFrom, store))),
     );
-    await this.clearOldMasterProductPrices(finalConfig, capturedDate);
+    await this.clearOldMasterProductPrices(finalConfig, effectiveFrom);
   };
 
-  createOrUpdateMasterProductPrice = async (product, config, capturedDate, store) => {
+  createOrUpdateMasterProductPrice = async (product, config, effectiveFrom, store) => {
     const masterProductPriceResults = await MasterProductPriceService.search(
       Map({
         conditions: Map({
@@ -410,7 +427,7 @@ export default class CountdownService {
         description: masterProduct.get('description'),
         storeId: store.get('id'),
         storeName: store.get('name'),
-        capturedDate,
+        effectiveFrom,
         priceDetails: Map({
           specialType: CountdownService.getSpecialType(product),
           price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
@@ -439,12 +456,12 @@ export default class CountdownService {
               multiBuyInfo: CountdownService.getMultiBuyInfo(product),
             }),
           )
-          .set('capturedDate', capturedDate),
+          .set('effectiveFrom', effectiveFrom),
       );
     }
   };
 
-  clearOldMasterProductPrices = async (config, capturedDate) => {
+  clearOldMasterProductPrices = async (config, effectiveFrom) => {
     this.logInfo(config, () => 'Start clearing old price details...');
 
     const dateToCleanFrom = new Date();
@@ -455,7 +472,7 @@ export default class CountdownService {
     const result = MasterProductPriceService.searchAll(
       Map({
         conditions: Map({
-          lessThanOrEqualTo_capturedDate: dateToCleanFrom,
+          lessThanOrEqualTo_effectiveFrom: dateToCleanFrom,
         }),
       }),
     );
@@ -468,14 +485,12 @@ export default class CountdownService {
       result.event.unsubscribeAll();
     }
 
-    console.log(masterProductPrices.count());
-
     const splittedMasterProductPrices = CountdownService.splitIntoChunks(masterProductPrices, 100);
 
     await BluebirdPromise.each(splittedMasterProductPrices.toArray(), masterProductPriceChunks =>
       Promise.all(
         masterProductPriceChunks.map(masterProductPrice =>
-          MasterProductPriceService.update(masterProductPrice.set('priceDetails', Map()).set('capturedDate', capturedDate)),
+          MasterProductPriceService.update(masterProductPrice.set('priceDetails', Map()).set('effectiveFrom', effectiveFrom)),
         ),
       ),
     );
@@ -485,14 +500,16 @@ export default class CountdownService {
 
   syncToTagList = async (config) => {
     const finalConfig = config || (await CountdownService.getConfig());
-    const existingTags = await CountdownService.getExistingTags();
+    const store = await CountdownService.getCountdownStore();
+    const storeId = store.get('id');
+    const existingStoreTags = await CountdownService.getExistingStoreTags(storeId);
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
     const crawlSessionInfos = await CrawlSessionService.search(
       Map({
         conditions: Map({
-          sessionKey: 'Countdown Products',
+          sessionKey: 'Countdown High Level Product Categories',
         }),
         topMost: true,
       }),
@@ -513,22 +530,25 @@ export default class CountdownService {
     );
 
     try {
-      result.event.subscribe(info => (tags = tags.add(info.getIn(['resultSet', 'productCategory']))));
+      result.event.subscribe(info => (tags = tags.concat(info.getIn(['resultSet', 'highLevelProductCategories']))));
 
       await result.promise;
     } finally {
       result.event.unsubscribeAll();
     }
 
-    const newTags = tags.filterNot(tag => existingTags.find(_ => _.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0));
+    const newTags = tags.filterNot(tag =>
+      existingStoreTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+    );
 
     await Promise.all(
       newTags
         .map(tag =>
-          TagService.create(
+          StoreTagService.create(
             Map({
               key: tag,
               weight: 1,
+              storeId,
             }),
           ),
         )
