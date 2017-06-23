@@ -38,12 +38,11 @@ export default class CountdownService {
     const results = await StoreService.search(criteria);
 
     if (results.isEmpty()) {
-      throw new Exception('No store found called Countdown.');
+      return StoreService.read(await StoreService.create(Map({ name: 'Countdown' })));
     } else if (results.count() === 1) {
       return results.first();
-    } else {
-      throw new Exception('Multiple store found called Countdown.');
     }
+    throw new Exception('Multiple store found called Countdown.');
   };
 
   static getExistingStoreTags = async (storeId) => {
