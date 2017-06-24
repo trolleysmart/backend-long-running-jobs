@@ -150,7 +150,7 @@ export default class CountdownService extends ServiceBase {
   };
 
   updateStoreCralwerProductCategoriesConfiguration = async (config) => {
-    const finalConfig = config || (await this.getConfig());
+    const finalConfig = config || (await this.getJobConfig());
 
     this.logInfo(finalConfig, () => 'Fetching store crawler configuration...'); // eslint-disable-line max-len
 
@@ -202,7 +202,7 @@ export default class CountdownService extends ServiceBase {
   };
 
   syncToMasterProductList = async (config) => {
-    const finalConfig = config || (await this.getConfig());
+    const finalConfig = config || (await this.getJobConfig());
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
@@ -278,7 +278,7 @@ export default class CountdownService extends ServiceBase {
   };
 
   syncToMasterProductPriceList = async (config) => {
-    const finalConfig = config || (await this.getConfig());
+    const finalConfig = config || (await this.getJobConfig());
     const store = await this.getStore('Countdown');
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
@@ -429,7 +429,7 @@ export default class CountdownService extends ServiceBase {
   };
 
   syncToTagList = async (config) => {
-    const finalConfig = config || (await this.getConfig());
+    const finalConfig = config || (await this.getJobConfig());
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
     const existingStoreTags = await this.getExistingStoreTags(storeId);
@@ -487,7 +487,7 @@ export default class CountdownService extends ServiceBase {
   };
 
   syncMasterProductTags = async (config) => {
-    const finalConfig = config || (await this.getConfig());
+    const finalConfig = config || (await this.getJobConfig());
     const existingTags = await this.getExistingTags();
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
