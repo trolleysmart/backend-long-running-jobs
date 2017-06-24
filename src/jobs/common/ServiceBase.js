@@ -85,7 +85,6 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     const crawlSessionInfo = await this.getMostRecentCrawlSessionInfo(sessionKey);
     const crawlSessionId = crawlSessionInfo.get('id');
     let results = List();
-
     const result = CrawlResultService.searchAll(
       Map({
         conditions: Map({
@@ -95,7 +94,7 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     );
 
     try {
-      result.event.subscribe(info => (results = results.concat(mapFunc ? mapFunc(info) : info)));
+      result.event.subscribe(info => (results = results.push(mapFunc ? mapFunc(info) : info)));
 
       await result.promise;
     } finally {
