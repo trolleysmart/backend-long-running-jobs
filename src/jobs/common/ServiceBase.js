@@ -2,7 +2,7 @@
 
 import Immutable, { List, Map, Range } from 'immutable';
 import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
-import { CrawlSessionService, StoreService, TagService, StoreTagService } from 'smart-grocery-parse-server-common';
+import { CrawlResultService, CrawlSessionService, StoreService, TagService, StoreTagService } from 'smart-grocery-parse-server-common';
 import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
@@ -68,7 +68,7 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     }
   };
 
-  getTopMostCrawlSessionInfo = async (sessionKey) => {
+  getMostRecentCrawlSessionInfo = async (sessionKey) => {
     const crawlSessionInfos = await CrawlSessionService.search(
       Map({
         conditions: Map({
@@ -79,5 +79,29 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     );
 
     return crawlSessionInfos.first();
+  };
+
+  getMostRecentCrawlResults = async (sessionKey, mapFunc) => {
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo(sessionKey);
+    const crawlSessionId = crawlSessionInfo.get('id');
+    let results = List();
+
+    const result = CrawlResultService.searchAll(
+      Map({
+        conditions: Map({
+          crawlSessionId,
+        }),
+      }),
+    );
+
+    try {
+      result.event.subscribe(info => (results = results.concat(mapFunc ? mapFunc(info) : info)));
+
+      await result.promise;
+    } finally {
+      result.event.unsubscribeAll();
+    }
+
+    return results;
   };
 }

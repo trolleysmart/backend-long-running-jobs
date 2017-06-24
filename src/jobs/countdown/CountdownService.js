@@ -1,10 +1,9 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import Immutable, { List, Map, Set } from 'immutable';
+import { List, Map } from 'immutable';
 import { Exception } from 'micro-business-parse-server-common';
 import {
-  CrawlResultService,
   StoreCrawlerConfigurationService,
   MasterProductService,
   MasterProductPriceService,
@@ -166,22 +165,10 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
 
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown High Level Product Categories');
-    const crawlSessionId = crawlSessionInfo.get('id');
-
-    this.logInfo(finalConfig, () => 'Fetched the most recent Countdown crawling result for Countdown High Level Product Categories.'); // eslint-disable-line max-len
-
-    this.logVerbose(finalConfig, () => `Current Store Crawler config for Countdown: ${currentConfig}`);
-
-    const crawlResults = await CrawlResultService.search(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
+    const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+      info.getIn(['resultSet', 'highLevelProductCategories']),
     );
-
-    const highLevelProductCategories = Immutable.fromJS(crawlResults.first().getIn(['resultSet', 'highLevelProductCategories']));
+    const highLevelProductCategories = crawlResults.first();
 
     this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
@@ -199,30 +186,9 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
-    const crawlSessionId = crawlSessionInfo.get('id');
-    let products = List();
-
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${crawlSessionId}`);
-
-    const result = CrawlResultService.searchAll(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
+    const products = await this.getMostRecentCrawlResults('Countdown Products', info =>
+      info.getIn(['resultSet', 'products']).filterNot(product => product.get('description').trim().length === 0),
     );
-
-    try {
-      result.event.subscribe(
-        info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
-      );
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
     const splittedProducts = this.splitIntoChunks(productsWithoutDuplication, 100);
 
@@ -267,30 +233,9 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
-    const crawlSessionId = crawlSessionInfo.get('id');
-    let products = List();
-
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
-
-    const result = CrawlResultService.searchAll(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
+    const products = await this.getMostRecentCrawlResults('Countdown Products', info =>
+      info.getIn(['resultSet', 'products']).filterNot(product => product.get('description').trim().length === 0),
     );
-
-    try {
-      result.event.subscribe(
-        info => (products = products.concat(info.getIn(['resultSet', 'products']).filterNot(_ => _.get('description').trim().length === 0))),
-      );
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
     const effectiveFrom = new Date();
     const splittedProducts = this.splitIntoChunks(productsWithoutDuplication, 100);
@@ -411,28 +356,10 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown High Level Product Categories');
-    const crawlSessionId = crawlSessionInfo.get('id');
-    let tags = Set();
-
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
-
-    const result = CrawlResultService.searchAll(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
+    const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+      info.getIn(['resultSet', 'highLevelProductCategories']),
     );
-
-    try {
-      result.event.subscribe(info => (tags = tags.concat(info.getIn(['resultSet', 'highLevelProductCategories']))));
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
+    const tags = crawlResults.first().toSet();
     const newTags = tags.filterNot(tag =>
       existingStoreTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
     );
@@ -458,37 +385,13 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
-    const crawlSessionId = crawlSessionInfo.get('id');
-    let products = List();
-
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
-
-    const result = CrawlResultService.searchAll(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
-    );
-
-    try {
-      result.event.subscribe((info) => {
-        const resultSet = info.get('resultSet');
-
-        products = products.concat(
-          resultSet
-            .get('products')
-            .filterNot(_ => _.get('description').trim().length === 0)
-            .map(_ => _.set('productCategory', resultSet.get('productCategory'))),
-        );
-      });
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
+    const products = await this.getMostRecentCrawlResults('Countdown Products', (info) => {
+      const resultSet = info.get('resultSet');
+      return resultSet
+        .get('products')
+        .filterNot(product => product.get('description').trim().length === 0)
+        .map(product => product.set('productCategory', resultSet.get('productCategory')));
+    });
     const productsGroupedByDescription = products.groupBy(_ => _.get('description'));
 
     this.logVerbose(finalConfig, () => 'Finding the product in master product...');
