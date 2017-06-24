@@ -2,7 +2,7 @@
 
 import Immutable, { List, Map, Range } from 'immutable';
 import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
-import { CrawlResultService, CrawlSessionService, StoreService, TagService, StoreTagService } from 'smart-grocery-parse-server-common';
+import { TagService, StoreTagService } from 'smart-grocery-parse-server-common';
 import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
@@ -17,23 +17,6 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     }
 
     throw new Exception('No config found called Job.');
-  };
-
-  getStore = async (name) => {
-    const criteria = Map({
-      conditions: Map({
-        name,
-      }),
-    });
-
-    const results = await StoreService.search(criteria);
-
-    if (results.isEmpty()) {
-      return StoreService.read(await StoreService.create(Map({ name })));
-    } else if (results.count() === 1) {
-      return results.first();
-    }
-    throw new Exception(`Multiple store found called ${name}.`);
   };
 
   getExistingStoreTags = async (storeId) => {
@@ -66,41 +49,5 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     } finally {
       result.event.unsubscribeAll();
     }
-  };
-
-  getMostRecentCrawlSessionInfo = async (sessionKey) => {
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey,
-        }),
-        topMost: true,
-      }),
-    );
-
-    return crawlSessionInfos.first();
-  };
-
-  getMostRecentCrawlResults = async (sessionKey, mapFunc) => {
-    const crawlSessionInfo = await this.getMostRecentCrawlSessionInfo(sessionKey);
-    const crawlSessionId = crawlSessionInfo.get('id');
-    let results = List();
-    const result = CrawlResultService.searchAll(
-      Map({
-        conditions: Map({
-          crawlSessionId,
-        }),
-      }),
-    );
-
-    try {
-      result.event.subscribe(info => (results = results.push(mapFunc ? mapFunc(info) : info)));
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
-    return results;
   };
 }
