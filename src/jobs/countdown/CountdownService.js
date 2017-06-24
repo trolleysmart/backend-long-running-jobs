@@ -151,19 +151,7 @@ export default class CountdownService extends ServiceBase {
     const finalConfig = config || (await this.getJobConfig());
 
     this.logInfo(finalConfig, () => 'Fetching store crawler configuration...'); // eslint-disable-line max-len
-
-    const currentConfig = await StoreCrawlerConfigurationService.search(
-      Map({
-        conditions: Map({
-          name: 'Countdown',
-        }),
-        topMost: true,
-      }),
-    );
-
-    this.logInfo(finalConfig, () => 'Fetched store crawler configuration.'); // eslint-disable-line max-len
-
-    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
+    const currentStoreConfig = await this.getStoreCrawlerConfig('Countdown');
 
     const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
       info.getIn(['resultSet', 'highLevelProductCategories']),
@@ -172,7 +160,7 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
-    const newConfig = currentConfig.first().setIn(['config', 'productCategories'], highLevelProductCategories);
+    const newConfig = currentStoreConfig.setIn(['config', 'productCategories'], highLevelProductCategories);
 
     this.logVerbose(finalConfig, () => `New Store Crawler config for Countdown: ${JSON.stringify(newConfig)}`);
 
@@ -183,9 +171,6 @@ export default class CountdownService extends ServiceBase {
 
   syncToMasterProductList = async (config) => {
     const finalConfig = config || (await this.getJobConfig());
-
-    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
-
     const products = await this.getMostRecentCrawlResults('Countdown Products', info =>
       info.getIn(['resultSet', 'products']).filterNot(product => product.get('description').trim().length === 0),
     );
@@ -230,9 +215,6 @@ export default class CountdownService extends ServiceBase {
   syncToMasterProductPriceList = async (config) => {
     const finalConfig = config || (await this.getJobConfig());
     const store = await this.getStore('Countdown');
-
-    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
-
     const products = await this.getMostRecentCrawlResults('Countdown Products', info =>
       info.getIn(['resultSet', 'products']).filterNot(product => product.get('description').trim().length === 0),
     );
@@ -348,14 +330,10 @@ export default class CountdownService extends ServiceBase {
     this.logInfo(config, () => 'Finished clearing old price details.');
   };
 
-  syncToTagList = async (config) => {
-    const finalConfig = config || (await this.getJobConfig());
+  syncToTagList = async () => {
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
     const existingStoreTags = await this.getExistingStoreTags(storeId);
-
-    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
-
     const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
       info.getIn(['resultSet', 'highLevelProductCategories']),
     );
@@ -382,9 +360,6 @@ export default class CountdownService extends ServiceBase {
   syncMasterProductTags = async (config) => {
     const finalConfig = config || (await this.getJobConfig());
     const existingTags = await this.getExistingTags();
-
-    this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
-
     const products = await this.getMostRecentCrawlResults('Countdown Products', (info) => {
       const resultSet = info.get('resultSet');
       return resultSet
