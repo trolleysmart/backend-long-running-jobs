@@ -149,14 +149,10 @@ export default class CountdownService extends ServiceBase {
 
   updateStoreCralwerProductCategoriesConfiguration = async (config) => {
     const finalConfig = config || (await this.getJobConfig());
-
-    this.logInfo(finalConfig, () => 'Fetching store crawler configuration...'); // eslint-disable-line max-len
     const currentStoreConfig = await this.getStoreCrawlerConfig('Countdown');
-
-    const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+    const highLevelProductCategories = (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
       info.getIn(['resultSet', 'highLevelProductCategories']),
-    );
-    const highLevelProductCategories = crawlResults.first();
+    )).first();
 
     this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
@@ -334,10 +330,11 @@ export default class CountdownService extends ServiceBase {
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
     const existingStoreTags = await this.getExistingStoreTags(storeId);
-    const crawlResults = await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+    const tags = (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
       info.getIn(['resultSet', 'highLevelProductCategories']),
-    );
-    const tags = crawlResults.first().toSet();
+    ))
+      .first()
+      .toSet();
     const newTags = tags.filterNot(tag =>
       existingStoreTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
     );
