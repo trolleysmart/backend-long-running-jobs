@@ -1,83 +1,20 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import Immutable, { List, Map, Range, Set } from 'immutable';
-import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
+import Immutable, { List, Map, Set } from 'immutable';
+import { Exception } from 'micro-business-parse-server-common';
 import {
   CrawlResultService,
   CrawlSessionService,
   StoreCrawlerConfigurationService,
   MasterProductService,
   MasterProductPriceService,
-  StoreService,
-  TagService,
   StoreTagService,
 } from 'smart-grocery-parse-server-common';
+import { ServiceBase } from '../common';
 
-export default class CountdownService {
-  static splitIntoChunks = (list, chunkSize) => Range(0, list.count(), chunkSize).map(chunkStart => list.slice(chunkStart, chunkStart + chunkSize));
-
-  static getConfig = async () => {
-    const config = await ParseWrapperService.getConfig();
-    const jobConfig = config.get('Job');
-
-    if (jobConfig) {
-      return Immutable.fromJS(jobConfig);
-    }
-
-    throw new Exception('No config found called Job.');
-  };
-
-  static getCountdownStore = async () => {
-    const criteria = Map({
-      conditions: Map({
-        name: 'Countdown',
-      }),
-    });
-
-    const results = await StoreService.search(criteria);
-
-    if (results.isEmpty()) {
-      return StoreService.read(await StoreService.create(Map({ name: 'Countdown' })));
-    } else if (results.count() === 1) {
-      return results.first();
-    }
-    throw new Exception('Multiple store found called Countdown.');
-  };
-
-  static getExistingStoreTags = async (storeId) => {
-    const result = StoreTagService.searchAll(Map({ conditions: Map({ storeId }) }));
-
-    try {
-      let storeTags = List();
-
-      result.event.subscribe(info => (storeTags = storeTags.push(info)));
-
-      await result.promise;
-
-      return storeTags;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-  };
-
-  static getExistingTags = async () => {
-    const result = TagService.searchAll(Map());
-
-    try {
-      let tags = List();
-
-      result.event.subscribe(info => (tags = tags.push(info)));
-
-      await result.promise;
-
-      return tags;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-  };
-
-  static updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
+export default class CountdownService extends ServiceBase {
+  updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
     const product = productsGroupedByDescription.get(key).first();
     const results = await MasterProductService.search(
       Map({
@@ -121,7 +58,7 @@ export default class CountdownService {
     );
   };
 
-  static getSpecialType = (product) => {
+  getSpecialType = (product) => {
     if (product.has('special') && product.get('special')) {
       return 'special';
     }
@@ -137,8 +74,8 @@ export default class CountdownService {
     return 'none';
   };
 
-  static getPrice = (product) => {
-    const specialType = CountdownService.getSpecialType(product);
+  getPrice = (product) => {
+    const specialType = this.getSpecialType(product);
     const price = product.get('price');
 
     if (specialType.localeCompare('special') === 0) {
@@ -158,8 +95,8 @@ export default class CountdownService {
     return price.substring(1, price.indexOf(' '));
   };
 
-  static getWasPrice = (product) => {
-    const specialType = CountdownService.getSpecialType(product);
+  getWasPrice = (product) => {
+    const specialType = this.getSpecialType(product);
 
     if (specialType.localeCompare('special') === 0) {
       return product.has('wasPrice') ? product.get('wasPrice').substring(product.get('wasPrice').indexOf('$') + 1) : undefined;
@@ -178,8 +115,8 @@ export default class CountdownService {
     return undefined;
   };
 
-  static getMultiBuyInfo = (product) => {
-    const specialType = CountdownService.getSpecialType(product);
+  getMultiBuyInfo = (product) => {
+    const specialType = this.getSpecialType(product);
 
     if (specialType.localeCompare('multibuy') === 0) {
       if (product.has('specialMultiBuyText')) {
@@ -187,14 +124,14 @@ export default class CountdownService {
 
         return Map({
           count: parseInt(specialMultiBuyText.substring(0, specialMultiBuyText.indexOf('for')), 10),
-          price: CountdownService.convertPriceStringToDecimal(specialMultiBuyText.substring(specialMultiBuyText.indexOf('for') + 'for'.length)),
+          price: this.convertPriceStringToDecimal(specialMultiBuyText.substring(specialMultiBuyText.indexOf('for') + 'for'.length)),
         });
       } else if (product.has('multiBuyText')) {
         const multiBuyText = product.get('multiBuyText');
 
         return Map({
           count: parseInt(multiBuyText.substring(0, multiBuyText.indexOf(' ')), 10),
-          price: CountdownService.convertPriceStringToDecimal(multiBuyText.substring(multiBuyText.indexOf('for ') + 'for '.length)),
+          price: this.convertPriceStringToDecimal(multiBuyText.substring(multiBuyText.indexOf('for ') + 'for '.length)),
         });
       }
 
@@ -204,7 +141,7 @@ export default class CountdownService {
     return undefined;
   };
 
-  static convertPriceStringToDecimal = (price) => {
+  convertPriceStringToDecimal = (price) => {
     if (price) {
       return parseFloat(price);
     }
@@ -212,14 +149,8 @@ export default class CountdownService {
     return undefined;
   };
 
-  constructor({ logVerboseFunc, logInfoFunc, logErrorFunc }) {
-    this.logVerboseFunc = logVerboseFunc;
-    this.logInfoFunc = logInfoFunc;
-    this.logErrorFunc = logErrorFunc;
-  }
-
   updateStoreCralwerProductCategoriesConfiguration = async (config) => {
-    const finalConfig = config || (await CountdownService.getConfig());
+    const finalConfig = config || (await this.getConfig());
 
     this.logInfo(finalConfig, () => 'Fetching store crawler configuration...'); // eslint-disable-line max-len
 
@@ -271,7 +202,7 @@ export default class CountdownService {
   };
 
   syncToMasterProductList = async (config) => {
-    const finalConfig = config || (await CountdownService.getConfig());
+    const finalConfig = config || (await this.getConfig());
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
@@ -309,7 +240,7 @@ export default class CountdownService {
     }
 
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
-    const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
+    const splittedProducts = this.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
       Promise.all(productChunks.map(product => this.createOrUpdateMasterProduct(product, finalConfig))),
@@ -347,8 +278,8 @@ export default class CountdownService {
   };
 
   syncToMasterProductPriceList = async (config) => {
-    const finalConfig = config || (await CountdownService.getConfig());
-    const store = await CountdownService.getCountdownStore();
+    const finalConfig = config || (await this.getConfig());
+    const store = await this.getStore('Countdown');
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
@@ -387,7 +318,7 @@ export default class CountdownService {
 
     const productsWithoutDuplication = products.groupBy(_ => _.get('description')).map(_ => _.first()).valueSeq();
     const effectiveFrom = new Date();
-    const splittedProducts = CountdownService.splitIntoChunks(productsWithoutDuplication, 100);
+    const splittedProducts = this.splitIntoChunks(productsWithoutDuplication, 100);
 
     await BluebirdPromise.each(splittedProducts.toArray(), productChunks =>
       Promise.all(productChunks.map(product => this.createOrUpdateMasterProductPrice(product, finalConfig, effectiveFrom, store))),
@@ -428,10 +359,10 @@ export default class CountdownService {
         storeName: store.get('name'),
         effectiveFrom,
         priceDetails: Map({
-          specialType: CountdownService.getSpecialType(product),
-          price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
-          wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
-          multiBuyInfo: CountdownService.getMultiBuyInfo(product),
+          specialType: this.getSpecialType(product),
+          price: this.convertPriceStringToDecimal(this.getPrice(product)),
+          wasPrice: this.convertPriceStringToDecimal(this.getWasPrice(product)),
+          multiBuyInfo: this.getMultiBuyInfo(product),
         }),
       });
 
@@ -449,10 +380,10 @@ export default class CountdownService {
           .set(
             'priceDetails',
             Map({
-              specialType: CountdownService.getSpecialType(product),
-              price: CountdownService.convertPriceStringToDecimal(CountdownService.getPrice(product)),
-              wasPrice: CountdownService.convertPriceStringToDecimal(CountdownService.getWasPrice(product)),
-              multiBuyInfo: CountdownService.getMultiBuyInfo(product),
+              specialType: this.getSpecialType(product),
+              price: this.convertPriceStringToDecimal(this.getPrice(product)),
+              wasPrice: this.convertPriceStringToDecimal(this.getWasPrice(product)),
+              multiBuyInfo: this.getMultiBuyInfo(product),
             }),
           )
           .set('effectiveFrom', effectiveFrom),
@@ -484,7 +415,7 @@ export default class CountdownService {
       result.event.unsubscribeAll();
     }
 
-    const splittedMasterProductPrices = CountdownService.splitIntoChunks(masterProductPrices, 100);
+    const splittedMasterProductPrices = this.splitIntoChunks(masterProductPrices, 100);
 
     await BluebirdPromise.each(splittedMasterProductPrices.toArray(), masterProductPriceChunks =>
       Promise.all(
@@ -498,10 +429,10 @@ export default class CountdownService {
   };
 
   syncToTagList = async (config) => {
-    const finalConfig = config || (await CountdownService.getConfig());
-    const store = await CountdownService.getCountdownStore();
+    const finalConfig = config || (await this.getConfig());
+    const store = await this.getStore('Countdown');
     const storeId = store.get('id');
-    const existingStoreTags = await CountdownService.getExistingStoreTags(storeId);
+    const existingStoreTags = await this.getExistingStoreTags(storeId);
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
@@ -556,8 +487,8 @@ export default class CountdownService {
   };
 
   syncMasterProductTags = async (config) => {
-    const finalConfig = config || (await CountdownService.getConfig());
-    const existingTags = await CountdownService.getExistingTags();
+    const finalConfig = config || (await this.getConfig());
+    const existingTags = await this.getExistingTags();
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
@@ -611,28 +542,10 @@ export default class CountdownService {
       return;
     }
 
-    const splittedKeys = CountdownService.splitIntoChunks(keys, 100);
+    const splittedKeys = this.splitIntoChunks(keys, 100);
 
     await BluebirdPromise.each(splittedKeys.toArray(), keyChunks =>
-      Promise.all(keyChunks.map(key => CountdownService.updateProductTags(key, productsGroupedByDescription, existingTags))),
+      Promise.all(keyChunks.map(key => this.updateProductTags(key, productsGroupedByDescription, existingTags))),
     );
-  };
-
-  logVerbose = (config, messageFunc) => {
-    if (this.logVerboseFunc && config && config.get('logLevel') && config.get('logLevel') >= 3 && messageFunc) {
-      this.logVerboseFunc(messageFunc());
-    }
-  };
-
-  logInfo = (config, messageFunc) => {
-    if (this.logInfoFunc && config && config.get('logLevel') && config.get('logLevel') >= 2 && messageFunc) {
-      this.logInfoFunc(messageFunc());
-    }
-  };
-
-  logError = (config, messageFunc) => {
-    if (this.logErrorFunc && config && config.get('logLevel') && config.get('logLevel') >= 1 && messageFunc) {
-      this.logErrorFunc(messageFunc());
-    }
   };
 }
