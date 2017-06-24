@@ -1,7 +1,7 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import { List, Map } from 'immutable';
+import Immutable, { List, Map } from 'immutable';
 import { Exception } from 'micro-business-parse-server-common';
 import {
   StoreCrawlerConfigurationService,
@@ -150,9 +150,11 @@ export default class CountdownService extends ServiceBase {
   updateStoreCralwerProductCategoriesConfiguration = async (config) => {
     const finalConfig = config || (await this.getJobConfig());
     const currentStoreConfig = await this.getStoreCrawlerConfig('Countdown');
-    const highLevelProductCategories = (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
-      info.getIn(['resultSet', 'highLevelProductCategories']),
-    )).first();
+    const highLevelProductCategories = Immutable.fromJS(
+      (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+        info.getIn(['resultSet', 'highLevelProductCategories']),
+      )).first(),
+    );
 
     this.logInfo(finalConfig, () => 'Updating new Store Crawler config for Countdown...');
 
@@ -330,11 +332,11 @@ export default class CountdownService extends ServiceBase {
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
     const existingStoreTags = await this.getExistingStoreTags(storeId);
-    const tags = (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
-      info.getIn(['resultSet', 'highLevelProductCategories']),
-    ))
-      .first()
-      .toSet();
+    const tags = Immutable.fromJS(
+      (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
+        info.getIn(['resultSet', 'highLevelProductCategories']),
+      )).first(),
+    ).toSet();
     const newTags = tags.filterNot(tag =>
       existingStoreTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
     );
