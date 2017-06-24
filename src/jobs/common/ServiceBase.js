@@ -2,7 +2,7 @@
 
 import Immutable, { List, Map, Range } from 'immutable';
 import { ParseWrapperService, Exception } from 'micro-business-parse-server-common';
-import { StoreService, TagService, StoreTagService } from 'smart-grocery-parse-server-common';
+import { CrawlSessionService, StoreService, TagService, StoreTagService } from 'smart-grocery-parse-server-common';
 import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
@@ -66,5 +66,18 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     } finally {
       result.event.unsubscribeAll();
     }
+  };
+
+  getTopMostCrawlSessionInfo = async (sessionKey) => {
+    const crawlSessionInfos = await CrawlSessionService.search(
+      Map({
+        conditions: Map({
+          sessionKey,
+        }),
+        topMost: true,
+      }),
+    );
+
+    return crawlSessionInfos.first();
   };
 }

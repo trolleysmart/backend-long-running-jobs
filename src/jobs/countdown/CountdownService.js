@@ -5,7 +5,6 @@ import Immutable, { List, Map, Set } from 'immutable';
 import { Exception } from 'micro-business-parse-server-common';
 import {
   CrawlResultService,
-  CrawlSessionService,
   StoreCrawlerConfigurationService,
   MasterProductService,
   MasterProductPriceService,
@@ -167,14 +166,8 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown High Level Product Categories...'); // eslint-disable-line max-len
 
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey: 'Countdown High Level Product Categories',
-        }),
-        topMost: true,
-      }),
-    );
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown High Level Product Categories');
+    const crawlSessionId = crawlSessionInfo.get('id');
 
     this.logInfo(finalConfig, () => 'Fetched the most recent Countdown crawling result for Countdown High Level Product Categories.'); // eslint-disable-line max-len
 
@@ -183,7 +176,7 @@ export default class CountdownService extends ServiceBase {
     const crawlResults = await CrawlResultService.search(
       Map({
         conditions: Map({
-          crawlSessionId: crawlSessionInfos.first().get('id'),
+          crawlSessionId,
         }),
       }),
     );
@@ -206,25 +199,16 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products...');
 
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey: 'Countdown Products',
-        }),
-        topMost: true,
-      }),
-    );
-
-    const sessionInfo = crawlSessionInfos.first();
-    const sessionId = sessionInfo.get('id');
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
+    const crawlSessionId = crawlSessionInfo.get('id');
     let products = List();
 
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${sessionId}`);
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products. Session Id: ${crawlSessionId}`);
 
     const result = CrawlResultService.searchAll(
       Map({
         conditions: Map({
-          crawlSessionId: sessionId,
+          crawlSessionId,
         }),
       }),
     );
@@ -283,25 +267,16 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey: 'Countdown Products',
-        }),
-        topMost: true,
-      }),
-    );
-
-    const sessionInfo = crawlSessionInfos.first();
-    const sessionId = sessionInfo.get('id');
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
+    const crawlSessionId = crawlSessionInfo.get('id');
     let products = List();
 
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
 
     const result = CrawlResultService.searchAll(
       Map({
         conditions: Map({
-          crawlSessionId: sessionId,
+          crawlSessionId,
         }),
       }),
     );
@@ -436,25 +411,16 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey: 'Countdown High Level Product Categories',
-        }),
-        topMost: true,
-      }),
-    );
-
-    const sessionInfo = crawlSessionInfos.first();
-    const sessionId = sessionInfo.get('id');
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown High Level Product Categories');
+    const crawlSessionId = crawlSessionInfo.get('id');
     let tags = Set();
 
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
 
     const result = CrawlResultService.searchAll(
       Map({
         conditions: Map({
-          crawlSessionId: sessionId,
+          crawlSessionId,
         }),
       }),
     );
@@ -492,25 +458,16 @@ export default class CountdownService extends ServiceBase {
 
     this.logInfo(finalConfig, () => 'Fetching the most recent Countdown crawling result for Countdown Products Price...');
 
-    const crawlSessionInfos = await CrawlSessionService.search(
-      Map({
-        conditions: Map({
-          sessionKey: 'Countdown Products',
-        }),
-        topMost: true,
-      }),
-    );
-
-    const sessionInfo = crawlSessionInfos.first();
-    const sessionId = sessionInfo.get('id');
+    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo('Countdown Products');
+    const crawlSessionId = crawlSessionInfo.get('id');
     let products = List();
 
-    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${sessionId}`);
+    this.logInfo(finalConfig, () => `Fetched the most recent Countdown crawling result for Countdown Products Price. Session Id: ${crawlSessionId}`);
 
     const result = CrawlResultService.searchAll(
       Map({
         conditions: Map({
-          crawlSessionId: sessionId,
+          crawlSessionId,
         }),
       }),
     );
