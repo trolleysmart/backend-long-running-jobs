@@ -6,7 +6,7 @@ import { CrawlResultService, CrawlSessionService, StoreService, TagService, Stor
 import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
-  static splitIntoChunks = (list, chunkSize) => Range(0, list.count(), chunkSize).map(chunkStart => list.slice(chunkStart, chunkStart + chunkSize));
+  splitIntoChunks = (list, chunkSize) => Range(0, list.count(), chunkSize).map(chunkStart => list.slice(chunkStart, chunkStart + chunkSize));
 
   getJobConfig = async () => {
     const config = await ParseWrapperService.getConfig();
