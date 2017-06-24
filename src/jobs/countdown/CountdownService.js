@@ -331,14 +331,14 @@ export default class CountdownService extends ServiceBase {
   syncToTagList = async () => {
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
-    const existingStoreTags = await this.getExistingStoreTags(storeId);
+    const storeTags = await this.getExistingStoreTags(storeId);
     const tags = Immutable.fromJS(
       (await this.getMostRecentCrawlResults('Countdown High Level Product Categories', info =>
         info.getIn(['resultSet', 'highLevelProductCategories']),
       )).first(),
     ).toSet();
     const newTags = tags.filterNot(tag =>
-      existingStoreTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
+      storeTags.find(storeTag => storeTag.get('key').toLowerCase().trim().localeCompare(tag.toLowerCase().trim()) === 0),
     );
 
     await Promise.all(
