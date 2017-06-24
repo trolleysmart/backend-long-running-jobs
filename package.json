@@ -25,16 +25,16 @@
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.30",
-    "micro-business-parse-server-common": "^0.1.76",
-    "smart-grocery-parse-server-common": "^0.1.148",
-    "store-crawler": "^0.1.117"
+    "micro-business-parse-server-backend": "^0.1.31",
+    "micro-business-parse-server-common": "^0.1.77",
+    "smart-grocery-parse-server-common": "^0.1.150",
+    "store-crawler": "^0.1.119"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^15.0.1",
-    "eslint-plugin-import": "^2.5.0",
+    "eslint-plugin-import": "^2.6.0",
     "eslint-plugin-jsx-a11y": "5.0.3",
     "eslint-plugin-react": "^7.1.0",
     "flow-bin": "^0.48.0",
