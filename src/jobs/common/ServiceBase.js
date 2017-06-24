@@ -82,7 +82,7 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
   };
 
   getMostRecentCrawlResults = async (sessionKey, mapFunc) => {
-    const crawlSessionInfo = await this.getTopMostCrawlSessionInfo(sessionKey);
+    const crawlSessionInfo = await this.getMostRecentCrawlSessionInfo(sessionKey);
     const crawlSessionId = crawlSessionInfo.get('id');
     let results = List();
 
