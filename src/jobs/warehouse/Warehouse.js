@@ -2,7 +2,6 @@
 
 import { Exception } from 'micro-business-parse-server-common';
 import { WarehouseWebCrawlerService } from 'store-crawler';
-import WarehouseService from './WarehouseService';
 
 const jobName = 'Warehouse';
 
@@ -18,15 +17,11 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
   });
-  const service = new WarehouseService({
-    logVerboseFunc: message => log.info(message),
-    logInfoFunc: message => log.info(message),
-    logErrorFunc: message => log.error(message),
-  });
 
   try {
     await webCrawlerService.crawlProductCategories();
-    await service.syncProductCategoriesToStoreTags();
+    await webCrawlerService.syncProductCategoriesToStoreTags();
+    await webCrawlerService.crawlProducts();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);
