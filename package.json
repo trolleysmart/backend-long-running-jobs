@@ -25,10 +25,10 @@
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.31",
-    "micro-business-parse-server-common": "^0.1.77",
-    "smart-grocery-parse-server-common": "^0.1.152",
-    "store-crawler": "^0.1.137"
+    "micro-business-parse-server-backend": "^0.1.32",
+    "micro-business-parse-server-common": "^0.1.78",
+    "smart-grocery-parse-server-common": "^0.1.154",
+    "store-crawler": "^0.1.138"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
