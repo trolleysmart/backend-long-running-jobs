@@ -12,6 +12,8 @@ import {
 import { ServiceBase } from '../common';
 
 export default class CountdownService extends ServiceBase {
+
+  /////////////////////////////////////////////////////////////////////////////////////////////
   updateProductTags = async (key, productsGroupedByDescription, existingTags) => {
     const product = productsGroupedByDescription.get(key).first();
     const results = await MasterProductService.search(
