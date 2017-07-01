@@ -25,7 +25,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.36",
+    "micro-business-parse-server-backend": "^0.1.37",
     "micro-business-parse-server-common": "^0.1.79",
     "smart-grocery-parse-server-common": "^0.1.158",
     "store-crawler": "^0.1.141"
