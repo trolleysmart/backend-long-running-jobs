@@ -2,7 +2,6 @@
 
 import { Exception } from 'micro-business-parse-server-common';
 import { CountdownWebCrawlerService } from 'store-crawler';
-import CountdownService from './CountdownService';
 
 const jobName = 'Countdown';
 
@@ -19,20 +18,11 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logErrorFunc: message => log.error(message),
   });
 
-  const service = new CountdownService({
-    logVerboseFunc: message => log.info(message),
-    logInfoFunc: message => log.info(message),
-    logErrorFunc: message => log.error(message),
-  });
-
   try {
-    await webCrawlerService.crawlHighLevelProductCategories();
-    await service.updateStoreCralwerProductCategoriesConfiguration();
+    await webCrawlerService.crawlProductCategories();
+    await webCrawlerService.syncProductCategoriesToStoreTags();
     await webCrawlerService.crawlProducts();
-    await service.syncToTagList();
-    await service.syncToMasterProductList();
-    await service.syncMasterProductTags();
-    await service.syncToMasterProductPriceList();
+    await webCrawlerService.crawlProductsDetails();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

@@ -22,6 +22,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
     await webCrawlerService.crawlProductCategories();
     await webCrawlerService.syncProductCategoriesToStoreTags();
     await webCrawlerService.crawlProducts();
+    await webCrawlerService.crawlProductsDetails();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);
