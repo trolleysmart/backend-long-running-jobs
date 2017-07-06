@@ -27,8 +27,8 @@
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.39",
     "micro-business-parse-server-common": "^0.1.82",
-    "smart-grocery-parse-server-common": "^0.1.167",
-    "store-crawler": "^0.1.153"
+    "smart-grocery-parse-server-common": "^0.1.168",
+    "store-crawler": "^0.1.157"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
