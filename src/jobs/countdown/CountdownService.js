@@ -1,7 +1,7 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import { TagService } from 'smart-grocery-parse-server-common';
+import { StoreTagService, TagService } from 'smart-grocery-parse-server-common';
 import { ServiceBase } from '../common';
 
 export default class CountdownService extends ServiceBase {
@@ -100,6 +100,27 @@ export default class CountdownService extends ServiceBase {
                 ),
             ),
           )
+          .toArray(),
+      ),
+    );
+  };
+
+  updateStoreTags = async () => {
+    const store = await this.getStore('Countdown');
+    const storeId = store.get('id');
+    const storeTags = await this.getStoreTags(storeId);
+    const tags = await this.getTags();
+
+    const splittedStoreTags = this.splitIntoChunks(storeTags, 100);
+
+    await BluebirdPromise.each(splittedStoreTags.toArray(), storeTagsChunks =>
+      Promise.all(
+        storeTagsChunks
+          .map((storeTag) => {
+            const foundTag = tags.find(tag => tag.get('key').localeCompare(storeTag.get('key')) === 0);
+
+            return StoreTagService.update(storeTag.set('tagId', foundTag ? foundTag.get('id') : null));
+          })
           .toArray(),
       ),
     );

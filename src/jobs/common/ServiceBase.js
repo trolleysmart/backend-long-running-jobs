@@ -6,7 +6,7 @@ import { TagService } from 'smart-grocery-parse-server-common';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
   getTags = async (weight) => {
-    const result = TagService.searchAll(Map({ conditions: Map({ weight }) }));
+    const result = TagService.searchAll(Map({ conditions: Map({ weight: weight || undefined }) }));
 
     try {
       let tags = List();
