@@ -28,7 +28,7 @@
     "micro-business-parse-server-backend": "^0.1.39",
     "micro-business-parse-server-common": "^0.1.82",
     "smart-grocery-parse-server-common": "^0.1.169",
-    "store-crawler": "^0.1.164"
+    "store-crawler": "^0.1.166"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
