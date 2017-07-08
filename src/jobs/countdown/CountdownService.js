@@ -1,7 +1,8 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import { StoreTagService, TagService } from 'smart-grocery-parse-server-common';
+import { Map } from 'immutable';
+import { MasterProductService, StoreTagService, StoreMasterProductService, TagService } from 'smart-grocery-parse-server-common';
 import { ServiceBase } from '../common';
 
 export default class CountdownService extends ServiceBase {
@@ -124,5 +125,46 @@ export default class CountdownService extends ServiceBase {
           .toArray(),
       ),
     );
+  };
+
+  syncStoreMasterProductsToMasterProducts = async () => {
+    const store = await this.getStore('Countdown');
+    const storeId = store.get('id');
+    const storeTags = await this.getStoreTags(storeId, true);
+    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProductLinkSet(storeId);
+
+    const splittedStoreMasterProducts = this.splitIntoChunks(storeMasterProducts, 100);
+    await BluebirdPromise.each(splittedStoreMasterProducts.toArray(), storeMasterProductChunks =>
+      Promise.all(storeMasterProductChunks.map(storeMasterProduct => this.setMasterProductLink(storeMasterProduct, storeTags))),
+    );
+  };
+
+  setMasterProductLink = async (storeMasterProduct, storeTags) => {
+    const masterProducts = await this.getMasterProducts({
+      name: storeMasterProduct.get('name'),
+      description: storeMasterProduct.get('description'),
+      barcode: storeMasterProduct.get('barcode'),
+      size: storeMasterProduct.get('size'),
+    });
+
+    if (!masterProducts.isEmpty()) {
+      return;
+    }
+
+    const masterProductId = await MasterProductService.create(
+      Map({
+        name: storeMasterProduct.get('name'),
+        description: storeMasterProduct.get('description'),
+        imageUrl: storeMasterProduct.get('imageUrl'),
+        barcode: storeMasterProduct.get('barcode'),
+        size: storeMasterProduct.get('size'),
+        tagIds: storeMasterProduct
+          .get('storeTagIds')
+          .map(storeTagId => storeTags.find(storeTag => storeTag.get('id').localeCompare(storeTagId) === 0))
+          .map(storeTag => storeTag.get('tagId')),
+      }),
+    );
+
+    await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProductId));
   };
 }
