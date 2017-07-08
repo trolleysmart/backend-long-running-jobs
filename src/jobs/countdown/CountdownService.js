@@ -131,7 +131,7 @@ export default class CountdownService extends ServiceBase {
     const store = await this.getStore('Countdown');
     const storeId = store.get('id');
     const storeTags = await this.getStoreTags(storeId, true);
-    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProductLinkSet(storeId);
+    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProduct(storeId);
 
     const splittedStoreMasterProducts = this.splitIntoChunks(storeMasterProducts, 100);
     await BluebirdPromise.each(splittedStoreMasterProducts.toArray(), storeMasterProductChunks =>

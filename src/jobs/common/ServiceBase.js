@@ -2,7 +2,7 @@
 
 import { List, Map } from 'immutable';
 import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
-import { MasterProductService, StoreMasterProductService, TagService } from 'smart-grocery-parse-server-common';
+import { MasterProductService, TagService } from 'smart-grocery-parse-server-common';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
   getTags = async (weight) => {
@@ -19,28 +19,6 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     } finally {
       result.event.unsubscribeAll();
     }
-  };
-
-  getAllStoreMasterProductsWithoutMasterProductLinkSet = async (storeId) => {
-    const criteria = Map({
-      conditions: Map({
-        storeId,
-        without_masterProduct: true,
-      }),
-    });
-
-    let products = List();
-    const result = StoreMasterProductService.searchAll(criteria);
-
-    try {
-      result.event.subscribe(info => (products = products.push(info)));
-
-      await result.promise;
-    } finally {
-      result.event.unsubscribeAll();
-    }
-
-    return products;
   };
 
   getMasterProducts = async ({ name, description, barcode, size }) => {
