@@ -21,7 +21,7 @@ export default class WarehouseService extends ServiceBase {
       barcode: storeMasterProduct.get('barcode'),
     });
 
-    if (!masterProducts.isEmpty()) {
+    if (masterProducts.isEmpty()) {
       return;
     }
 
