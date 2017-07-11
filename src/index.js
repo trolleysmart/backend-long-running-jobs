@@ -48,7 +48,7 @@ backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
   });
 
   const crawlPriceDetailsJob = new cron.CronJob({
-    cronTime: '* * * * *',
+    cronTime: '*/10 * * * *',
     onTick() {
       countdownWebCrawlerService.crawlProductsPriceDetails();
       wareshouseWebCrawlerService.crawlProductsPriceDetails();
