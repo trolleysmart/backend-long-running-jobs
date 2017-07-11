@@ -54,6 +54,7 @@ backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
       wareshouseWebCrawlerService.crawlProductsPriceDetails();
     },
     start: false,
+    runOnInit: true,
     timeZone: 'Pacific/Auckland',
   });
 
