@@ -24,7 +24,6 @@
     "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
-    "cron": "^1.2.1",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.40",
     "micro-business-parse-server-common": "^0.1.83",

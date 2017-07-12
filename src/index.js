@@ -1,9 +1,28 @@
 // @flow
 
 import path from 'path';
-import cron from 'cron';
 import backend from 'micro-business-parse-server-backend';
 import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'store-crawler';
+
+const countdownWebCrawlerService = new CountdownWebCrawlerService({
+  logVerboseFunc: message => console.log(message),
+  logInfoFunc: message => console.log(message),
+  logErrorFunc: message => console.log(message),
+});
+
+const wareshouseWebCrawlerService = new WarehouseWebCrawlerService({
+  logVerboseFunc: message => console.log(message),
+  logInfoFunc: message => console.log(message),
+  logErrorFunc: message => console.log(message),
+});
+
+const crawlCountdownProductsPrices = async () => {
+  countdownWebCrawlerService.crawlProductsPriceDetails().then(() => crawlCountdownProductsPrices()).catch(() => crawlCountdownProductsPrices());
+};
+
+const crawlWarehouseProductsPrices = async () => {
+  wareshouseWebCrawlerService.crawlProductsPriceDetails().then(() => crawlWarehouseProductsPrices()).catch(() => crawlWarehouseProductsPrices());
+};
 
 const backendInfo = backend({
   serverHost: process.env.HOST,
@@ -35,28 +54,6 @@ backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
   console.log('Parse Server Database Uri: ', backendInfo.get('parseServerDatabaseUri'));
   console.log('Parse Server Dashboard Application Name: ', backendInfo.get('parseServerDashboardApplicationName'));
 
-  const countdownWebCrawlerService = new CountdownWebCrawlerService({
-    logVerboseFunc: message => console.log(message),
-    logInfoFunc: message => console.log(message),
-    logErrorFunc: message => console.log(message),
-  });
-
-  const wareshouseWebCrawlerService = new WarehouseWebCrawlerService({
-    logVerboseFunc: message => console.log(message),
-    logInfoFunc: message => console.log(message),
-    logErrorFunc: message => console.log(message),
-  });
-
-  const crawlPriceDetailsJob = new cron.CronJob({
-    cronTime: '*/5 * * * *',
-    onTick() {
-      countdownWebCrawlerService.crawlProductsPriceDetails();
-      wareshouseWebCrawlerService.crawlProductsPriceDetails();
-    },
-    start: false,
-    runOnInit: true,
-    timeZone: 'Pacific/Auckland',
-  });
-
-  crawlPriceDetailsJob.start();
+  crawlCountdownProductsPrices();
+  crawlWarehouseProductsPrices();
 });
