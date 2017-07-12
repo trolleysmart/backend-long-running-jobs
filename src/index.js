@@ -54,6 +54,6 @@ backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
   console.log('Parse Server Database Uri: ', backendInfo.get('parseServerDatabaseUri'));
   console.log('Parse Server Dashboard Application Name: ', backendInfo.get('parseServerDashboardApplicationName'));
 
-  crawlCountdownProductsPrices();
+    /* crawlCountdownProductsPrices();*/
   crawlWarehouseProductsPrices();
 });
