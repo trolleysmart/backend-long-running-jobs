@@ -17,8 +17,14 @@ export default class WarehouseService extends ServiceBase {
   };
 
   setMasterProductLink = async (storeMasterProduct) => {
+    const barcode = storeMasterProduct.get('barcode');
+
+    if (!barcode) {
+      return;
+    }
+
     const masterProducts = await this.getMasterProducts({
-      barcode: storeMasterProduct.get('barcode'),
+      barcode,
     });
 
     if (masterProducts.isEmpty()) {

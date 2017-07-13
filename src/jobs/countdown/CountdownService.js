@@ -148,6 +148,8 @@ export default class CountdownService extends ServiceBase {
     });
 
     if (!masterProducts.isEmpty()) {
+      await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProducts.first().get('id')));
+
       return;
     }
 
