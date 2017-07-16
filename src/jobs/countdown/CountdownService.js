@@ -6,18 +6,18 @@ import { MasterProductService, StoreTagService, StoreMasterProductService, TagSe
 import { ServiceBase } from '../common';
 
 export default class CountdownService extends ServiceBase {
-  syncTags = async () => {
-    const store = await this.getStore('Countdown');
+  syncTags = async (sessionToken) => {
+    const store = await this.getStore('Countdown', sessionToken);
     const storeId = store.get('id');
-    const storeTags = await this.getStoreTags(storeId);
+    const storeTags = await this.getStoreTags(storeId, false, sessionToken);
 
-    await this.syncLevelOneTags(storeTags);
-    await this.syncLevelTwoTags(storeTags);
-    await this.syncLevelThreeTags(storeTags);
+    await this.syncLevelOneTags(storeTags, sessionToken);
+    await this.syncLevelTwoTags(storeTags, sessionToken);
+    await this.syncLevelThreeTags(storeTags, sessionToken);
   };
 
-  syncLevelOneTags = async (storeTags) => {
-    const levelOneTags = await this.getTags(1);
+  syncLevelOneTags = async (storeTags, sessionToken) => {
+    const levelOneTags = await this.getTags(1, sessionToken);
     const levelOneStoreTags = storeTags.filter(storeTag => storeTag.get('weight') === 1);
     const levelOneTagsToCreate = levelOneStoreTags.filterNot(storeTag =>
       levelOneTags.find(tag => tag.get('key').localeCompare(storeTag.get('key') === 0)),
@@ -26,13 +26,15 @@ export default class CountdownService extends ServiceBase {
     const splittedTags = this.splitIntoChunks(levelOneTagsToCreate, 100);
 
     await BluebirdPromise.each(splittedTags.toArray(), tagsChunks =>
-      Promise.all(tagsChunks.map(tag => TagService.create(tag.delete('storeTags').delete('tag').delete('store').delete('url'))).toArray()),
+      Promise.all(
+        tagsChunks.map(tag => TagService.create(tag.delete('storeTags').delete('tag').delete('store').delete('url'), null, sessionToken)).toArray(),
+      ),
     );
   };
 
-  syncLevelTwoTags = async (storeTags) => {
-    const levelOneTags = await this.getTags(1);
-    const levelTwoTags = await this.getTags(2);
+  syncLevelTwoTags = async (storeTags, sessionToken) => {
+    const levelOneTags = await this.getTags(1, sessionToken);
+    const levelTwoTags = await this.getTags(2, sessionToken);
     const levelOneStoreTags = storeTags.filter(storeTag => storeTag.get('weight') === 1);
     const levelTwoStoreTags = storeTags.filter(storeTag => storeTag.get('weight') === 2);
     const levelTwoTagsToCreate = levelTwoStoreTags.filterNot(storeTag =>
@@ -61,6 +63,8 @@ export default class CountdownService extends ServiceBase {
                     )
                     .map(levelOneTag => levelOneTag.get('id')),
                 ),
+              null,
+              sessionToken,
             ),
           )
           .toArray(),
@@ -68,9 +72,9 @@ export default class CountdownService extends ServiceBase {
     );
   };
 
-  syncLevelThreeTags = async (storeTags) => {
-    const levelTwoTags = await this.getTags(2);
-    const levelThreeTags = await this.getTags(3);
+  syncLevelThreeTags = async (storeTags, sessionToken) => {
+    const levelTwoTags = await this.getTags(2, sessionToken);
+    const levelThreeTags = await this.getTags(3, sessionToken);
     const levelTwoStoreTags = storeTags.filter(storeTag => storeTag.get('weight') === 2);
     const levelThreeStoreTags = storeTags.filter(storeTag => storeTag.get('weight') === 3);
     const levelThreeTagsToCreate = levelThreeStoreTags.filterNot(storeTag =>
@@ -99,6 +103,8 @@ export default class CountdownService extends ServiceBase {
                     )
                     .map(levelTwoTag => levelTwoTag.get('id')),
                 ),
+              null,
+              sessionToken,
             ),
           )
           .toArray(),
@@ -106,11 +112,11 @@ export default class CountdownService extends ServiceBase {
     );
   };
 
-  updateStoreTags = async () => {
-    const store = await this.getStore('Countdown');
+  updateStoreTags = async (sessionToken) => {
+    const store = await this.getStore('Countdown', sessionToken);
     const storeId = store.get('id');
-    const storeTags = await this.getStoreTags(storeId);
-    const tags = await this.getTags();
+    const storeTags = await this.getStoreTags(storeId, false, sessionToken);
+    const tags = await this.getTags(null, sessionToken);
 
     const splittedStoreTags = this.splitIntoChunks(storeTags, 100);
 
@@ -120,35 +126,38 @@ export default class CountdownService extends ServiceBase {
           .map((storeTag) => {
             const foundTag = tags.find(tag => tag.get('key').localeCompare(storeTag.get('key')) === 0);
 
-            return StoreTagService.update(storeTag.set('tagId', foundTag ? foundTag.get('id') : null));
+            return StoreTagService.update(storeTag.set('tagId', foundTag ? foundTag.get('id') : null), sessionToken);
           })
           .toArray(),
       ),
     );
   };
 
-  syncStoreMasterProductsToMasterProducts = async () => {
-    const store = await this.getStore('Countdown');
+  syncStoreMasterProductsToMasterProducts = async (sessionToken) => {
+    const store = await this.getStore('Countdown', sessionToken);
     const storeId = store.get('id');
-    const storeTags = await this.getStoreTags(storeId, true);
-    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProduct(storeId);
+    const storeTags = await this.getStoreTags(storeId, true, sessionToken);
+    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProduct(storeId, sessionToken);
     const splittedStoreMasterProducts = this.splitIntoChunks(storeMasterProducts, 100);
 
     await BluebirdPromise.each(splittedStoreMasterProducts.toArray(), storeMasterProductChunks =>
-      Promise.all(storeMasterProductChunks.map(storeMasterProduct => this.setMasterProductLink(storeMasterProduct, storeTags))),
+      Promise.all(storeMasterProductChunks.map(storeMasterProduct => this.setMasterProductLink(storeMasterProduct, storeTags, sessionToken))),
     );
   };
 
-  setMasterProductLink = async (storeMasterProduct, storeTags) => {
-    const masterProducts = await this.getMasterProducts({
-      name: storeMasterProduct.get('name'),
-      description: storeMasterProduct.get('description'),
-      barcode: storeMasterProduct.get('barcode'),
-      size: storeMasterProduct.get('size'),
-    });
+  setMasterProductLink = async (storeMasterProduct, storeTags, sessionToken) => {
+    const masterProducts = await this.getMasterProducts(
+      {
+        name: storeMasterProduct.get('name'),
+        description: storeMasterProduct.get('description'),
+        barcode: storeMasterProduct.get('barcode'),
+        size: storeMasterProduct.get('size'),
+      },
+      sessionToken,
+    );
 
     if (!masterProducts.isEmpty()) {
-      await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProducts.first().get('id')));
+      await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProducts.first().get('id')), sessionToken);
 
       return;
     }
@@ -165,8 +174,10 @@ export default class CountdownService extends ServiceBase {
           .map(storeTagId => storeTags.find(storeTag => storeTag.get('id').localeCompare(storeTagId) === 0))
           .map(storeTag => storeTag.get('tagId')),
       }),
+      null,
+      sessionToken,
     );
 
-    await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProductId));
+    await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProductId), sessionToken);
   };
 }

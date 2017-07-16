@@ -5,8 +5,8 @@ import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
 import { MasterProductService, TagService } from 'smart-grocery-parse-server-common';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
-  getTags = async (weight) => {
-    const result = TagService.searchAll(Map({ conditions: Map({ weight: weight || undefined }) }));
+  getTags = async (weight, sessionToken) => {
+    const result = TagService.searchAll(Map({ conditions: Map({ weight: weight || undefined }) }), sessionToken);
 
     try {
       let tags = List();
@@ -21,11 +21,11 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     }
   };
 
-  getMasterProducts = async ({ name, description, barcode, size }) => {
+  getMasterProducts = async ({ name, description, barcode, size }, sessionToken) => {
     const criteria = Map({
       conditions: Map({ name, description, barcode, size }),
     });
 
-    return MasterProductService.search(criteria);
+    return MasterProductService.search(criteria, sessionToken);
   };
 }

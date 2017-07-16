@@ -3,6 +3,7 @@
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
 import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'store-crawler';
+import { ParseWrapperService } from 'micro-business-parse-server-common';
 
 const countdownWebCrawlerService = new CountdownWebCrawlerService({
   logVerboseFunc: message => console.log(message),
@@ -16,12 +17,26 @@ const wareshouseWebCrawlerService = new WarehouseWebCrawlerService({
   logErrorFunc: message => console.log(message),
 });
 
-const crawlCountdownProductsPrices = async () => {
-  countdownWebCrawlerService.crawlProductsPriceDetails().then(() => crawlCountdownProductsPrices()).catch(() => crawlCountdownProductsPrices());
+const crawlCountdownProductsPrices = async (sessionToken) => {
+  countdownWebCrawlerService
+    .crawlProductsPriceDetails(null, sessionToken)
+    .then(() => crawlCountdownProductsPrices(sessionToken))
+    .catch(() => crawlCountdownProductsPrices(sessionToken));
 };
 
-const crawlWarehouseProductsPrices = async () => {
-  wareshouseWebCrawlerService.crawlProductsPriceDetails().then(() => crawlWarehouseProductsPrices()).catch(() => crawlWarehouseProductsPrices());
+const crawlWarehouseProductsPrices = async (sessionToken) => {
+  wareshouseWebCrawlerService
+    .crawlProductsPriceDetails(null, sessionToken)
+    .then(() => crawlWarehouseProductsPrices(sessionToken))
+    .catch(() => crawlWarehouseProductsPrices(sessionToken));
+};
+
+const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
+  const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
+  const sessionToken = user.getSessionToken();
+
+  crawlCountdownProductsPrices(sessionToken);
+  crawlWarehouseProductsPrices(sessionToken);
 };
 
 const backendInfo = backend({
@@ -39,12 +54,11 @@ const backendInfo = backend({
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-process.on('SIGINT', () => process.exit());
+process.on('SIGINT', () => ParseWrapperService.logOut().then(() => process.exit()).catch(() => process.exit()));
 
 backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
   console.log('Smart Grocery backend (jobs) started.');
   console.log(JSON.stringify(backendInfo.toJS(), null, 2));
 
-  crawlCountdownProductsPrices();
-  crawlWarehouseProductsPrices();
+  crawlPriceDetails(process.env.CRAWLER_USERNAME, process.env.CRAWLER_PASSWORD);
 });

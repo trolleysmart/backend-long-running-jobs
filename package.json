@@ -26,9 +26,9 @@
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.43",
-    "micro-business-parse-server-common": "^0.1.89",
-    "smart-grocery-parse-server-common": "^0.1.184",
-    "store-crawler": "^0.1.200"
+    "micro-business-parse-server-common": "^0.1.90",
+    "smart-grocery-parse-server-common": "^0.1.186",
+    "store-crawler": "^0.1.205"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
