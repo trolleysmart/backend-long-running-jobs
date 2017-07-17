@@ -26,9 +26,9 @@
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.43",
-    "micro-business-parse-server-common": "^0.1.90",
-    "smart-grocery-parse-server-common": "^0.1.187",
-    "store-crawler": "^0.1.206"
+    "micro-business-parse-server-common": "^0.1.92",
+    "smart-grocery-parse-server-common": "^0.1.188",
+    "store-crawler": "^0.1.207"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
@@ -39,7 +39,7 @@
     "eslint-plugin-react": "^7.1.0",
     "flow-bin": "^0.50.0",
     "jest": "^20.0.4",
-    "lint-staged": "^4.0.1",
+    "lint-staged": "^4.0.2",
     "nodemon": "^1.11.0",
     "prettier": "^1.5.3",
     "uuid": "^3.1.0"
