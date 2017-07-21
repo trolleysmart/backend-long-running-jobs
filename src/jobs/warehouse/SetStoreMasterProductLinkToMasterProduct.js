@@ -18,8 +18,8 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logErrorFunc: message => log.error(message),
   });
 
-  try {
-    await service.setStoreMasterProductLinkToMasterProduct();
+    try {
+    await service.setStoreMasterProductLinkToMasterProduct(global.parseServerSessionToken);
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

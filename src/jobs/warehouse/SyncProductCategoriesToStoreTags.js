@@ -19,7 +19,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
   });
 
   try {
-    await service.syncProductCategoriesToStoreTags();
+    await service.syncProductCategoriesToStoreTags(global.parseServerSessionToken);
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

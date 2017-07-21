@@ -19,10 +19,10 @@ Parse.Cloud.job(jobName, async (request, status) => {
   });
 
   try {
-    await webCrawlerService.crawlProductCategories();
-    await webCrawlerService.syncProductCategoriesToStoreTags();
-    await webCrawlerService.crawlProducts();
-    await webCrawlerService.crawlProductsDetails();
+    await webCrawlerService.crawlProductCategories(null, global.parseServerSessionToken);
+    await webCrawlerService.syncProductCategoriesToStoreTags(global.parseServerSessionToken);
+    await webCrawlerService.crawlProducts(null, global.parseServerSessionToken);
+    await webCrawlerService.crawlProductsDetails(null, global.parseServerSessionToken);
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

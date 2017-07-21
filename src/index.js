@@ -33,10 +33,10 @@ const crawlWarehouseProductsPrices = async (sessionToken) => {
 
 const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
   const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
-  const sessionToken = user.getSessionToken();
+  global.parseServerSessionToken = user.getSessionToken();
 
-  crawlCountdownProductsPrices(sessionToken);
-  crawlWarehouseProductsPrices(sessionToken);
+  crawlCountdownProductsPrices(global.parseServerSessionToken);
+  crawlWarehouseProductsPrices(global.parseServerSessionToken);
 };
 
 const backendInfo = backend({
