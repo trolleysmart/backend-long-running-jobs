@@ -166,7 +166,7 @@ export default class CountdownService extends ServiceBase {
       Map({
         name: storeMasterProduct.get('name'),
         description: storeMasterProduct.get('description'),
-        imageUrl: storeMasterProduct.get('imageUrl'),
+        importedImageUrl: storeMasterProduct.get('imageUrl'),
         barcode: storeMasterProduct.get('barcode'),
         size: storeMasterProduct.get('size'),
         tagIds: storeMasterProduct
