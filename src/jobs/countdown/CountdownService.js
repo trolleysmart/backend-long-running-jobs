@@ -137,7 +137,7 @@ export default class CountdownService extends ServiceBase {
     const store = await this.getStore('Countdown', sessionToken);
     const storeId = store.get('id');
     const storeTags = await this.getStoreTags(storeId, true, sessionToken);
-    const storeMasterProducts = await this.getAllStoreMasterProductsWithoutMasterProduct(storeId, sessionToken);
+    const storeMasterProducts = await this.getAllStoreMasterProducts(storeId, sessionToken);
     const splittedStoreMasterProducts = this.splitIntoChunks(storeMasterProducts, 100);
 
     await BluebirdPromise.each(splittedStoreMasterProducts.toArray(), storeMasterProductChunks =>
@@ -157,7 +157,26 @@ export default class CountdownService extends ServiceBase {
     );
 
     if (!masterProducts.isEmpty()) {
-      await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProducts.first().get('id')), sessionToken);
+      const masterProduct = masterProducts.first();
+
+      await MasterProductService.update(
+        masterProduct.merge(
+          Map({
+            name: storeMasterProduct.get('name'),
+            description: storeMasterProduct.get('description'),
+            importedImageUrl: storeMasterProduct.get('imageUrl'),
+            barcode: storeMasterProduct.get('barcode'),
+            size: storeMasterProduct.get('size'),
+            tagIds: storeMasterProduct
+              .get('storeTagIds')
+              .map(storeTagId => storeTags.find(storeTag => storeTag.get('id').localeCompare(storeTagId) === 0))
+              .map(storeTag => storeTag.get('tagId')),
+          }),
+        ),
+        sessionToken,
+      );
+
+      await StoreMasterProductService.update(storeMasterProduct.set('masterProductId', masterProduct.get('id')), sessionToken);
 
       return;
     }
