@@ -11,7 +11,9 @@ export default class ServiceBase extends StoreCrawlerServiceBase {
     try {
       let tags = List();
 
-      result.event.subscribe(info => (tags = tags.push(info)));
+      result.event.subscribe((info) => {
+        tags = tags.push(info);
+      });
 
       await result.promise;
 
