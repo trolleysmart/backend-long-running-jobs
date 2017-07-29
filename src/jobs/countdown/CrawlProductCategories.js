@@ -1,7 +1,7 @@
 // @flow
 
 import { Exception } from 'micro-business-parse-server-common';
-import { CountdownWebCrawlerService } from 'store-crawler';
+import { CountdownWebCrawlerService } from 'trolley-smart-store-crawler';
 
 const jobName = 'Countdown - Crawl Product Categories';
 

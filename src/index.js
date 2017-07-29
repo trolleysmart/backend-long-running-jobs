@@ -2,7 +2,7 @@
 
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
-import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'store-crawler';
+import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 import { ParseWrapperService } from 'micro-business-parse-server-common';
 
 const countdownWebCrawlerService = new CountdownWebCrawlerService({

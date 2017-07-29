@@ -2,7 +2,7 @@
 
 import BluebirdPromise from 'bluebird';
 import { Map } from 'immutable';
-import { MasterProductService, StoreTagService, StoreMasterProductService, TagService } from 'smart-grocery-parse-server-common';
+import { MasterProductService, StoreTagService, StoreMasterProductService, TagService } from 'trolley-smart-parse-server-common';
 import { ServiceBase } from '../common';
 
 export default class CountdownService extends ServiceBase {

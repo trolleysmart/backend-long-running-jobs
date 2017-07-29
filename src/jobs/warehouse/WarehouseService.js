@@ -1,7 +1,7 @@
 // @flow
 
 import BluebirdPromise from 'bluebird';
-import { StoreMasterProductService } from 'smart-grocery-parse-server-common';
+import { StoreMasterProductService } from 'trolley-smart-parse-server-common';
 import { ServiceBase } from '../common';
 
 export default class WarehouseService extends ServiceBase {

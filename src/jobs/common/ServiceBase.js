@@ -1,8 +1,8 @@
 // @flow
 
 import { List, Map } from 'immutable';
-import { ServiceBase as StoreCrawlerServiceBase } from 'store-crawler';
-import { MasterProductService, TagService } from 'smart-grocery-parse-server-common';
+import { ServiceBase as StoreCrawlerServiceBase } from 'trolley-smart-store-crawler';
+import { MasterProductService, TagService } from 'trolley-smart-parse-server-common';
 
 export default class ServiceBase extends StoreCrawlerServiceBase {
   getTags = async (weight, sessionToken) => {

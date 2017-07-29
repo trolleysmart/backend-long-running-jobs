@@ -1,7 +1,7 @@
 {
-  "name": "smart-grocery-backend-long-running-jobs",
+  "name": "trolley-smart-backend-long-running-jobs",
   "version": "0.1.0",
-  "description": "Smart Grocery Backend Long Running Jobs",
+  "description": "Trolley Smart Backend Long Running Jobs",
   "main": "src/index.js",
   "scripts": {
     "start": "babel-node src/index.js",
@@ -17,7 +17,7 @@
     "lint:staged": "lint-staged"
   },
   "author": "Micro Business ltd<micro.business.ltd@gmail.com>",
-  "homepage": "https://bitbucket.org/microbusiness/smart-grocery-backend-long-running-jobs#readme",
+  "homepage": "https://bitbucket.org/microbusiness/trolley-smart-backend-long-running-jobs#readme",
   "dependencies": {
     "babel-cli": "^6.24.1",
     "babel-preset-es2015": "^6.24.1",
@@ -25,10 +25,10 @@
     "babel-preset-stage-0": "^6.24.1",
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
-    "micro-business-parse-server-backend": "^0.1.46",
-    "micro-business-parse-server-common": "^0.1.94",
-    "smart-grocery-parse-server-common": "^0.1.196",
-    "store-crawler": "^0.1.224"
+    "micro-business-parse-server-backend": "^0.1.47",
+    "micro-business-parse-server-common": "^0.1.95",
+    "trolley-smart-parse-server-common": "^0.1.198",
+    "trolley-smart-store-crawler": "^0.1.226"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
@@ -50,7 +50,7 @@
   "pre-commit": "lint:staged",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/microbusiness/smart-grocery-backend-long-running-jobs.git"
+    "url": "git+ssh://git@bitbucket.org/microbusiness/trolley-smart-backend-long-running-jobs.git"
   },
   "lint-staged": {
     "*.js": [

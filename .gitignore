@@ -56,4 +56,5 @@ fastlane/screenshots
 
 /logs
 package-lock.json
+yarn.lock
 newrelic_agent.log

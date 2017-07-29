@@ -1,7 +1,7 @@
 // @flow
 
 import { Exception } from 'micro-business-parse-server-common';
-import { WarehouseWebCrawlerService } from 'store-crawler';
+import { WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 
 const jobName = 'Warehouse - Crawl Products';
 
