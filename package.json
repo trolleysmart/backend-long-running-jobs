@@ -28,7 +28,7 @@
     "micro-business-parse-server-backend": "^0.1.50",
     "micro-business-parse-server-common": "^0.1.95",
     "trolley-smart-parse-server-common": "^0.1.200",
-    "trolley-smart-store-crawler": "^0.1.228"
+    "trolley-smart-store-crawler": "^0.1.229"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
