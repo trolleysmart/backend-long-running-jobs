@@ -27,8 +27,8 @@
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^0.1.50",
     "micro-business-parse-server-common": "^0.1.95",
-    "trolley-smart-parse-server-common": "^0.1.198",
-    "trolley-smart-store-crawler": "^0.1.226"
+    "trolley-smart-parse-server-common": "^0.1.199",
+    "trolley-smart-store-crawler": "^0.1.227"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
