@@ -9,34 +9,36 @@ const countdownWebCrawlerService = new CountdownWebCrawlerService({
   logVerboseFunc: message => console.log(message),
   logInfoFunc: message => console.log(message),
   logErrorFunc: message => console.log(message),
+  sessionToken: global.parseServerSessionToken,
 });
 
 const wareshouseWebCrawlerService = new WarehouseWebCrawlerService({
   logVerboseFunc: message => console.log(message),
   logInfoFunc: message => console.log(message),
   logErrorFunc: message => console.log(message),
+  sessionToken: global.parseServerSessionToken,
 });
 
-const crawlCountdownProductsPrices = async (sessionToken) => {
+const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
   countdownWebCrawlerService
-    .crawlProductsPriceDetails(null, sessionToken)
-    .then(() => crawlCountdownProductsPrices(sessionToken))
-    .catch(() => crawlCountdownProductsPrices(sessionToken));
+    .crawlProductsDetailsAndCurrentPrice(null, sessionToken)
+    .then(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken))
+    .catch(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken));
 };
 
-const crawlWarehouseProductsPrices = async (sessionToken) => {
+const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
   wareshouseWebCrawlerService
-    .crawlProductsPriceDetails(null, sessionToken)
-    .then(() => crawlWarehouseProductsPrices(sessionToken))
-    .catch(() => crawlWarehouseProductsPrices(sessionToken));
+    .crawlProductsDetailsAndCurrentPrice(null, sessionToken)
+    .then(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken))
+    .catch(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken));
 };
 
 const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
-    /* const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
+  /* const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
      * global.parseServerSessionToken = user.getSessionToken();
      */
-  /* crawlCountdownProductsPrices(global.parseServerSessionToken);
-     * crawlWarehouseProductsPrices(global.parseServerSessionToken); */
+  crawlCountdownProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
+  crawlWarehouseProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
 };
 
 const backendInfo = backend({
