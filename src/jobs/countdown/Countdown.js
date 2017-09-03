@@ -1,6 +1,6 @@
 // @flow
 
-import { Exception } from 'micro-business-parse-server-common';
+import { Exception } from 'micro-business-common-javascript';
 import { CountdownWebCrawlerService } from 'trolley-smart-store-crawler';
 
 const jobName = 'Countdown';
@@ -16,13 +16,15 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
+    sessionToken: global.parseServerSessionToken,
   });
 
   try {
-    await webCrawlerService.crawlProductCategories(null, global.parseServerSessionToken);
-    await webCrawlerService.syncProductCategoriesToStoreTags(global.parseServerSessionToken);
-    await webCrawlerService.crawlProducts(null, global.parseServerSessionToken);
-    await webCrawlerService.crawlProductsDetails(null, global.parseServerSessionToken);
+    await webCrawlerService.crawlAndSyncProductCategoriesToStoreTags();
+    await webCrawlerService.syncTags();
+    await webCrawlerService.updateStoreTags();
+    await webCrawlerService.crawlProducts();
+    await webCrawlerService.crawlProductsDetailsAndCurrentPrice();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

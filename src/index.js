@@ -32,11 +32,11 @@ const crawlWarehouseProductsPrices = async (sessionToken) => {
 };
 
 const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
-  const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
-  global.parseServerSessionToken = user.getSessionToken();
-
-  crawlCountdownProductsPrices(global.parseServerSessionToken);
-  crawlWarehouseProductsPrices(global.parseServerSessionToken);
+    /* const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
+     * global.parseServerSessionToken = user.getSessionToken();
+     */
+  /* crawlCountdownProductsPrices(global.parseServerSessionToken);
+     * crawlWarehouseProductsPrices(global.parseServerSessionToken); */
 };
 
 const backendInfo = backend({
@@ -54,10 +54,14 @@ const backendInfo = backend({
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
 });
 
-process.on('SIGINT', () => ParseWrapperService.logOut().then(() => process.exit()).catch(() => process.exit()));
+process.on('SIGINT', () =>
+  ParseWrapperService.logOut()
+    .then(() => process.exit())
+    .catch(() => process.exit()),
+);
 
 backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
-  console.log('Smart Grocery backend (jobs) started.');
+  console.log('TrolleySmart backend (jobs) started.');
   console.log(JSON.stringify(backendInfo.toJS(), null, 2));
 
   crawlPriceDetails(process.env.CRAWLER_USERNAME, process.env.CRAWLER_PASSWORD);

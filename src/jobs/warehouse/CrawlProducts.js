@@ -1,9 +1,9 @@
 // @flow
 
-import { Exception } from 'micro-business-parse-server-common';
+import { Exception } from 'micro-business-common-javascript';
 import { WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 
-const jobName = 'Warehouse - Crawl Products';
+const jobName = 'Warehouse - Crawl products';
 
 Parse.Cloud.job(jobName, async (request, status) => {
   // eslint-disable-line no-undef
@@ -12,14 +12,15 @@ Parse.Cloud.job(jobName, async (request, status) => {
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
 
-  const service = new WarehouseWebCrawlerService({
+  const webCrawlerService = new WarehouseWebCrawlerService({
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
+    sessionToken: global.parseServerSessionToken,
   });
 
   try {
-    await service.crawlProducts(null, global.parseServerSessionToken);
+    await webCrawlerService.crawlProducts();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

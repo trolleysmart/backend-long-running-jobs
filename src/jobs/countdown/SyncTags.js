@@ -1,9 +1,9 @@
 // @flow
 
-import { Exception } from 'micro-business-parse-server-common';
-import CountdownService from './CountdownService';
+import { Exception } from 'micro-business-common-javascript';
+import { CountdownWebCrawlerService } from 'trolley-smart-store-crawler';
 
-const jobName = 'Countdown - Sync Tags';
+const jobName = 'Countdown - Sync tags';
 
 Parse.Cloud.job(jobName, async (request, status) => {
   // eslint-disable-line no-undef
@@ -12,14 +12,15 @@ Parse.Cloud.job(jobName, async (request, status) => {
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
 
-  const service = new CountdownService({
+  const webCrawlerService = new CountdownWebCrawlerService({
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
+    sessionToken: global.parseServerSessionToken,
   });
 
   try {
-    await service.syncTags(global.parseServerSessionToken);
+    await webCrawlerService.syncTags();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

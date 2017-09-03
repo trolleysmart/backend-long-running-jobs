@@ -1,11 +1,8 @@
 // @flow
 
 import './Countdown';
+import './CrawlAndSyncProductCategoriesToStoreTags';
+import './CrawlProducts';
+import './CrawlProductsDetailsAndCurrentPrice';
 import './SyncTags';
 import './UpdateStoreTags';
-import './SyncStoreMasterProductsToMasterProducts';
-import './CrawlProductCategories';
-import './SyncProductCategoriesToStoreTags';
-import './CrawlProducts';
-import './CrawlProductsDetails';
-import './CrawlProductsPriceDetails';
