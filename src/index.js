@@ -54,6 +54,7 @@ const backendInfo = backend({
   parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
+  parseServerAllowClientClassCreation: process.env.PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION,
 });
 
 process.on('SIGINT', () =>
