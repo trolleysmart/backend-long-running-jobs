@@ -34,9 +34,9 @@ const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
 };
 
 const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
-  /* const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
-     * global.parseServerSessionToken = user.getSessionToken();
-     */
+  const user = await ParseWrapperService.logIn(crawlerUsername, crawlerPassword);
+  global.parseServerSessionToken = user.getSessionToken();
+
   crawlCountdownProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
   crawlWarehouseProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
 };

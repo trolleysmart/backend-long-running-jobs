@@ -1,6 +1,6 @@
 {
   "name": "trolley-smart-backend-long-running-jobs",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.1",
   "description": "Trolley Smart Backend Long Running Jobs",
   "main": "src/index.js",
   "scripts": {
@@ -29,11 +29,11 @@
     "micro-business-parse-server-backend": "^1.0.0-alpha.1",
     "micro-business-parse-server-common": "^1.0.2-alpha.21",
     "trolley-smart-parse-server-common": "^1.0.0-alpha.5",
-    "trolley-smart-store-crawler": "^1.0.0-alpha.7"
+    "trolley-smart-store-crawler": "^1.0.0-alpha.8"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
-    "eslint": "^4.6.0",
+    "eslint": "^4.6.1",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-jsx-a11y": "6.0.2",
