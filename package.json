@@ -1,6 +1,6 @@
 {
   "name": "trolley-smart-backend-long-running-jobs",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "Trolley Smart Backend Long Running Jobs",
   "main": "src/index.js",
   "scripts": {
@@ -26,9 +26,9 @@
     "bluebird": "^3.5.0",
     "immutable": "^3.8.1",
     "micro-business-parse-server-backend": "^1.0.0-alpha.1",
-    "micro-business-parse-server-common": "^1.0.2-alpha.23",
-    "trolley-smart-parse-server-common": "^1.0.0-alpha.6",
-    "trolley-smart-store-crawler": "^1.0.0-alpha.10"
+    "micro-business-parse-server-common": "^1.0.2-alpha.25",
+    "trolley-smart-parse-server-common": "^1.0.0-alpha.7",
+    "trolley-smart-store-crawler": "^1.0.0-alpha.11"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
@@ -38,7 +38,7 @@
     "eslint-plugin-jsx-a11y": "6.0.2",
     "eslint-plugin-react": "^7.3.0",
     "flow-bin": "^0.54.1",
-    "jest": "^21.0.1",
+    "jest": "^21.0.2",
     "lint-staged": "^4.1.3",
     "nodemon": "^1.12.0",
     "prettier": "^1.6.1",
