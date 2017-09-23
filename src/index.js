@@ -5,30 +5,41 @@ import backend from 'micro-business-parse-server-backend';
 import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 import { ParseWrapperService } from 'micro-business-parse-server-common';
 
+let countdownStoreTags;
+let warehouseStoreTags;
+
 const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
-  const countdownWebCrawlerService = new CountdownWebCrawlerService({
+  const service = new CountdownWebCrawlerService({
     logVerboseFunc: message => console.log(message),
     logInfoFunc: message => console.log(message),
     logErrorFunc: message => console.log(message),
     sessionToken,
   });
 
-  countdownWebCrawlerService
-    .crawlProductsDetailsAndCurrentPrice(null, sessionToken)
+  if (countdownStoreTags) {
+    countdownStoreTags = await service.getStoreTags();
+  }
+
+  service
+    .crawlProductsDetailsAndCurrentPrice(countdownStoreTags)
     .then(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken))
     .catch(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken));
 };
 
 const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
-  const wareshouseWebCrawlerService = new WarehouseWebCrawlerService({
+  const service = new WarehouseWebCrawlerService({
     logVerboseFunc: message => console.log(message),
     logInfoFunc: message => console.log(message),
     logErrorFunc: message => console.log(message),
     sessionToken,
   });
 
-  wareshouseWebCrawlerService
-    .crawlProductsDetailsAndCurrentPrice(null, sessionToken)
+  if (warehouseStoreTags) {
+    warehouseStoreTags = await service.getStoreTags();
+  }
+
+  service
+    .crawlProductsDetailsAndCurrentPrice(warehouseStoreTags)
     .then(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken))
     .catch(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken));
 };
