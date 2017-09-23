@@ -16,9 +16,7 @@ const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
     sessionToken,
   });
 
-  if (!countdownStoreTags) {
-    countdownStoreTags = await service.getStoreTags();
-  }
+  countdownStoreTags = countdownStoreTags || (await service.getStoreTags());
 
   service
     .crawlProductsDetailsAndCurrentPrice(countdownStoreTags)
@@ -34,9 +32,7 @@ const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
     sessionToken,
   });
 
-  if (!warehouseStoreTags) {
-    warehouseStoreTags = await service.getStoreTags();
-  }
+  warehouseStoreTags = warehouseStoreTags || (await service.getStoreTags());
 
   service
     .crawlProductsDetailsAndCurrentPrice(warehouseStoreTags)
