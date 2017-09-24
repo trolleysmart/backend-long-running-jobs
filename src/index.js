@@ -2,10 +2,11 @@
 
 import path from 'path';
 import backend from 'micro-business-parse-server-backend';
-import { CountdownWebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
+import { CountdownWebCrawlerService, Health2000WebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 import { ParseWrapperService } from 'micro-business-parse-server-common';
 
 let countdownStoreTags;
+let health2000StoreTags;
 let warehouseStoreTags;
 
 const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
@@ -22,6 +23,22 @@ const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
     .crawlProductsDetailsAndCurrentPrice(countdownStoreTags)
     .then(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken))
     .catch(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken));
+};
+
+const crawlHealth2000ProductsDetailsAndCurrentPrice = async (sessionToken) => {
+  const service = new Health2000WebCrawlerService({
+    logVerboseFunc: message => console.log(message),
+    logInfoFunc: message => console.log(message),
+    logErrorFunc: message => console.log(message),
+    sessionToken,
+  });
+
+  health2000StoreTags = health2000StoreTags || (await service.getStoreTags());
+
+  service
+    .crawlProductsDetailsAndCurrentPrice(health2000StoreTags)
+    .then(() => crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken))
+    .catch(() => crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken));
 };
 
 const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
@@ -45,6 +62,7 @@ const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
   global.parseServerSessionToken = user.getSessionToken();
 
   crawlCountdownProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
+  crawlHealth2000ProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
   crawlWarehouseProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
 };
 
