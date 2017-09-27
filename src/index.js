@@ -1,7 +1,8 @@
 // @flow
 
+import express from 'express';
 import path from 'path';
-import backend from 'micro-business-parse-server-backend';
+import parseServerBackend from 'micro-business-parse-server-backend';
 import { CountdownWebCrawlerService, Health2000WebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 import { ParseWrapperService } from 'micro-business-parse-server-common';
 
@@ -66,7 +67,7 @@ const crawlPriceDetails = async (crawlerUsername, crawlerPassword) => {
   crawlWarehouseProductsDetailsAndCurrentPrice(global.parseServerSessionToken);
 };
 
-const backendInfo = backend({
+const parseServerBackendInfo = parseServerBackend({
   serverHost: process.env.HOST,
   serverPort: process.env.PORT,
   parseServerApplicationId: process.env.PARSE_SERVER_APPLICATION_ID,
@@ -82,15 +83,23 @@ const backendInfo = backend({
   parseServerAllowClientClassCreation: process.env.PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION,
 });
 
+const expressServer = express();
+
+expressServer.use('/parse', parseServerBackendInfo.get('parseServer'));
+
+if (parseServerBackendInfo.has('parseDashboard') && parseServerBackendInfo.get('parseDashboard')) {
+  expressServer.use('/dashboard', parseServerBackendInfo.get('parseDashboard'));
+}
+
 process.on('SIGINT', () =>
   ParseWrapperService.logOut()
     .then(() => process.exit())
     .catch(() => process.exit()),
 );
 
-backendInfo.get('server').listen(backendInfo.get('serverPort'), () => {
-  console.log('TrolleySmart backend (jobs) started.');
-  console.log(JSON.stringify(backendInfo.toJS(), null, 2));
+expressServer.listen(parseServerBackendInfo.getIn(['config', 'serverPort']), () => {
+  console.log('TrolleySmart backend (long running jobs) started.');
+  console.log(JSON.stringify(parseServerBackendInfo.get('config').toJS(), null, 2));
 
   crawlPriceDetails(process.env.CRAWLER_USERNAME, process.env.CRAWLER_PASSWORD);
 });
