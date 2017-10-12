@@ -94,8 +94,7 @@ if (parseServerBackendInfo.has('parseDashboard') && parseServerBackendInfo.get('
 process.on('SIGINT', () =>
   ParseWrapperService.logOut()
     .then(() => process.exit())
-    .catch(() => process.exit()),
-);
+    .catch(() => process.exit()));
 
 expressServer.listen(parseServerBackendInfo.getIn(['config', 'serverPort']), () => {
   console.log('TrolleySmart backend (long running jobs) started.');

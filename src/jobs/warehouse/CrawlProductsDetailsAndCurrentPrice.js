@@ -5,8 +5,7 @@ import { WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
 const jobName = 'Warehouse - Crawl products details and current price';
 
 Parse.Cloud.job(jobName, async (request, status) => {
-  // eslint-disable-line no-undef
-  const log = request.log;
+  const { log } = request;
 
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);

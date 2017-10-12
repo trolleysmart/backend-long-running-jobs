@@ -13,7 +13,6 @@ Parse.Cloud.job(jobName, function () {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            // eslint-disable-line no-undef
             log = request.log;
 
 

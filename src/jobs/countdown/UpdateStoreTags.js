@@ -5,8 +5,7 @@ import { CountdownWebCrawlerService } from 'trolley-smart-store-crawler';
 const jobName = 'Countdown - Update store tags';
 
 Parse.Cloud.job(jobName, async (request, status) => {
-  // eslint-disable-line no-undef
-  const log = request.log;
+  const { log } = request;
 
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
