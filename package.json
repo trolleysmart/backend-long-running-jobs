@@ -1,6 +1,6 @@
 {
   "name": "trolley-smart-backend-long-running-jobs",
-  "version": "1.0.0-alpha.23",
+  "version": "1.0.0-alpha.24",
   "description": "Trolley Smart Backend Long Running Jobs",
   "main": "dist/index.js",
   "scripts": {
@@ -34,12 +34,12 @@
   },
   "devDependencies": {
     "babel-eslint": "^8.0.1",
-    "eslint": "^4.8.0",
+    "eslint": "^4.9.0",
     "eslint-config-airbnb": "^16.0.0",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-jsx-a11y": "6.0.2",
     "eslint-plugin-react": "^7.4.0",
-    "flow-bin": "^0.56.0",
+    "flow-bin": "^0.57.2",
     "jest": "^21.2.1",
     "lint-staged": "^4.2.3",
     "nodemon": "^1.12.1",
