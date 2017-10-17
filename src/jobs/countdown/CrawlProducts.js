@@ -1,6 +1,6 @@
 // @flow
 
-import { CountdownWebCrawlerService } from 'trolley-smart-store-crawler';
+import { CountdownWebCrawlerService, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
 
 const jobName = 'Countdown - Crawl products';
 
@@ -15,6 +15,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
     sessionToken: global.parseServerSessionToken,
+    targetCrawledDataStoreType: TargetCrawledDataStoreType.CRAWLED_SPECIFIC_DESIGNED_TABLES,
   });
 
   try {

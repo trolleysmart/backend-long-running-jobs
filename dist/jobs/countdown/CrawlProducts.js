@@ -29,7 +29,8 @@ Parse.Cloud.job(jobName, function () {
               logErrorFunc: function logErrorFunc(message) {
                 return log.error(message);
               },
-              sessionToken: global.parseServerSessionToken
+              sessionToken: global.parseServerSessionToken,
+              targetCrawledDataStoreType: _trolleySmartStoreCrawler.TargetCrawledDataStoreType.CRAWLED_SPECIFIC_DESIGNED_TABLES
             });
             _context.prev = 4;
             _context.next = 7;

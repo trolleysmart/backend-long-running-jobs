@@ -1,6 +1,6 @@
 // @flow
 
-import { Health2000WebCrawlerService } from 'trolley-smart-store-crawler';
+import { Health2000WebCrawlerService, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
 
 const jobName = 'Health2000 - Crawl products details and current price';
 
@@ -15,6 +15,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
     sessionToken: global.parseServerSessionToken,
+    targetCrawledDataStoreType: TargetCrawledDataStoreType.CRAWLED_SPECIFIC_DESIGNED_TABLES,
   });
 
   try {
