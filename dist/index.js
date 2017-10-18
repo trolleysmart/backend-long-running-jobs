@@ -60,8 +60,12 @@ var crawlCountdownProductsDetailsAndCurrentPrice = function () {
             countdownStoreTags = _context.t0;
 
 
-            service.crawlProductsDetailsAndCurrentPrice(countdownStoreTags).then(function () {
-              return crawlCountdownProductsDetailsAndCurrentPrice(sessionToken);
+            service.crawlProductsDetailsAndCurrentPrice(countdownStoreTags).then(function (count) {
+              if (count === 0) {
+                return;
+              }
+
+              crawlCountdownProductsDetailsAndCurrentPrice(sessionToken);
             }).catch(function () {
               return crawlCountdownProductsDetailsAndCurrentPrice(sessionToken);
             });
@@ -115,8 +119,12 @@ var crawlHealth2000ProductsDetailsAndCurrentPrice = function () {
             health2000StoreTags = _context2.t0;
 
 
-            service.crawlProductsDetailsAndCurrentPrice(health2000StoreTags).then(function () {
-              return crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken);
+            service.crawlProductsDetailsAndCurrentPrice(health2000StoreTags).then(function (count) {
+              if (count === 0) {
+                return;
+              }
+
+              crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken);
             }).catch(function () {
               return crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken);
             });
@@ -170,8 +178,12 @@ var crawlWarehouseProductsDetailsAndCurrentPrice = function () {
             warehouseStoreTags = _context3.t0;
 
 
-            service.crawlProductsDetailsAndCurrentPrice(warehouseStoreTags).then(function () {
-              return crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken);
+            service.crawlProductsDetailsAndCurrentPrice(warehouseStoreTags).then(function (count) {
+              if (count === 0) {
+                return;
+              }
+
+              crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken);
             }).catch(function () {
               return crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken);
             });

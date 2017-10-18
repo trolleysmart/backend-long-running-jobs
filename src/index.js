@@ -22,7 +22,13 @@ const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
 
   service
     .crawlProductsDetailsAndCurrentPrice(countdownStoreTags)
-    .then(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken))
+    .then((count) => {
+      if (count === 0) {
+        return;
+      }
+
+      crawlCountdownProductsDetailsAndCurrentPrice(sessionToken);
+    })
     .catch(() => crawlCountdownProductsDetailsAndCurrentPrice(sessionToken));
 };
 
@@ -38,7 +44,13 @@ const crawlHealth2000ProductsDetailsAndCurrentPrice = async (sessionToken) => {
 
   service
     .crawlProductsDetailsAndCurrentPrice(health2000StoreTags)
-    .then(() => crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken))
+    .then((count) => {
+      if (count === 0) {
+        return;
+      }
+
+      crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken);
+    })
     .catch(() => crawlHealth2000ProductsDetailsAndCurrentPrice(sessionToken));
 };
 
@@ -54,7 +66,13 @@ const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
 
   service
     .crawlProductsDetailsAndCurrentPrice(warehouseStoreTags)
-    .then(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken))
+    .then((count) => {
+      if (count === 0) {
+        return;
+      }
+
+      crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken);
+    })
     .catch(() => crawlWarehouseProductsDetailsAndCurrentPrice(sessionToken));
 };
 
