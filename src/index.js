@@ -97,6 +97,7 @@ const parseServerBackendInfo = parseServerBackend({
   startParseDashboard: process.env.START_PARSE_DASHBOARD,
   parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
+  parseServerDashboardAllowInsecureHTTP: process.env.PARSE_SERVER_DASHBOARD_ALLOW_INSECURE_HTTP,
   parseServerCloudFilePath: path.resolve(__dirname, 'cloud.js'),
   parseServerAllowClientClassCreation: process.env.PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION,
 });

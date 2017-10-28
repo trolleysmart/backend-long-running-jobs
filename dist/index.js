@@ -245,6 +245,7 @@ var parseServerBackendInfo = (0, _microBusinessParseServerBackend2.default)({
   startParseDashboard: process.env.START_PARSE_DASHBOARD,
   parseDashboardAuthentication: process.env.PARSE_DASHBOARD_AUTHENTICATION,
   parseServerDashboardApplicationName: process.env.PARSE_SERVER_DASHBOARD_APPLICATION_NAME,
+  parseServerDashboardAllowInsecureHTTP: process.env.PARSE_SERVER_DASHBOARD_ALLOW_INSECURE_HTTP,
   parseServerCloudFilePath: _path2.default.resolve(__dirname, 'cloud.js'),
   parseServerAllowClientClassCreation: process.env.PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION
 });
