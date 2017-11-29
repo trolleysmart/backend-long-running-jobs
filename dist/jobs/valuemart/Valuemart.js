@@ -19,7 +19,7 @@ Parse.Cloud.job(jobName, function () {
             log.info('The job ' + jobName + ' has started.');
             status.message('The job ' + jobName + ' has started.');
 
-            webCrawlerService = new _trolleySmartStoreCrawler.ValuemartWebCrawlerService({
+            webCrawlerService = new _trolleySmartStoreCrawler.Valuemart({
               logVerboseFunc: function logVerboseFunc(message) {
                 return log.info(message);
               },

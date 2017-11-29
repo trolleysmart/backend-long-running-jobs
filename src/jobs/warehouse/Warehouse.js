@@ -1,6 +1,6 @@
 // @flow
 
-import { WarehouseWebCrawlerService, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Warehouse, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
 
 const jobName = 'Warehouse';
 
@@ -10,7 +10,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
 
-  const webCrawlerService = new WarehouseWebCrawlerService({
+  const webCrawlerService = new Warehouse({
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),

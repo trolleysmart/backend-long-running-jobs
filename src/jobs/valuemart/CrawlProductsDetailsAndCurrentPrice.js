@@ -1,6 +1,6 @@
 // @flow
 
-import { ValuemartWebCrawlerService, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Valuemart, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
 
 const jobName = 'Valuemart - Crawl products details and current price';
 
@@ -10,7 +10,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
 
-  const webCrawlerService = new ValuemartWebCrawlerService({
+  const webCrawlerService = new Valuemart({
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),

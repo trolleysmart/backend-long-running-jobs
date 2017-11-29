@@ -4,7 +4,7 @@ var _trolleySmartStoreCrawler = require('trolley-smart-store-crawler');
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var jobName = 'Countdown - Crawl products details and current price';
+var jobName = 'Guruji - Crawl and sync product categories to store tags';
 
 Parse.Cloud.job(jobName, function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(request, status) {
@@ -19,7 +19,7 @@ Parse.Cloud.job(jobName, function () {
             log.info('The job ' + jobName + ' has started.');
             status.message('The job ' + jobName + ' has started.');
 
-            webCrawlerService = new _trolleySmartStoreCrawler.Countdown({
+            webCrawlerService = new _trolleySmartStoreCrawler.Guruji({
               logVerboseFunc: function logVerboseFunc(message) {
                 return log.info(message);
               },
@@ -34,7 +34,7 @@ Parse.Cloud.job(jobName, function () {
             });
             _context.prev = 4;
             _context.next = 7;
-            return webCrawlerService.crawlProductsDetailsAndCurrentPrice();
+            return webCrawlerService.crawlAndSyncProductCategoriesToStoreTags();
 
           case 7:
 

@@ -1,8 +1,8 @@
 // @flow
 
-import { Countdown, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Guruji, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
 
-const jobName = 'Countdown - Crawl and sync product categories to store tags';
+const jobName = 'Guruji - Crawl products details and current price';
 
 Parse.Cloud.job(jobName, async (request, status) => {
   const { log } = request;
@@ -10,7 +10,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
   log.info(`The job ${jobName} has started.`);
   status.message(`The job ${jobName} has started.`);
 
-  const webCrawlerService = new Countdown({
+  const webCrawlerService = new Guruji({
     logVerboseFunc: message => log.info(message),
     logInfoFunc: message => log.info(message),
     logErrorFunc: message => log.error(message),
@@ -19,7 +19,7 @@ Parse.Cloud.job(jobName, async (request, status) => {
   });
 
   try {
-    await webCrawlerService.crawlAndSyncProductCategoriesToStoreTags();
+    await webCrawlerService.crawlProductsDetailsAndCurrentPrice();
 
     log.info(`The job ${jobName} completed successfully.`);
     status.success(`The job ${jobName} completed successfully.`);

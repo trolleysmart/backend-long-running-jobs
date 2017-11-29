@@ -4,7 +4,7 @@ var _trolleySmartStoreCrawler = require('trolley-smart-store-crawler');
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var jobName = 'Countdown - Crawl products details and current price';
+var jobName = 'Guruji';
 
 Parse.Cloud.job(jobName, function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(request, status) {
@@ -19,7 +19,7 @@ Parse.Cloud.job(jobName, function () {
             log.info('The job ' + jobName + ' has started.');
             status.message('The job ' + jobName + ' has started.');
 
-            webCrawlerService = new _trolleySmartStoreCrawler.Countdown({
+            webCrawlerService = new _trolleySmartStoreCrawler.Guruji({
               logVerboseFunc: function logVerboseFunc(message) {
                 return log.info(message);
               },
@@ -34,17 +34,25 @@ Parse.Cloud.job(jobName, function () {
             });
             _context.prev = 4;
             _context.next = 7;
-            return webCrawlerService.crawlProductsDetailsAndCurrentPrice();
+            return webCrawlerService.crawlAndSyncProductCategoriesToStoreTags();
 
           case 7:
+            _context.next = 9;
+            return webCrawlerService.crawlProducts();
+
+          case 9:
+            _context.next = 11;
+            return webCrawlerService.crawlProductsDetailsAndCurrentPrice();
+
+          case 11:
 
             log.info('The job ' + jobName + ' completed successfully.');
             status.success('The job ' + jobName + ' completed successfully.');
-            _context.next = 16;
+            _context.next = 20;
             break;
 
-          case 11:
-            _context.prev = 11;
+          case 15:
+            _context.prev = 15;
             _context.t0 = _context['catch'](4);
             errorMessage = _context.t0 instanceof Error ? _context.t0.message : _context.t0;
 
@@ -52,12 +60,12 @@ Parse.Cloud.job(jobName, function () {
             log.error('The job ' + jobName + ' ended in error. Error: ' + errorMessage);
             status.error('The job ' + jobName + ' ended in error. Error: ' + errorMessage);
 
-          case 16:
+          case 20:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined, [[4, 11]]);
+    }, _callee, undefined, [[4, 15]]);
   }));
 
   return function (_x, _x2) {
