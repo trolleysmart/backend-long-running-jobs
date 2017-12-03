@@ -1,6 +1,6 @@
 {
   "name": "trolley-smart-backend-long-running-jobs",
-  "version": "1.0.0-alpha.52",
+  "version": "1.0.0-alpha.53",
   "description": "Trolley Smart Backend Long Running Jobs",
   "main": "dist/index.js",
   "scripts": {
@@ -27,8 +27,8 @@
     "immutable": "^4.0.0-rc.9",
     "micro-business-parse-server-backend": "^1.0.0-alpha.12",
     "micro-business-parse-server-common": "^1.0.2-alpha.39",
-    "trolley-smart-parse-server-common": "^1.0.0-alpha.50",
-    "trolley-smart-store-crawler": "^1.0.0-alpha.71"
+    "trolley-smart-parse-server-common": "^1.0.0-alpha.51",
+    "trolley-smart-store-crawler": "^1.0.0-alpha.72"
   },
   "devDependencies": {
     "babel-eslint": "^8.0.3",
