@@ -1,6 +1,6 @@
 {
   "name": "trolley-smart-backend-long-running-jobs",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Trolley Smart Backend Long Running Jobs",
   "main": "dist/index.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "husky": "^0.14.3",
     "jest": "^21.2.1",
     "lint-staged": "^6.0.0",
-    "nodemon": "^1.12.7",
+    "nodemon": "^1.13.3",
     "prettier": "^1.9.2",
     "uuid": "^3.1.0"
   },
