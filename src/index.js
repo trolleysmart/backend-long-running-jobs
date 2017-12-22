@@ -2,16 +2,16 @@
 
 import express from 'express';
 import path from 'path';
-import parseServerBackend from 'micro-business-parse-server-backend';
-import { CountdownWebCrawlerService, Health2000WebCrawlerService, WarehouseWebCrawlerService } from 'trolley-smart-store-crawler';
-import { ParseWrapperService } from 'micro-business-parse-server-common';
+import { ParseWrapperService } from '@microbusiness/parse-server-common';
+import parseServerBackend from '@microbusiness/parse-server-backend';
+import { Countdown, Health2000, Warehouse } from '@trolleysmart/store-crawler';
 
 let countdownStoreTags;
 let health2000StoreTags;
 let warehouseStoreTags;
 
 const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
-  const service = new CountdownWebCrawlerService({
+  const service = new Countdown({
     logVerboseFunc: message => console.log(message),
     logInfoFunc: message => console.log(message),
     logErrorFunc: message => console.log(message),
@@ -33,7 +33,7 @@ const crawlCountdownProductsDetailsAndCurrentPrice = async (sessionToken) => {
 };
 
 const crawlHealth2000ProductsDetailsAndCurrentPrice = async (sessionToken) => {
-  const service = new Health2000WebCrawlerService({
+  const service = new Health2000({
     logVerboseFunc: message => console.log(message),
     logInfoFunc: message => console.log(message),
     logErrorFunc: message => console.log(message),
@@ -55,7 +55,7 @@ const crawlHealth2000ProductsDetailsAndCurrentPrice = async (sessionToken) => {
 };
 
 const crawlWarehouseProductsDetailsAndCurrentPrice = async (sessionToken) => {
-  const service = new WarehouseWebCrawlerService({
+  const service = new Warehouse({
     logVerboseFunc: message => console.log(message),
     logInfoFunc: message => console.log(message),
     logErrorFunc: message => console.log(message),

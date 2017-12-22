@@ -1,6 +1,6 @@
 // @flow
 
-import { Valuemart, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Valuemart, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Valuemart - Crawl and sync product categories to store tags';
 

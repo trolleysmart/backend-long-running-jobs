@@ -1,6 +1,6 @@
 // @flow
 
-import { Guruji, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Guruji, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Guruji';
 

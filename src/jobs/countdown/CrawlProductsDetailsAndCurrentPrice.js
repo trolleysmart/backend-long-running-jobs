@@ -1,6 +1,6 @@
 // @flow
 
-import { Countdown, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Countdown, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Countdown - Crawl products details and current price';
 

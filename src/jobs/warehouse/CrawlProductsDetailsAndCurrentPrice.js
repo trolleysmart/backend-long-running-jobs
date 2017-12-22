@@ -1,6 +1,6 @@
 // @flow
 
-import { Warehouse, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Warehouse, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Warehouse - Crawl products details and current price';
 

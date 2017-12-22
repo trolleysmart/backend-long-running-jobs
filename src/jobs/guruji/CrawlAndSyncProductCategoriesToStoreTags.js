@@ -1,6 +1,6 @@
 // @flow
 
-import { Guruji, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Guruji, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Guruji - Crawl and sync product categories to store tags';
 

@@ -1,6 +1,6 @@
 // @flow
 
-import { Health2000, TargetCrawledDataStoreType } from 'trolley-smart-store-crawler';
+import { Health2000, TargetCrawledDataStoreType } from '@trolleysmart/store-crawler';
 
 const jobName = 'Health2000 - Crawl products';
 
