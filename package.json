@@ -6,6 +6,7 @@
   "scripts": {
     "start": "babel-node src/index.js",
     "start:watch": "nodemon --exec npm start",
+    "build": "babel src --out-dir dist",
     "lint": "eslint --ext .jsx --ext .js src",
     "fixlint": "eslint --fix --ext .jsx --ext .js src",
     "test": "jest",
